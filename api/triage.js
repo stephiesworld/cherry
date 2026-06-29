@@ -36,9 +36,11 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
  "issues": [ {
    "title": string,
    "gist": string,
-   "severity": number,            // 1-5
+   "severity": number,            // 1-5: how painful for an affected user
+   "reach": number,               // 1-5: how widespread (how many users hit it)
+   "recency": number,             // 1-5: how current (5 = actively complained about now)
    "prevalence": string,          // e.g. "many reports", "a few mentions"
-   "signal": number,              // your ranking score; higher = more important
+   "signal": number,              // your holistic ranking score; higher = more important
    "owner": string,               // ONE primary team (see owner rule) — no slashes/compounds
    "evidence": [ { "source": string, "url": string, "quote": string } ]
  } ],
@@ -52,8 +54,10 @@ Rules:
   real URL you found via search. An issue you cannot ground in a source does not
   belong in the list — drop it.
 - Paraphrase sentiment in your own words. Keep any quoted phrase short (<= 12 words).
-- "signal" should reflect severity AND how often the theme recurs — rank by impact,
-  not by how loud a single review is.
+- Score severity, reach, and recency independently, each 1-5 — they are separate
+  axes (a niche-but-brutal bug can be high-severity, low-reach). "signal" is your
+  own holistic rank; higher = more important. Rank by impact, not by how loud a
+  single review is.
 - "actions" are concrete next steps (a product change, feature, pricing move, docs
   fix), each with the reasoning in "why".
 - "owner" (on issues AND actions) MUST be a SINGLE primary team — no "/" or "&"
@@ -65,14 +69,53 @@ Rules:
   adjust severity, owner, and ranking to honor them.
 - If real feedback is genuinely thin, say so in "takeaway" and set found=false.`;
 
+// Internal-intake mode: instead of searching the web, triage RAW feedback the
+// user pasted (a Slack thread, support tickets, sales-call notes). Same output
+// shape — this is the "system of record" path: meet teams where the signal lives.
+const SYSTEM_INTERNAL = `You are Cherry, a customer-feedback intelligence engine.
+You are given RAW internal customer feedback (e.g. a Slack thread, support tickets,
+or sales-call notes) pasted by the user. Do NOT use web search. Cluster THIS text
+into the few issues that matter most, grounding every issue in the text itself.
+
+Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
+{
+ "product": string,                // what the feedback is about (infer if unstated)
+ "found": boolean,
+ "takeaway": string,
+ "issues": [ {
+   "title": string, "gist": string,
+   "severity": number,            // 1-5: how painful for an affected user
+   "reach": number,               // 1-5: how many distinct people/accounts raise it in the text
+   "recency": number,             // 1-5: leave 3 unless the text carries dates/timestamps
+   "prevalence": string, "signal": number,
+   "owner": string,               // ONE primary team — no slashes/compounds
+   "evidence": [ { "source": string, "quote": string } ]  // quote VERBATIM from the text; source = who/where in the text (no url)
+ } ],
+ "love": [string], "actions": [ {"action": string, "why": string, "owner": string} ]
+}
+
+Rules:
+- Up to 5 issues (most important first), gist <= 22 words, up to 3 love, up to 4 actions.
+- EVERY issue MUST carry 1–3 evidence items, each a SHORT verbatim quote (<= 14 words)
+  copied from the pasted text, with "source" naming who or where in the text it came
+  from. Do NOT invent feedback that is not in the text. Omit "url".
+- Score severity, reach, and recency 1-5 each as separate axes.
+- "owner" (issues AND actions) is a SINGLE primary team — prefer: Engineering, Product,
+  Design, Billing, Customer Support, Trust & Safety, Security, Legal, Marketing,
+  Content, Leadership. Only invent a single label if none fits.
+- If prior corrections/preferences are provided, honor them and re-rank.
+- If the pasted text has no real product feedback, say so in "takeaway" and set found=false.`;
+
 // Structured-output contract. We hand this schema to the API (output_config.format)
 // so the model's final answer is GUARANTEED to be valid JSON in this exact shape —
 // no more parsing JSON out of free text (which intermittently failed when a review
 // quote contained a stray quote/newline). Every object needs additionalProperties:false.
 const ev = {
   type: "object",
+  // url is optional: web-search evidence carries a real URL; pasted internal
+  // feedback (Slack/support/calls) grounds in a verbatim quote with no URL.
   properties: { source: { type: "string" }, url: { type: "string" }, quote: { type: "string" } },
-  required: ["source", "url", "quote"], additionalProperties: false,
+  required: ["source", "quote"], additionalProperties: false,
 };
 const TRIAGE_SCHEMA = {
   type: "object",
@@ -86,11 +129,14 @@ const TRIAGE_SCHEMA = {
         type: "object",
         properties: {
           title: { type: "string" }, gist: { type: "string" },
-          severity: { type: "integer" }, prevalence: { type: "string" },
+          // Legible, separable signal components (each 1-5) so the score can be
+          // re-weighted client-side instead of being one opaque number.
+          severity: { type: "integer" }, reach: { type: "integer" }, recency: { type: "integer" },
+          prevalence: { type: "string" },
           signal: { type: "number" }, owner: { type: "string" },
           evidence: { type: "array", items: ev },
         },
-        required: ["title", "gist", "severity", "prevalence", "signal", "owner", "evidence"],
+        required: ["title", "gist", "severity", "reach", "recency", "prevalence", "signal", "owner", "evidence"],
         additionalProperties: false,
       },
     },
@@ -135,8 +181,11 @@ function extractJSON(txt) {
   return JSON.parse(t);
 }
 
-async function callAnthropic(name, corrections, memory) {
-  let userMsg = "Research and triage customer feedback for: " + name;
+async function callAnthropic(name, corrections, memory, feedback) {
+  const internal = !!(feedback && feedback.trim());
+  let userMsg = internal
+    ? `Triage this pasted internal customer feedback${name ? ` about ${name}` : ""}:\n\n"""\n${feedback}\n"""`
+    : "Research and triage customer feedback for: " + name;
   if (corrections && corrections.length) {
     userMsg += "\n\nA reviewer corrected the previous pass. Honor these as ground truth and re-rank:\n" +
       corrections.map((c) => `- On "${c.title}": ${c.note}`).join("\n");
@@ -155,9 +204,10 @@ async function callAnthropic(name, corrections, memory) {
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 4096,
-      system: SYSTEM,
+      system: internal ? SYSTEM_INTERNAL : SYSTEM,
       messages: [{ role: "user", content: userMsg }],
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }],
+      // Internal mode triages the pasted text directly — no web search.
+      ...(internal ? {} : { tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }] }),
       output_config: { format: { type: "json_schema", schema: TRIAGE_SCHEMA } },
     }),
   });
@@ -201,14 +251,19 @@ export default async function handler(req, res) {
   const name = (body && body.name ? String(body.name) : "").trim().slice(0, 80);
   const corrections = Array.isArray(body && body.corrections) ? body.corrections.slice(0, 8) : [];
   const memory = Array.isArray(body && body.memory) ? body.memory.slice(0, 12) : [];
-  if (!name) return res.status(400).json({ error: "give me a product or company name" });
+  const feedback = (body && body.feedback ? String(body.feedback) : "").trim().slice(0, 8000);
+  const internal = !!feedback;
+  if (!internal && !name) return res.status(400).json({ error: "give me a product or company name" });
+  if (internal && feedback.length < 40) return res.status(400).json({ error: "paste a bit more feedback to triage (a few lines at least)" });
 
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "anon";
   if (rateLimited(ip)) return res.status(429).json({ error: "easy there — give it a few seconds and try again." });
 
-  // Cache: only the no-corrections (fresh) lookups; corrections always re-run.
+  // Cache: only fresh web lookups (no corrections, no pasted feedback). Pasted
+  // feedback is one-off and corrections always re-run.
+  const cacheable = !corrections.length && !internal;
   const key = name.toLowerCase() + ":" + sig(memory);
-  if (!corrections.length) {
+  if (cacheable) {
     const hit = cache.get(key);
     if (hit && Date.now() - hit.at < CACHE_TTL_MS) return res.status(200).json(hit.data);
   }
@@ -218,8 +273,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = await callAnthropic(name, corrections, memory);
-    if (!corrections.length) cache.set(key, { at: Date.now(), data });
+    const data = await callAnthropic(name, corrections, memory, feedback);
+    if (cacheable) cache.set(key, { at: Date.now(), data });
     return res.status(200).json(data);
   } catch (e) {
     return res.status(502).json({ error: e.message || "couldn't complete that one" });
