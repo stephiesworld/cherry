@@ -55,6 +55,16 @@
   .examples{margin-top:16px;font-size:14px;color:var(--muted);}
   .examples a{color:var(--cherry);text-decoration:none;border-bottom:1px solid rgba(176,35,60,0.3);cursor:pointer;margin:0 2px;}
   .examples a:hover{border-color:var(--cherry);}
+  .examples .ex-or{margin:0 6px;color:var(--muted);}
+  .ex-paste{font-weight:500;}
+  .pastebox{display:none;max-width:560px;margin-top:16px;}
+  .pastebox.on{display:block;}
+  .pastebox textarea{width:100%;min-height:130px;resize:vertical;background:#fff;border:1px solid var(--rule-strong);
+    color:var(--ink);border-radius:10px;padding:14px 16px;font-family:inherit;font-size:15px;line-height:1.5;box-sizing:border-box;}
+  .pastebox textarea::placeholder{color:#b3a8a6;}
+  .pastebox textarea:focus{outline:none;border-color:var(--cherry);box-shadow:0 0 0 3px rgba(176,35,60,0.12);}
+  .pastebar{display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap;}
+  .paste-hint{font-size:12px;color:var(--muted);}
 
   .sortbox{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:10px;
     padding:24px;min-height:360px;box-shadow:0 30px 60px -40px rgba(26,20,22,0.5);}
@@ -106,6 +116,14 @@
   @media(max-width:880px){.res-grid{grid-template-columns:1fr;gap:34px;}}
   .col-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
   .col-hint{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .weights{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-bottom:18px;padding:11px 14px;
+    background:var(--panel);border:1px solid var(--rule);border-radius:8px;font-size:12px;}
+  .weights .wlbl{font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);}
+  .weights label{display:inline-flex;align-items:center;gap:6px;color:var(--ink);}
+  .weights input[type=range]{width:74px;accent-color:var(--cherry);cursor:pointer;}
+  .weights label b{min-width:9px;color:var(--cherry);font-variant-numeric:tabular-nums;}
+  .weights .wreset{color:var(--muted);cursor:pointer;border-bottom:1px solid var(--rule-strong);margin-left:auto;}
+  .weights .wreset:hover{color:var(--cherry);}
 
   .rissue{background:#fff;border:1px solid var(--rule);border-radius:9px;padding:18px 20px;margin-bottom:14px;display:flex;gap:16px;transition:border .2s,box-shadow .2s,opacity .2s;}
   .rissue.top{border-color:rgba(176,35,60,0.45);box-shadow:0 8px 22px -14px rgba(176,35,60,0.4);}
@@ -247,6 +265,14 @@
       <div class="examples">Try
         <a data-ex="Notion">Notion</a> · <a data-ex="Duolingo">Duolingo</a> ·
         <a data-ex="Slack">Slack</a> · <a data-ex="Spotify">Spotify</a>
+        <span class="ex-or">or</span> <a id="pasteToggle" class="ex-paste">paste your own feedback →</a>
+      </div>
+      <div class="pastebox" id="pasteBox">
+        <textarea id="feedbackInput" placeholder="Paste raw feedback — a Slack thread, support tickets, sales-call notes — and Cherry triages it directly (no web search). The signal lives inside your company too." aria-label="Paste customer feedback"></textarea>
+        <div class="pastebar">
+          <button class="btn btn-primary" id="runFeedback">Triage this feedback</button>
+          <span class="paste-hint">Stays in your browser → backend → Claude. Nothing stored.</span>
+        </div>
       </div>
     </div>
 
@@ -285,6 +311,13 @@
       <div>
         <span class="col-label">Top issues, ranked by signal</span>
         <div class="col-hint">Cherry proposes — you decide. Confirm a call, or tell Cherry what's off and re-rank.</div>
+        <div class="weights" id="weights">
+          <span class="wlbl">Signal =</span>
+          <label>severity<input type="range" min="0" max="5" step="1" value="5" data-w="sev"><b>5</b></label>
+          <label>reach<input type="range" min="0" max="5" step="1" value="3" data-w="reach"><b>3</b></label>
+          <label>recency<input type="range" min="0" max="5" step="1" value="2" data-w="rec"><b>2</b></label>
+          <a class="wreset" id="wReset">reset</a>
+        </div>
         <div id="issueList"></div>
         <div class="corrbar" id="corrbar">
           <div class="ct"><b id="corrCount">0 corrections</b> <span>— Cherry will re-rank with your judgment.</span></div>
@@ -353,7 +386,15 @@
   const appliedNote=document.getElementById('appliedNote');
   const corrbar=document.getElementById('corrbar'),corrCount=document.getElementById('corrCount');
 
-  let currentName="", corrections=[];
+  let currentName="", corrections=[], currentFeedback="";
+
+  // Legible signal: the score is a transparent weighted blend of three 1-5 axes
+  // the reviewer can re-weight live, not one opaque number. Default leans on
+  // severity, then reach, then recency.
+  let weights={sev:5,reach:3,rec:2};
+  function scoreOf(it){const w=weights,den=(w.sev+w.reach+w.rec)||1;
+    const s=(w.sev*(+it.severity||0)+w.reach*(+it.reach||0)+w.rec*(+it.recency||0))/den;
+    return Math.round(s/5*100);}
 
   /* ---- self-improving memory (persisted in the browser) ---- */
   const MEM_KEY='cherry.memory.v1', RUN_KEY='cherry.runs.v1';
@@ -384,9 +425,10 @@
     el.classList.add('on');
   }
 
-  const loadLines=["Searching reviews and forums…","Reading what people wrote…","Clustering the themes…","Ranking by signal…","Picking the ones that matter…"];
+  const loadLinesWeb=["Searching reviews and forums…","Reading what people wrote…","Clustering the themes…","Ranking by signal…","Picking the ones that matter…"];
+  const loadLinesPaste=["Reading your feedback…","Clustering the themes…","Scoring severity and reach…","Routing to owners…","Picking the ones that matter…"];
   let loadTimer=null;
-  function cycleLoad(){let i=0;loadMsg.textContent=loadLines[0];loadTimer=setInterval(()=>{i=(i+1)%loadLines.length;loadMsg.textContent=loadLines[i];},2600);}
+  function cycleLoad(){const lines=currentFeedback?loadLinesPaste:loadLinesWeb;let i=0;loadMsg.textContent=lines[0];loadTimer=setInterval(()=>{i=(i+1)%lines.length;loadMsg.textContent=lines[i];},2600);}
   function stopLoad(){clearInterval(loadTimer);loading.classList.remove('on');}
 
   function extractJSON(txt){
@@ -397,9 +439,11 @@
   }
 
   async function callClaude(name,corr){
+    const body={name,corrections:corr||[],memory:recentMemory(12)};
+    if(currentFeedback)body.feedback=currentFeedback;   // internal-intake mode
     const resp=await fetch("/api/triage",{
       method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({name,corrections:corr||[],memory:recentMemory(12)})
+      body:JSON.stringify(body)
     });
     let data;try{data=await resp.json();}catch{throw new Error("the response didn't come back cleanly");}
     if(!resp.ok||data.error){throw new Error(data.error||("error "+resp.status));}
@@ -453,20 +497,21 @@
     if(wasReranked){appliedNote.textContent="✓ Re-picked with your "+corrections.length+" correction"+(corrections.length>1?"s":"")+". Cherry kept your judgment.";appliedNote.classList.add('on');}
     else{appliedNote.classList.remove('on');}
 
-    const issues=(r.issues||[]).slice().sort((a,b)=>(b.signal||0)-(a.signal||0));
+    const issues=(r.issues||[]).slice().sort((a,b)=>scoreOf(b)-scoreOf(a));
     window._cherryIssues=issues;
     renderDigest(issues);
     thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
     runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);renderLearning();
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`
       <div class="rissue ${i===0?'top':''}" data-idx="${i}">
-        <div class="rscore"><div class="nm">${it.signal??'—'}</div><div class="lb">signal</div></div>
+        <div class="rscore"><div class="nm">${scoreOf(it)}</div><div class="lb">signal</div></div>
         <div class="rbody">
           <h4>${esc(it.title||'')}</h4>
           <div class="gist">${esc(it.gist||'')}</div>
           <div class="tags">
-            <span class="tg sev">severity ${it.severity??'?'}</span>
-            <span class="tg">${esc(it.prevalence||'')}</span>
+            <span class="tg sev" title="how painful for an affected user">sev ${it.severity??'?'}</span>
+            <span class="tg" title="how widespread">reach ${it.reach??'?'}</span>
+            <span class="tg" title="how current">recency ${it.recency??'?'}</span>
             <span class="tg own">${esc(it.owner||'')}</span>
           </div>
           ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
@@ -559,12 +604,46 @@
     }catch(e){out.innerHTML=`<div class="draft-err">Couldn\u2019t draft that \u2014 ${esc(e.message||'try again')}.</div>`;}
   }
   function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}corrections=[];refreshCorrbar();runCherry(n,[]);}
+  // Reweight live: recompute each card's score and reorder the DOM nodes in place
+  // (move, don't rebuild) so any open drafts/edits/confirmations are preserved.
+  const weightsEl=document.getElementById('weights');
+  function applyWeights(){
+    const list=document.getElementById('issueList');
+    const cards=[...list.querySelectorAll('.rissue')];
+    if(!cards.length)return;
+    cards.forEach(c=>{const it=(window._cherryIssues||[])[+c.dataset.idx]||{};const sc=scoreOf(it);
+      c.dataset.score=sc;const nm=c.querySelector('.rscore .nm');if(nm)nm.textContent=sc;});
+    cards.sort((a,b)=>(+b.dataset.score)-(+a.dataset.score));
+    cards.forEach((c,i)=>{c.classList.toggle('top',i===0);list.appendChild(c);});
+  }
+  weightsEl.addEventListener('input',e=>{
+    const w=e.target.closest('input[type=range]');if(!w)return;
+    weights[w.dataset.w]=+w.value;w.parentElement.querySelector('b').textContent=w.value;applyWeights();
+  });
+  document.getElementById('wReset').addEventListener('click',()=>{
+    weights={sev:5,reach:3,rec:2};
+    weightsEl.querySelectorAll('input[type=range]').forEach(r=>{r.value=weights[r.dataset.w];r.parentElement.querySelector('b').textContent=r.value;});
+    applyWeights();
+  });
+
+  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];refreshCorrbar();runCherry(n,[]);}
   runBtn.addEventListener('click',go);
   product.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
-  document.querySelectorAll('.examples a').forEach(a=>a.addEventListener('click',()=>{product.value=a.dataset.ex;go();}));
+  document.querySelectorAll('.examples a[data-ex]').forEach(a=>a.addEventListener('click',()=>{product.value=a.dataset.ex;go();}));
+
+  // Internal-intake mode: triage pasted feedback instead of searching the web.
+  const pasteBox=document.getElementById('pasteBox'),feedbackInput=document.getElementById('feedbackInput');
+  document.getElementById('pasteToggle').addEventListener('click',()=>{
+    pasteBox.classList.toggle('on');if(pasteBox.classList.contains('on'))feedbackInput.focus();});
+  function goFeedback(){
+    const t=(feedbackInput.value||"").trim();
+    if(t.length<40){feedbackInput.focus();return;}
+    currentFeedback=t;corrections=[];refreshCorrbar();runCherry("",[]);
+  }
+  document.getElementById('runFeedback').addEventListener('click',goFeedback);
   document.getElementById('againBtn').addEventListener('click',()=>{
-    results.classList.remove('on');product.value="";corrections=[];refreshCorrbar();product.focus();
+    results.classList.remove('on');product.value="";currentFeedback="";feedbackInput.value="";pasteBox.classList.remove('on');
+    corrections=[];refreshCorrbar();product.focus();
     document.getElementById('top').scrollIntoView({behavior:reduce?'auto':'smooth'});});
 
   if(!reduce){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:0.16});
