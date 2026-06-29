@@ -139,6 +139,12 @@
   .tg{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid var(--rule-strong);color:var(--muted);}
   .tg.sev{color:var(--cherry);border-color:rgba(176,35,60,0.35);}
   .tg.own{color:var(--stem);border-color:rgba(70,115,78,0.35);}
+  .life{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0 2px;}
+  .life-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
+  .lifepill{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;
+    padding:3px 9px;border-radius:999px;border:1px solid var(--rule-strong);color:var(--muted);background:transparent;cursor:pointer;}
+  .lifepill:hover{border-color:var(--cherry);color:var(--cherry);}
+  .lifepill.on{background:var(--cherry);border-color:var(--cherry);color:#fff;}
   .ev{display:flex;flex-direction:column;gap:5px;margin-top:11px;}
   .evi{font-size:12.5px;color:#5a4f50;line-height:1.4;}
   .evi a{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cherry);text-decoration:none;border-bottom:1px solid rgba(176,35,60,0.3);margin-right:2px;}
@@ -234,6 +240,8 @@
   .dh-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
   .copybtn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;background:none;border:1px solid var(--rule-strong);color:var(--muted);border-radius:4px;padding:4px 10px;cursor:pointer;}
   .copybtn:hover{border-color:var(--ink);color:var(--ink);}
+  .draft-acts{display:flex;gap:8px;}
+  .draft-acts [data-route]:hover{border-color:var(--stem);color:var(--stem);}
   .draft-text{background:var(--ground);border:1px solid var(--rule);border-radius:6px;padding:13px 15px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.55;color:var(--ink);white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto;}
 </style>
 </head>
@@ -411,6 +419,15 @@
     memory=memory.slice(-60);jset(MEM_KEY,memory);
   }
   function recentMemory(n){return memory.slice(-n).map(m=>({product:m.product,title:m.title,note:m.note}));}
+
+  // Closing the loop: each issue carries a lifecycle status, persisted locally,
+  // so you can see the path from customer signal to shipped outcome.
+  const STATUS_KEY='cherry.status.v1';
+  const STATUSES=['new','triaged','routed','shipped'];
+  let statusMap=(()=>{try{return JSON.parse(localStorage.getItem(STATUS_KEY))||{};}catch{return{};}})();
+  const skey=(title)=>(currentName+'::'+(title||'')).toLowerCase();
+  function getStatus(title){return statusMap[skey(title)]||'new';}
+  function setStatus(title,s){statusMap[skey(title)]=s;try{localStorage.setItem(STATUS_KEY,JSON.stringify(statusMap));}catch{}}
   function renderLearning(){
     const el=document.getElementById('learnStrip');if(!el)return;
     const n=memory.length, recent=runs.slice(-6).filter(r=>r.shown>0);
@@ -515,12 +532,17 @@
             <span class="tg own">${esc(it.owner||'')}</span>
           </div>
           ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
+          <div class="life" data-role="life">
+            <span class="life-lbl">stage</span>
+            ${STATUSES.map(s=>`<button class="lifepill ${getStatus(it.title)===s?'on':''}" data-status="${s}">${s}</button>`).join('')}
+          </div>
           <div class="fb">
             <button class="fbtn ok" data-act="ok">Looks right</button>
             <button class="fbtn no" data-act="no">Not quite</button>
             <span class="fbsep"></span>
             <button class="fbtn draft" data-act="ticket">Draft ticket</button>
             <button class="fbtn draft" data-act="reply">Draft reply</button>
+            <button class="fbtn draft" data-act="update">Draft update</button>
             <span class="fbstate" data-role="state"></span>
           </div>
           <div class="editor" data-role="editor">
@@ -546,6 +568,14 @@
     const copyBtn=e.target.closest('[data-copy]');
     if(copyBtn){const pre=copyBtn.closest('.draftout').querySelector('.draft-text');
       if(pre&&navigator.clipboard){navigator.clipboard.writeText(pre.textContent);copyBtn.textContent='Copied \u2713';setTimeout(()=>copyBtn.textContent='Copy',1400);}return;}
+    // Lifecycle: advance an issue's stage (new \u2192 triaged \u2192 routed \u2192 shipped), persisted.
+    const pill=e.target.closest('.lifepill');
+    if(pill){const card=e.target.closest('.rissue');const issue=(window._cherryIssues||[])[+card.dataset.idx]||{};
+      setStatus(issue.title,pill.dataset.status);
+      card.querySelectorAll('.lifepill').forEach(p=>p.classList.toggle('on',p===pill));return;}
+    // Routing: send the drafted ticket to Slack via /api/route.
+    const routeBtn=e.target.closest('[data-route]');
+    if(routeBtn){sendToSlack(routeBtn);return;}
     const btn=e.target.closest('[data-act]');if(!btn)return;
     const card=e.target.closest('.rissue');const idx=+card.dataset.idx;
     const act=btn.dataset.act;const issue=(window._cherryIssues||[])[idx]||{};
@@ -565,7 +595,7 @@
       upsertCorrection(issue.title,note);
       card.classList.add('corrected');card.classList.remove('confirmed');editor.classList.remove('on');
       state.textContent="you corrected this";state.style.color="var(--cherry)";
-    } else if(act==="ticket"||act==="reply"){
+    } else if(act==="ticket"||act==="reply"||act==="update"){
       draftIssue(idx,act,card);
     }
   });
@@ -593,15 +623,33 @@
     const issue=(window._cherryIssues||[])[idx]||{};
     const out=card.querySelector('[data-role=draftout]');
     out.style.display='block';
-    out.innerHTML=`<div class="draft-load">Drafting the ${kind==='ticket'?'ticket':'reply'}\u2026</div>`;
+    const noun=kind==='ticket'?'ticket':kind==='update'?'customer update':'reply';
+    out.innerHTML=`<div class="draft-load">Drafting the ${noun}\u2026</div>`;
     try{
       const resp=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({product:currentName,issue,kind})});
       let data;try{data=await resp.json();}catch{throw new Error("the response didn't come back cleanly");}
       if(!resp.ok||data.error)throw new Error(data.error||("error "+resp.status));
-      const ticketLbl=(issue.owner?esc(issue.owner)+' ':'')+'ticket';
-      out.innerHTML=`<div class="draft-head"><span class="dh-lbl">${kind==='ticket'?ticketLbl:'Customer reply'}</span><button class="copybtn" data-copy>Copy</button></div><pre class="draft-text">${esc(data.text||'')}</pre>`;
+      const lbl=kind==='ticket'?((issue.owner?esc(issue.owner)+' ':'')+'ticket'):kind==='update'?'Customer update':'Customer reply';
+      // Tickets can be routed to where work happens (Slack); replies/updates are copy-only.
+      const routeBtn=kind==='ticket'?`<button class="copybtn" data-route data-owner="${esc(issue.owner||'')}" data-title="${esc(issue.title||'')}">Send to Slack</button>`:'';
+      out.innerHTML=`<div class="draft-head"><span class="dh-lbl">${lbl}</span><div class="draft-acts">${routeBtn}<button class="copybtn" data-copy>Copy</button></div></div><pre class="draft-text">${esc(data.text||'')}</pre>`;
     }catch(e){out.innerHTML=`<div class="draft-err">Couldn\u2019t draft that \u2014 ${esc(e.message||'try again')}.</div>`;}
+  }
+  async function sendToSlack(btn){
+    const out=btn.closest('.draftout');const text=(out.querySelector('.draft-text')||{}).textContent||'';
+    if(!text)return;const orig=btn.textContent;btn.textContent='Sending\u2026';btn.disabled=true;
+    try{
+      const resp=await fetch('/api/route',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text,title:btn.dataset.title||'',owner:btn.dataset.owner||''})});
+      const data=await resp.json();
+      if(!resp.ok||data.error)throw new Error(data.error||('error '+resp.status));
+      if(data.configured===false){
+        btn.textContent='Set a Slack webhook';btn.title='Add a Slack Incoming Webhook URL as CHERRY_SLACK_WEBHOOK to route tickets straight to a channel.';
+        setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},2800);return;
+      }
+      btn.textContent='Sent to Slack \u2713';
+    }catch(e){btn.textContent='Failed';btn.title=e.message||'';setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},2200);}
   }
   function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
   // Reweight live: recompute each card's score and reorder the DOM nodes in place
