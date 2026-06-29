@@ -1,7 +1,7 @@
 // POST /api/draft  — turn a confirmed issue into the next artifact.
 //
 // Body: { product, issue, kind: "ticket" | "reply" }
-// Returns: { text }  — a paste-ready engineering ticket, or a customer reply.
+// Returns: { text }  — a paste-ready work ticket (framed for the owning team), or a customer reply.
 //
 // This is the "acts" step: Cherry doesn't just say what's wrong, it drafts the
 // thing a PM or CS rep would write next. No web search (cheap, fast); the key
@@ -27,7 +27,10 @@ function overDailyCap() {
   dayCount += 1; return dayCount > DAILY_CAP;
 }
 
-const SYSTEM_TICKET = `You write crisp engineering tickets a PM can paste straight into Linear or Jira.
+const SYSTEM_TICKET = `You write crisp work tickets a PM can paste straight into a tracker (Linear, Jira, Asana).
+Frame the ticket for the team that OWNS the issue (given as "Suggested owner"): that may be engineering,
+but it could equally be billing, support, product, marketing, or leadership — match the language, acceptance
+criteria, and suggested approach to that team's world, not to engineering by default.
 Given a product and one triaged customer-feedback issue, output a ready-to-file ticket as PLAIN TEXT
 (no markdown symbols beyond simple "- " bullets) with exactly these labelled sections:
 

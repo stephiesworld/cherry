@@ -519,7 +519,8 @@
         body:JSON.stringify({product:currentName,issue,kind})});
       let data;try{data=await resp.json();}catch{throw new Error("the response didn't come back cleanly");}
       if(!resp.ok||data.error)throw new Error(data.error||("error "+resp.status));
-      out.innerHTML=`<div class="draft-head"><span class="dh-lbl">${kind==='ticket'?'Engineering ticket':'Customer reply'}</span><button class="copybtn" data-copy>Copy</button></div><pre class="draft-text">${esc(data.text||'')}</pre>`;
+      const ticketLbl=(issue.owner?esc(issue.owner)+' ':'')+'ticket';
+      out.innerHTML=`<div class="draft-head"><span class="dh-lbl">${kind==='ticket'?ticketLbl:'Customer reply'}</span><button class="copybtn" data-copy>Copy</button></div><pre class="draft-text">${esc(data.text||'')}</pre>`;
     }catch(e){out.innerHTML=`<div class="draft-err">Couldn\u2019t draft that \u2014 ${esc(e.message||'try again')}.</div>`;}
   }
   function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
