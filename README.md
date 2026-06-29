@@ -77,7 +77,7 @@ Every push to the repo auto-redeploys.
 |---|---|---|
 | `ANTHROPIC_API_KEY` | — | **Required.** Your key; backend-only. |
 | `CHERRY_MODEL` | `claude-sonnet-4-6` | Fits the free-tier 60s limit. Set `claude-opus-4-8` on Vercel Pro. |
-| `CHERRY_MAX_SEARCHES` | `4` | Web searches per query (the main cost/time lever). Drop to `3` if calls near 60s. |
+| `CHERRY_MAX_SEARCHES` | `3` | Web searches per query (the main cost/time lever). `3` keeps comfortable headroom under the free-tier 60s limit; raise on Vercel Pro. |
 | `CHERRY_DAILY_CAP` | `200` | Hard ceiling on triage queries/day (abuse guard). |
 | `CHERRY_DRAFT_DAILY_CAP` | `300` | Hard ceiling on draft requests/day. |
 | `CHERRY_PER_IP_PER_MIN` | `6` | Per-visitor rate limit. |
