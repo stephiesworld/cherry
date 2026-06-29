@@ -113,7 +113,7 @@ async function callAnthropic(name, corrections, memory, debug) {
       max_tokens: 4096,
       system: SYSTEM,
       messages: [{ role: "user", content: userMsg }],
-      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: maxUses }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: maxUses }],
     }),
   });
   const data = await resp.json();
