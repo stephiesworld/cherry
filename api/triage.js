@@ -65,6 +65,49 @@ Rules:
   adjust severity, owner, and ranking to honor them.
 - If real feedback is genuinely thin, say so in "takeaway" and set found=false.`;
 
+// Structured-output contract. We hand this schema to the API (output_config.format)
+// so the model's final answer is GUARANTEED to be valid JSON in this exact shape —
+// no more parsing JSON out of free text (which intermittently failed when a review
+// quote contained a stray quote/newline). Every object needs additionalProperties:false.
+const ev = {
+  type: "object",
+  properties: { source: { type: "string" }, url: { type: "string" }, quote: { type: "string" } },
+  required: ["source", "url", "quote"], additionalProperties: false,
+};
+const TRIAGE_SCHEMA = {
+  type: "object",
+  properties: {
+    product: { type: "string" },
+    found: { type: "boolean" },
+    takeaway: { type: "string" },
+    issues: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" }, gist: { type: "string" },
+          severity: { type: "integer" }, prevalence: { type: "string" },
+          signal: { type: "number" }, owner: { type: "string" },
+          evidence: { type: "array", items: ev },
+        },
+        required: ["title", "gist", "severity", "prevalence", "signal", "owner", "evidence"],
+        additionalProperties: false,
+      },
+    },
+    love: { type: "array", items: { type: "string" } },
+    actions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { action: { type: "string" }, why: { type: "string" }, owner: { type: "string" } },
+        required: ["action", "why", "owner"], additionalProperties: false,
+      },
+    },
+  },
+  required: ["product", "found", "takeaway", "issues", "love", "actions"],
+  additionalProperties: false,
+};
+
 // ── in-memory guards ─────────────────────────────────────────────────────────
 function sig(memory){let h=5381;const t=(memory||[]).map(m=>(m.title||'')+'~'+(m.note||'')).join('|');for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))>>>0;return h.toString(36);}
 const cache = new Map();        // key -> { at, data }
@@ -115,6 +158,7 @@ async function callAnthropic(name, corrections, memory) {
       system: SYSTEM,
       messages: [{ role: "user", content: userMsg }],
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }],
+      output_config: { format: { type: "json_schema", schema: TRIAGE_SCHEMA } },
     }),
   });
   const data = await resp.json();
