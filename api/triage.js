@@ -15,7 +15,7 @@
 export const config = { maxDuration: 60 }; // web search can take 20–40s
 
 const MODEL = process.env.CHERRY_MODEL || "claude-sonnet-4-6"; // Sonnet fits web-search calls under Vercel's 60s free-tier limit; set CHERRY_MODEL=claude-opus-4-8 on Pro (maxDuration 300)
-const MAX_USES = Number(process.env.CHERRY_MAX_SEARCHES || 3); // 3 keeps the call under Vercel's 60s function limit; raise via env on Pro
+const MAX_USES = Number(process.env.CHERRY_MAX_SEARCHES || 4); // 4 stays under Vercel's 60s free-tier limit; raise via env on Pro (maxDuration 300)
 const DAILY_CAP = Number(process.env.CHERRY_DAILY_CAP || 200);
 const PER_IP_PER_MIN = Number(process.env.CHERRY_PER_IP_PER_MIN || 6);
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -87,7 +87,7 @@ function extractJSON(txt) {
   return JSON.parse(t);
 }
 
-async function callAnthropic(name, corrections, memory, debug) {
+async function callAnthropic(name, corrections, memory) {
   let userMsg = "Research and triage customer feedback for: " + name;
   if (corrections && corrections.length) {
     userMsg += "\n\nA reviewer corrected the previous pass. Honor these as ground truth and re-rank:\n" +
@@ -97,10 +97,6 @@ async function callAnthropic(name, corrections, memory, debug) {
     userMsg += "\n\nLearned preferences from this reviewer's past corrections — apply these tendencies, but they are guidance, not gospel; still judge each product on its own evidence:\n" +
       memory.map((m) => `- On "${m.title}"${m.product ? ` (${m.product})` : ""}: ${m.note}`).join("\n");
   }
-  // Debug calls use a single search so they complete inside the 60s limit and
-  // we can read whether web_search returns results at all.
-  const maxUses = debug ? 1 : MAX_USES;
-  const startedAt = Date.now();
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -113,7 +109,7 @@ async function callAnthropic(name, corrections, memory, debug) {
       max_tokens: 4096,
       system: SYSTEM,
       messages: [{ role: "user", content: userMsg }],
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: maxUses }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }],
     }),
   });
   const data = await resp.json();
@@ -139,26 +135,7 @@ async function callAnthropic(name, corrections, memory, debug) {
   const fatal = searchErrors.filter((c) => c !== "max_uses_exceeded");
   if (!text && fatal.length) throw new Error("web_search error: " + fatal.join(", "));
   if (!text) throw new Error("empty response");
-  const result = extractJSON(text);
-
-  // Gated debug (only when caller sends {"debug": true}) — surfaces whether the
-  // web_search tool actually ran and returned results.
-  if (debug) {
-    const blocks = data.content || [];
-    result.__debug = {
-      model: MODEL,
-      max_uses: maxUses,
-      elapsed_ms: Date.now() - startedAt,
-      stop_reason: data.stop_reason,
-      web_search_calls: blocks.filter((b) => b.type === "server_tool_use" && b.name === "web_search").length,
-      web_search_queries: blocks.filter((b) => b.type === "server_tool_use" && b.name === "web_search").map((b) => b.input && b.input.query),
-      web_search_results: blocks.filter((b) => b.type === "web_search_tool_result")
-        .reduce((n, b) => n + (Array.isArray(b.content) ? b.content.length : 0), 0),
-      content_block_types: blocks.map((b) => b.type),
-      usage: data.usage,
-    };
-  }
-  return result;
+  return extractJSON(text);
 }
 
 export default async function handler(req, res) {
@@ -175,20 +152,14 @@ export default async function handler(req, res) {
   const name = (body && body.name ? String(body.name) : "").trim().slice(0, 80);
   const corrections = Array.isArray(body && body.corrections) ? body.corrections.slice(0, 8) : [];
   const memory = Array.isArray(body && body.memory) ? body.memory.slice(0, 12) : [];
-  const debug = !!(body && body.debug);
-  // Free, instant config check (no Anthropic call) — POST {"ping":true}.
-  if (body && body.ping) {
-    return res.status(200).json({ ok: true, model: MODEL, max_uses: MAX_USES, max_duration: config.maxDuration, has_key: !!process.env.ANTHROPIC_API_KEY });
-  }
   if (!name) return res.status(400).json({ error: "give me a product or company name" });
 
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "anon";
   if (rateLimited(ip)) return res.status(429).json({ error: "easy there — give it a few seconds and try again." });
 
   // Cache: only the no-corrections (fresh) lookups; corrections always re-run.
-  // Debug calls always bypass the cache so they reflect a live tool run.
   const key = name.toLowerCase() + ":" + sig(memory);
-  if (!corrections.length && !debug) {
+  if (!corrections.length) {
     const hit = cache.get(key);
     if (hit && Date.now() - hit.at < CACHE_TTL_MS) return res.status(200).json(hit.data);
   }
@@ -198,8 +169,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = await callAnthropic(name, corrections, memory, debug);
-    if (!corrections.length && !debug) cache.set(key, { at: Date.now(), data });
+    const data = await callAnthropic(name, corrections, memory);
+    if (!corrections.length) cache.set(key, { at: Date.now(), data });
     return res.status(200).json(data);
   } catch (e) {
     return res.status(502).json({ error: e.message || "couldn't complete that one" });
