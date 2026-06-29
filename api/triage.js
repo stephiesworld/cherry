@@ -97,6 +97,10 @@ async function callAnthropic(name, corrections, memory, debug) {
     userMsg += "\n\nLearned preferences from this reviewer's past corrections — apply these tendencies, but they are guidance, not gospel; still judge each product on its own evidence:\n" +
       memory.map((m) => `- On "${m.title}"${m.product ? ` (${m.product})` : ""}: ${m.note}`).join("\n");
   }
+  // Debug calls use a single search so they complete inside the 60s limit and
+  // we can read whether web_search returns results at all.
+  const maxUses = debug ? 1 : MAX_USES;
+  const startedAt = Date.now();
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -109,7 +113,7 @@ async function callAnthropic(name, corrections, memory, debug) {
       max_tokens: 4096,
       system: SYSTEM,
       messages: [{ role: "user", content: userMsg }],
-      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: MAX_USES }],
+      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: maxUses }],
     }),
   });
   const data = await resp.json();
@@ -138,6 +142,9 @@ async function callAnthropic(name, corrections, memory, debug) {
   if (debug) {
     const blocks = data.content || [];
     result.__debug = {
+      model: MODEL,
+      max_uses: maxUses,
+      elapsed_ms: Date.now() - startedAt,
       stop_reason: data.stop_reason,
       web_search_calls: blocks.filter((b) => b.type === "server_tool_use" && b.name === "web_search").length,
       web_search_queries: blocks.filter((b) => b.type === "server_tool_use" && b.name === "web_search").map((b) => b.input && b.input.query),
@@ -165,6 +172,10 @@ export default async function handler(req, res) {
   const corrections = Array.isArray(body && body.corrections) ? body.corrections.slice(0, 8) : [];
   const memory = Array.isArray(body && body.memory) ? body.memory.slice(0, 12) : [];
   const debug = !!(body && body.debug);
+  // Free, instant config check (no Anthropic call) — POST {"ping":true}.
+  if (body && body.ping) {
+    return res.status(200).json({ ok: true, model: MODEL, max_uses: MAX_USES, max_duration: config.maxDuration, has_key: !!process.env.ANTHROPIC_API_KEY });
+  }
   if (!name) return res.status(400).json({ error: "give me a product or company name" });
 
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "anon";
