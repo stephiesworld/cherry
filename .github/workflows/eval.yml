@@ -1,0 +1,22 @@
+name: eval
+
+# Cherry's quality gate runs on every push and PR. The eval enforces the
+# credibility-critical contract on triage output — every issue grounded in a
+# real source URL, severities sane, the list actually ranked, actions justified.
+# A prompt or model change that breaks the contract fails CI here, before it ships.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run Cherry quality gate
+        run: npm run eval

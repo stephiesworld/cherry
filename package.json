@@ -6,6 +6,7 @@
   "description": "Cherry — name any product, get the customer feedback worth acting on. Studio Felix.",
   "engines": { "node": ">=18" },
   "scripts": {
-    "eval": "node evals/check.mjs evals/golden.json"
+    "eval": "node evals/check.mjs evals/golden.json",
+    "test": "npm run eval"
   }
 }
