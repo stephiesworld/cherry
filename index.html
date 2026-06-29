@@ -92,6 +92,12 @@
   .takeaway{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--cherry);border-radius:8px;
     padding:24px 26px;margin-bottom:30px;font-size:20px;font-family:'Fraunces',serif;line-height:1.4;}
 
+  .teamdigest{display:none;align-items:center;flex-wrap:wrap;gap:10px;margin:-14px 0 30px;}
+  .teamdigest.on{display:flex;}
+  .teamdigest .td-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
+  .teamdigest .td-chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;
+    padding:4px 11px;border-radius:999px;border:1px solid var(--rule-strong);color:var(--stem);background:var(--panel);}
+  .teamdigest .td-chip b{color:var(--ink);font-weight:600;margin-right:5px;}
   .res-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:30px;}
   @media(max-width:880px){.res-grid{grid-template-columns:1fr;gap:34px;}}
   .col-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
@@ -269,6 +275,7 @@
     <div class="applied-note" id="appliedNote"></div>
     <div class="learnstrip" id="learnStrip"></div>
     <div class="takeaway" id="takeaway"></div>
+    <div class="teamdigest" id="teamDigest"></div>
     <div class="res-grid">
       <div>
         <span class="col-label">Top issues, ranked by signal</span>
@@ -411,6 +418,19 @@
     render(r,name,!!(corr&&corr.length));
   }
 
+  // Group issues by their owning team and show a one-line routing digest —
+  // reframes the list from "complaints" into "who needs to act, and on how much."
+  function renderDigest(issues){
+    const el=document.getElementById('teamDigest');
+    const counts=new Map();
+    issues.forEach(it=>{const o=(it.owner||'').trim();if(!o)return;counts.set(o,(counts.get(o)||0)+1);});
+    if(counts.size<2){el.classList.remove('on');el.innerHTML='';return;}
+    const chips=[...counts.entries()].sort((a,b)=>b[1]-a[1])
+      .map(([o,n])=>`<span class="td-chip"><b>${n}</b>${esc(o)}</span>`).join('');
+    el.innerHTML=`<span class="td-lbl">Routes to</span>${chips}`;
+    el.classList.add('on');
+  }
+
   function render(r,name,wasReranked){
     currentName=r.product||name;
     document.getElementById('resFor').textContent=currentName;
@@ -421,6 +441,7 @@
 
     const issues=(r.issues||[]).slice().sort((a,b)=>(b.signal||0)-(a.signal||0));
     window._cherryIssues=issues;
+    renderDigest(issues);
     thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
     runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);renderLearning();
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`

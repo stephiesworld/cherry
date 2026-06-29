@@ -39,7 +39,7 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "severity": number,            // 1-5
    "prevalence": string,          // e.g. "many reports", "a few mentions"
    "signal": number,              // your ranking score; higher = more important
-   "owner": string,               // the team that should own it
+   "owner": string,               // ONE primary team (see owner rule) — no slashes/compounds
    "evidence": [ { "source": string, "url": string, "quote": string } ]
  } ],
  "love": [string, string, string],
@@ -56,6 +56,11 @@ Rules:
   not by how loud a single review is.
 - "actions" are concrete next steps (a product change, feature, pricing move, docs
   fix), each with the reasoning in "why".
+- "owner" (on issues AND actions) MUST be a SINGLE primary team — no "/" or "&"
+  compounds, no listing two teams. Pick the one team most accountable, and prefer
+  one of these canonical labels so related issues cluster: Engineering, Product,
+  Design, Billing, Customer Support, Trust & Safety, Security, Legal, Marketing,
+  Content, Leadership. Only invent a different single label if none of these fits.
 - If a reviewer's prior corrections are provided, treat them as ground truth:
   adjust severity, owner, and ranking to honor them.
 - If real feedback is genuinely thin, say so in "takeaway" and set found=false.`;
