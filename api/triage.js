@@ -114,8 +114,22 @@ async function callAnthropic(name, corrections, memory) {
   });
   const data = await resp.json();
   if (data.error) throw new Error(data.error.message || "anthropic api error");
+
+  // Web-search diagnostic: the web_search tool fails with HTTP 200 + an error
+  // block (not a thrown error), and the model often still emits text (found=false),
+  // which hides the real cause. Surface the exact web-search error_code so it
+  // reaches the UI instead of silently looking like "no feedback found".
+  const searchErrors = (data.content || [])
+    .filter((b) => b.type === "web_search_tool_result")
+    .map((b) => b.content)
+    .filter((c) => c && !Array.isArray(c) && (c.error_code || /error/i.test(c.type || "")))
+    .map((c) => c.error_code || c.type);
+
   const text = (data.content || [])
     .filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+
+  // If web search produced no usable results, fail loudly with the error_code.
+  if (searchErrors.length) throw new Error("web_search error: " + searchErrors.join(", "));
   if (!text) throw new Error("empty response");
   return extractJSON(text);
 }
