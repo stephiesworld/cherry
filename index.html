@@ -92,6 +92,10 @@
   .takeaway{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--cherry);border-radius:8px;
     padding:24px 26px;margin-bottom:30px;font-size:20px;font-family:'Fraunces',serif;line-height:1.4;}
 
+  .lowconf{display:none;background:#FBF3E7;border:1px solid #E4C893;border-left:3px solid #C99A3A;border-radius:8px;
+    padding:14px 18px;margin-bottom:20px;font-size:15px;line-height:1.5;color:#6B5320;}
+  .lowconf.on{display:block;}
+  .lowconf b{color:#5A4416;}
   .teamdigest{display:none;align-items:center;flex-wrap:wrap;gap:10px;margin:-14px 0 30px;}
   .teamdigest.on{display:flex;}
   .teamdigest .td-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
@@ -274,6 +278,7 @@
     </div>
     <div class="applied-note" id="appliedNote"></div>
     <div class="learnstrip" id="learnStrip"></div>
+    <div class="lowconf" id="lowConf"></div>
     <div class="takeaway" id="takeaway"></div>
     <div class="teamdigest" id="teamDigest"></div>
     <div class="res-grid">
@@ -435,6 +440,15 @@
     currentName=r.product||name;
     document.getElementById('resFor').textContent=currentName;
     document.getElementById('takeaway').textContent=r.takeaway||"";
+
+    // Calibrated honesty surface: when Cherry can't ground the triage in enough
+    // real feedback it sets found=false — say so plainly instead of dressing up a
+    // thin result as confident. Better to admit low confidence than to fabricate signal.
+    const lc=document.getElementById('lowConf');
+    if(r.found===false){
+      lc.innerHTML=`<b>Low confidence — read this as tentative.</b> Cherry couldn’t find enough recent, public feedback to triage <em>${esc(currentName)}</em> with confidence. There may be little out there, or most of it sits behind logins and app stores Cherry can’t read. Treat anything below as a lead to verify, not a finding.`;
+      lc.classList.add('on');
+    } else { lc.classList.remove('on'); lc.innerHTML=''; }
 
     if(wasReranked){appliedNote.textContent="✓ Re-picked with your "+corrections.length+" correction"+(corrections.length>1?"s":"")+". Cherry kept your judgment.";appliedNote.classList.add('on');}
     else{appliedNote.classList.remove('on');}
