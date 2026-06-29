@@ -7,23 +7,27 @@ Studio Felix · built on the Anthropic API.
 
 [![eval](https://github.com/stephiesworld/cherry/actions/workflows/eval.yml/badge.svg)](https://github.com/stephiesworld/cherry/actions/workflows/eval.yml)
 
-A live, AI-native customer-feedback triage tool: enter a product → Cherry
-searches the open web (reviews, Reddit, forums, app stores, social), clusters
-the noise into ranked issues, recommends next steps with reasoning, and cites a
-source for every issue. Human-in-the-loop: disagree with a call, tell Cherry
-what's off, and it re-ranks with your judgment as ground truth.
+A live, AI-native customer-feedback triage tool — a working v1 of an operating
+system for voice-of-the-customer. It **intakes** signal two ways (search the open
+web, *or* paste raw internal feedback — a Slack thread, support tickets, sales-call
+notes), **synthesizes** the noise into ranked, source-grounded issues, **routes**
+each to the team that owns it, and **closes the loop** with drafts and status —
+with a human in the loop at every step and evals measuring quality.
 
-It also **learns** and **acts**:
-- **Self-improving** — corrections persist in your browser, accumulate across
-  searches, and ride along into future queries as learned preferences. A small
-  on-page metric shows your *correction rate dropping* as Cherry adapts.
-- **Drafts the next step** — every issue has **Draft ticket** / **Draft reply**:
-  Cherry turns a triaged issue into a paste-ready ticket, framed for whichever
-  team owns it (Engineering, Legal, Billing, Leadership…), or a customer response —
-  so it does the first-pass writing, not just the analysis.
-- **Routes the work** — a one-line digest (`3 Engineering · 1 Legal · 1 Leadership`)
-  reframes the list from "complaints" into who owns what, and each issue's ticket
-  follows that owner.
+- **Intake, two ways** — search the public web, or paste internal feedback and
+  Cherry triages it directly (no web search). The signal lives inside your company too.
+- **Legible signal** — each issue scores severity, reach, and recency as separate
+  1-5 axes; a live `Signal = severity·reach·recency` control lets you re-weight what
+  "high-signal" means and the ranking re-sorts in place. No opaque number.
+- **Human-in-the-loop & self-improving** — disagree with a call, tell Cherry what's
+  off, and it re-ranks with your judgment as ground truth. Corrections persist and
+  ride along into future queries; an on-page metric shows your *correction rate dropping*.
+- **Routes the work** — a one-line digest (`3 Engineering · 1 Billing · 1 Legal`)
+  reframes the list into who owns what; each issue's ticket is framed for that team,
+  and tickets can be **sent straight to Slack**.
+- **Closes the loop** — every issue has a lifecycle (`new → triaged → routed → shipped`)
+  and **Draft ticket / reply / "you said, we did" update**, so Cherry does the
+  first-pass writing and you can trace signal to outcome.
 
 ## How it's wired
 
@@ -78,6 +82,7 @@ Every push to the repo auto-redeploys.
 | `CHERRY_DRAFT_DAILY_CAP` | `300` | Hard ceiling on draft requests/day. |
 | `CHERRY_PER_IP_PER_MIN` | `6` | Per-visitor rate limit. |
 | `CHERRY_ALLOW_ORIGIN` | `*` | Lock CORS to your site in production. |
+| `CHERRY_SLACK_WEBHOOK` | — | Slack Incoming Webhook URL; enables "Send to Slack" routing. |
 
 ## Cost & safety
 
@@ -90,26 +95,36 @@ per-instance — fine for a portfolio tool; back it with Vercel KV for real scal
 
 ## Quality gate (evals)
 
+Two layers — structure and quality:
+
 ```bash
-npm run eval          # node evals/check.mjs evals/golden.json
+npm run eval          # check.mjs  — structural contract (deterministic, runs in CI)
+npm run judge         # judge.mjs  — LLM-as-judge synthesis quality (needs ANTHROPIC_API_KEY)
 ```
 
-Treats the triage output as a product with a contract and fails loudly when it's
-violated: every issue grounded in a real source URL, severities in range, the
-list actually ranked by signal, every action justified. It **runs automatically
-in CI on every push** (`.github/workflows/eval.yml`), so a prompt or model change
-that breaks the contract fails the build before it ships — closed-loop quality,
-not vibes. (`golden.json` is an illustrative recorded result; pipe a live result
-in with `curl … | node evals/check.mjs -`.)
+**`check.mjs`** treats the triage output as a product with a contract and fails
+loudly when it's violated: every issue grounded in a real source, severities in
+range, the list actually ranked, every action justified. It **runs automatically
+in CI on every push** (`.github/workflows/eval.yml`), so a change that breaks the
+contract fails the build before it ships — closed-loop quality, not vibes.
+
+**`judge.mjs`** goes further: a second Claude call grades *synthesis quality* —
+clustering, ranking defensibility, routing correctness, grounding, actionability
+— each 1-5 against a rubric, and appends the score to `judge-history.jsonl` so
+the trend is visible as the prompt evolves. That's the harder eval problem:
+catching a triage that's structurally valid but *worse*. (`golden.json` is an
+illustrative recorded result; pipe a live one in with `curl … | node evals/check.mjs -`.)
 
 ## Files
 
 | Path | What |
 |---|---|
 | `index.html` | The front end (Studio Felix design; calls its own backend). |
-| `api/triage.js` | Triage backend: key + prompt + Claude/web-search + memory + guards. |
-| `api/draft.js` | Drafts a ticket (framed for the owning team) or customer reply from an issue. |
-| `evals/check.mjs` + `golden.json` | The quality gate. |
+| `api/triage.js` | Triage backend: web-search **or** pasted-feedback intake, structured-output JSON, memory, guards. |
+| `api/draft.js` | Drafts a ticket (framed for the owning team), customer reply, or "you said, we did" update. |
+| `api/route.js` | Routes a drafted ticket to Slack (`CHERRY_SLACK_WEBHOOK`). |
+| `evals/check.mjs` + `golden.json` | Structural quality gate (CI). |
+| `evals/judge.mjs` | LLM-as-judge synthesis-quality eval. |
 | `DESIGN.md` | The brand system. |
 
 — Built with Claude. Studio Felix.
