@@ -1,6 +1,6 @@
 // POST /api/draft  — turn a confirmed issue into the next artifact.
 //
-// Body: { product, issue, kind: "ticket" | "reply" }
+// Body: { product, issue, kind: "ticket" | "reply" | "update" }
 // Returns: { text }  — a paste-ready work ticket (framed for the owning team), or a customer reply.
 //
 // This is the "acts" step: Cherry doesn't just say what's wrong, it drafts the
@@ -52,6 +52,14 @@ raised it. Acknowledge the specific problem, show you understand its impact, say
 it WITHOUT overpromising or inventing dates, and invite them to follow up. Plain text, no markdown.
 Sign off as "The <product> team". No preamble before the reply itself.`;
 
+// Closing the loop: a "you said, we did" update sent once an issue is resolved.
+const SYSTEM_UPDATE = `You write a short "you said, we did" customer update for a product/CS team —
+the message sent once an issue customers raised has been addressed. Given a product and one triaged
+feedback issue (now resolved), write 90-140 words that: name what customers told us, what we changed
+in response, and the benefit they'll feel — closing the loop so they know their feedback mattered.
+Honest and specific; do NOT invent metrics, dates, or details beyond the issue. Plain text, no markdown.
+Sign off as "The <product> team". No preamble before the update itself.`;
+
 function userContent(product, issue) {
   const lines = [`Product: ${product}`, `Issue: ${issue.title || ""}`];
   if (issue.gist) lines.push(`Detail: ${issue.gist}`);
@@ -73,7 +81,8 @@ export default async function handler(req, res) {
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   const product = (body && body.product ? String(body.product) : "").trim().slice(0, 80);
-  const kind = body && body.kind === "reply" ? "reply" : "ticket";
+  const SYS = { ticket: SYSTEM_TICKET, reply: SYSTEM_REPLY, update: SYSTEM_UPDATE };
+  const kind = body && SYS[body.kind] ? body.kind : "ticket";
   const issue = (body && body.issue) || {};
   if (!product || !issue.title) return res.status(400).json({ error: "missing product or issue" });
 
@@ -92,7 +101,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 1024,
-        system: kind === "reply" ? SYSTEM_REPLY : SYSTEM_TICKET,
+        system: SYS[kind],
         messages: [{ role: "user", content: userContent(product, issue) }],
       }),
     });
