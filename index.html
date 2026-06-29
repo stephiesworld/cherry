@@ -139,6 +139,8 @@
   .tg{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid var(--rule-strong);color:var(--muted);}
   .tg.sev{color:var(--cherry);border-color:rgba(176,35,60,0.35);}
   .tg.own{color:var(--stem);border-color:rgba(70,115,78,0.35);}
+  .tg.disp.fix{color:var(--muted);}
+  .tg.disp.trade{color:#9A6A12;border-color:#D9B871;background:#FBF3E7;font-weight:600;}
   .life{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0 2px;}
   .life-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
   .lifepill{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;
@@ -530,6 +532,7 @@
             <span class="tg" title="how widespread">reach ${it.reach??'?'}</span>
             <span class="tg" title="how current">recency ${it.recency??'?'}</span>
             <span class="tg own">${esc(it.owner||'')}</span>
+            ${it.disposition?`<span class="tg disp ${it.disposition==='intentional tradeoff'?'trade':'fix'}" title="${it.disposition==='intentional tradeoff'?'a deliberate business choice — weigh it, do not just fix it':'a gap the team would want to close'}">${esc(it.disposition)}</span>`:''}
           </div>
           ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
           <div class="life" data-role="life">

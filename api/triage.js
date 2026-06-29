@@ -40,6 +40,7 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "reach": number,               // 1-5: how widespread (how many users hit it)
    "recency": number,             // 1-5: how current (5 = actively complained about now)
    "prevalence": string,          // e.g. "many reports", "a few mentions"
+   "disposition": string,         // "fixable gap" | "intentional tradeoff" (see rule)
    "signal": number,              // your holistic ranking score; higher = more important
    "owner": string,               // ONE primary team (see owner rule) — no slashes/compounds
    "evidence": [ { "source": string, "url": string, "quote": string } ]
@@ -63,13 +64,14 @@ Rules:
   single review is.
 - "actions" are concrete next steps (a product change, feature, pricing move, docs
   fix), each with the reasoning in "why".
-- Distinguish a FIXABLE GAP (a bug, missing feature, or unintended friction the team
-  would want to close) from an INTENTIONAL TRADEOFF (a deliberate business decision —
-  aggressive pricing, cancellation friction, a dark pattern — that customers hate but
-  the company chose on purpose). For an intentional tradeoff, do NOT frame the action
-  as a simple "fix it"; frame it as a leadership/strategy decision weighing the
-  customer/brand/legal cost against the business upside, and prefer Leadership (or Legal
-  when there's regulatory exposure) as the owner rather than the team that merely built it.
+- Set "disposition" per issue: a FIXABLE GAP (a bug, missing feature, or unintended
+  friction the team would want to close) or an INTENTIONAL TRADEOFF (a deliberate
+  business decision — aggressive pricing, cancellation friction, a dark pattern — that
+  customers hate but the company chose on purpose). For an intentional tradeoff, do NOT
+  frame the action as a simple "fix it"; frame it as a leadership/strategy decision
+  weighing the customer/brand/legal cost against the business upside, and prefer
+  Leadership (or Legal when there's regulatory exposure) as the owner rather than the
+  team that merely built it.
 - "owner" (on issues AND actions) MUST be a SINGLE primary team — no "/" or "&"
   compounds, no listing two teams. Pick the one team most accountable, and prefer
   one of these canonical labels so related issues cluster: Engineering, Product,
@@ -97,7 +99,9 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "severity": number,            // 1-5: how painful for an affected user
    "reach": number,               // 1-5: how many distinct people/accounts raise it in the text
    "recency": number,             // 1-5: leave 3 unless the text carries dates/timestamps
-   "prevalence": string, "signal": number,
+   "prevalence": string,
+   "disposition": string,         // "fixable gap" | "intentional tradeoff"
+   "signal": number,
    "owner": string,               // ONE primary team — no slashes/compounds
    "evidence": [ { "source": string, "quote": string } ]  // quote VERBATIM from the text; source = who/where in the text (no url)
  } ],
@@ -110,6 +114,9 @@ Rules:
   copied from the pasted text, with "source" naming who or where in the text it came
   from. Do NOT invent feedback that is not in the text. Omit "url".
 - Score severity, reach, and recency 1-5 each as separate axes.
+- Set "disposition": "fixable gap" (a bug/missing-feature/friction to close) or
+  "intentional tradeoff" (a deliberate business choice customers dislike). Route an
+  intentional tradeoff to Leadership/Legal as a strategy call, not a fix.
 - "owner" (issues AND actions) is a SINGLE primary team — prefer: Engineering, Product,
   Design, Billing, Customer Support, Trust & Safety, Security, Legal, Marketing,
   Content, Leadership. Only invent a single label if none fits.
@@ -143,10 +150,13 @@ const TRIAGE_SCHEMA = {
           // re-weighted client-side instead of being one opaque number.
           severity: { type: "integer" }, reach: { type: "integer" }, recency: { type: "integer" },
           prevalence: { type: "string" },
+          // Disposition: is this a gap the team would close, or a deliberate business
+          // choice customers hate? Drives whether the action is a fix or a strategy call.
+          disposition: { type: "string", enum: ["fixable gap", "intentional tradeoff"] },
           signal: { type: "number" }, owner: { type: "string" },
           evidence: { type: "array", items: ev },
         },
-        required: ["title", "gist", "severity", "reach", "recency", "prevalence", "signal", "owner", "evidence"],
+        required: ["title", "gist", "severity", "reach", "recency", "prevalence", "disposition", "signal", "owner", "evidence"],
         additionalProperties: false,
       },
     },

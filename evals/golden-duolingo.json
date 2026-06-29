@@ -28,7 +28,8 @@
           "url": "https://www.classcentral.com/report/duolingo-reddit-revolt-against-unpaid-support/",
           "quote": "\"increasingly aggressive monetization that restricts learning for free users\""
         }
-      ]
+      ],
+      "disposition": "intentional tradeoff"
     },
     {
       "title": "Billing Traps & Unauthorized Subscription Charges",
@@ -55,7 +56,8 @@
           "url": "https://duolingo.pissedconsumer.com/complaints/RT-P.html",
           "quote": "\"Frequent customer complaints about billing, unauthorized charges, and refund delays\""
         }
-      ]
+      ],
+      "disposition": "intentional tradeoff"
     },
     {
       "title": "Customer Support Is Effectively Non-Existent",
@@ -82,7 +84,8 @@
           "url": "https://www.trustpilot.com/review/duolingo.com",
           "quote": "\"I have been trying to contact Duolingo for two months and have not received a response\""
         }
-      ]
+      ],
+      "disposition": "fixable gap"
     },
     {
       "title": "Shallow Pedagogy: Gamification Replaces Real Learning",
@@ -109,7 +112,8 @@
           "url": "https://blog.thelinguist.com/duolingo-review/",
           "quote": "\"eventually you start playing the game to win points rather than to learn\""
         }
-      ]
+      ],
+      "disposition": "intentional tradeoff"
     },
     {
       "title": "Speech Recognition & Audio Bugs Undermine Speaking Practice",
@@ -136,7 +140,8 @@
           "url": "https://duolingo.pissedconsumer.com/review.html",
           "quote": "\"lost access to respond/repeat answers … no longer have access to the microphone\""
         }
-      ]
+      ],
+      "disposition": "fixable gap"
     }
   ],
   "love": [
