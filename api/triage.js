@@ -87,7 +87,7 @@ function extractJSON(txt) {
   return JSON.parse(t);
 }
 
-async function callAnthropic(name, corrections, memory) {
+async function callAnthropic(name, corrections, memory, debug) {
   let userMsg = "Research and triage customer feedback for: " + name;
   if (corrections && corrections.length) {
     userMsg += "\n\nA reviewer corrected the previous pass. Honor these as ground truth and re-rank:\n" +
@@ -131,7 +131,23 @@ async function callAnthropic(name, corrections, memory) {
   // If web search produced no usable results, fail loudly with the error_code.
   if (searchErrors.length) throw new Error("web_search error: " + searchErrors.join(", "));
   if (!text) throw new Error("empty response");
-  return extractJSON(text);
+  const result = extractJSON(text);
+
+  // Gated debug (only when caller sends {"debug": true}) — surfaces whether the
+  // web_search tool actually ran and returned results.
+  if (debug) {
+    const blocks = data.content || [];
+    result.__debug = {
+      stop_reason: data.stop_reason,
+      web_search_calls: blocks.filter((b) => b.type === "server_tool_use" && b.name === "web_search").length,
+      web_search_queries: blocks.filter((b) => b.type === "server_tool_use" && b.name === "web_search").map((b) => b.input && b.input.query),
+      web_search_results: blocks.filter((b) => b.type === "web_search_tool_result")
+        .reduce((n, b) => n + (Array.isArray(b.content) ? b.content.length : 0), 0),
+      content_block_types: blocks.map((b) => b.type),
+      usage: data.usage,
+    };
+  }
+  return result;
 }
 
 export default async function handler(req, res) {
@@ -148,14 +164,16 @@ export default async function handler(req, res) {
   const name = (body && body.name ? String(body.name) : "").trim().slice(0, 80);
   const corrections = Array.isArray(body && body.corrections) ? body.corrections.slice(0, 8) : [];
   const memory = Array.isArray(body && body.memory) ? body.memory.slice(0, 12) : [];
+  const debug = !!(body && body.debug);
   if (!name) return res.status(400).json({ error: "give me a product or company name" });
 
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "anon";
   if (rateLimited(ip)) return res.status(429).json({ error: "easy there — give it a few seconds and try again." });
 
   // Cache: only the no-corrections (fresh) lookups; corrections always re-run.
+  // Debug calls always bypass the cache so they reflect a live tool run.
   const key = name.toLowerCase() + ":" + sig(memory);
-  if (!corrections.length) {
+  if (!corrections.length && !debug) {
     const hit = cache.get(key);
     if (hit && Date.now() - hit.at < CACHE_TTL_MS) return res.status(200).json(hit.data);
   }
@@ -165,8 +183,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = await callAnthropic(name, corrections, memory);
-    if (!corrections.length) cache.set(key, { at: Date.now(), data });
+    const data = await callAnthropic(name, corrections, memory, debug);
+    if (!corrections.length && !debug) cache.set(key, { at: Date.now(), data });
     return res.status(200).json(data);
   } catch (e) {
     return res.status(502).json({ error: e.message || "couldn't complete that one" });
