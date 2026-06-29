@@ -1,0 +1,40 @@
+{
+  "product": "Notion",
+  "found": true,
+  "takeaway": "Notion's core complaints cluster around speed on large workspaces and unreliable offline mode — both retention risks as power users eye Obsidian. Pricing friction on the AI add-on and a weaker mobile app are secondary but recurring.",
+  "issues": [
+    { "title": "Large workspaces get slow", "gist": "Load lag and laggy typing once a workspace passes a few thousand pages.", "severity": 4, "prevalence": "many reports", "signal": 38, "owner": "Performance",
+      "evidence": [
+        { "source": "Reddit r/Notion", "url": "https://www.reddit.com/r/Notion/", "quote": "painfully slow to load and even typing lags" },
+        { "source": "G2", "url": "https://www.g2.com/products/notion/reviews", "quote": "performance degrades badly with large databases" }
+      ] },
+    { "title": "Offline mode is unreliable", "gist": "Edits lost without a connection; the top reason power users leave for local-first tools.", "severity": 4, "prevalence": "many reports", "signal": 33, "owner": "Sync",
+      "evidence": [
+        { "source": "Trustpilot", "url": "https://www.trustpilot.com/review/notion.so", "quote": "lost edits on a flight" },
+        { "source": "Hacker News", "url": "https://news.ycombinator.com/", "quote": "still no real offline support" }
+      ] },
+    { "title": "AI add-on feels like nickel-and-diming", "gist": "Paid users resent a second per-seat charge for AI when rivals bundle it.", "severity": 3, "prevalence": "a recurring theme", "signal": 21, "owner": "Pricing",
+      "evidence": [
+        { "source": "Capterra", "url": "https://www.capterra.com/p/notion/reviews/", "quote": "felt nickel-and-dimed" }
+      ] },
+    { "title": "Mobile app trails desktop", "gist": "Slow open and clunky database editing make mobile a viewer, not an editor.", "severity": 3, "prevalence": "a few mentions", "signal": 16, "owner": "Mobile",
+      "evidence": [
+        { "source": "iOS App Store", "url": "https://apps.apple.com/app/notion/id1232780281", "quote": "mobile app is slow and clunky" }
+      ] },
+    { "title": "Steep learning curve for new users", "gist": "Databases and relations overwhelm newcomers before they reach the payoff.", "severity": 2, "prevalence": "a recurring theme", "signal": 12, "owner": "Onboarding",
+      "evidence": [
+        { "source": "G2", "url": "https://www.g2.com/products/notion/reviews", "quote": "most of my team never got past the blank page" }
+      ] }
+  ],
+  "love": [
+    "Flexibility — one tool for notes, wikis, and databases",
+    "Templates and the community ecosystem around them",
+    "Clean, calm writing experience for everyday docs"
+  ],
+  "actions": [
+    { "action": "Set a per-page load-time budget and ship incremental rendering for large databases", "why": "Performance is the top complaint from the highest-value cohort and a direct retention/expansion risk vs. faster rivals.", "owner": "Performance" },
+    { "action": "Invest in true offline-first sync with visible conflict resolution", "why": "Offline is the most-requested gap and the most-cited reason for leaving for local-first competitors.", "owner": "Sync" },
+    { "action": "Fold a baseline AI allowance into existing paid tiers", "why": "Bundling converts 'paying twice' resentment into stickiness; meter only heavy usage.", "owner": "Pricing" },
+    { "action": "Lead onboarding with role-based templates and progressive disclosure", "why": "Shortening time-to-value is the lever that most moves early activation.", "owner": "Onboarding" }
+  ]
+}

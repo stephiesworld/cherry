@@ -1,0 +1,11 @@
+{
+  "name": "cherry",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cherry — name any product, get the customer feedback worth acting on. Studio Felix.",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "eval": "node evals/check.mjs evals/golden.json"
+  }
+}
