@@ -53,6 +53,9 @@ Rules:
 - EVERY issue MUST carry 1–3 evidence items, each with a real source platform and a
   real URL you found via search. An issue you cannot ground in a source does not
   belong in the list — drop it.
+- PREFER primary sources where customers speak directly — Trustpilot, G2, Capterra,
+  Reddit, the App Store / Google Play, BBB, news outlets. Avoid SEO/AI "review
+  roundup" aggregator sites (e.g. generic *.ai analyses) unless nothing primary exists.
 - Paraphrase sentiment in your own words. Keep any quoted phrase short (<= 12 words).
 - Score severity, reach, and recency independently, each 1-5 — they are separate
   axes (a niche-but-brutal bug can be high-severity, low-reach). "signal" is your
@@ -60,6 +63,13 @@ Rules:
   single review is.
 - "actions" are concrete next steps (a product change, feature, pricing move, docs
   fix), each with the reasoning in "why".
+- Distinguish a FIXABLE GAP (a bug, missing feature, or unintended friction the team
+  would want to close) from an INTENTIONAL TRADEOFF (a deliberate business decision —
+  aggressive pricing, cancellation friction, a dark pattern — that customers hate but
+  the company chose on purpose). For an intentional tradeoff, do NOT frame the action
+  as a simple "fix it"; frame it as a leadership/strategy decision weighing the
+  customer/brand/legal cost against the business upside, and prefer Leadership (or Legal
+  when there's regulatory exposure) as the owner rather than the team that merely built it.
 - "owner" (on issues AND actions) MUST be a SINGLE primary team — no "/" or "&"
   compounds, no listing two teams. Pick the one team most accountable, and prefer
   one of these canonical labels so related issues cluster: Engineering, Product,

@@ -1,0 +1,169 @@
+{
+  "product": "Duolingo",
+  "found": true,
+  "takeaway": "Duolingo draws fierce, well-documented criticism across Trustpilot, Reddit, PissedConsumer, the App Store, and Sitejabber — chiefly around its aggressive monetization shift (the new Energy system replacing Hearts), opaque billing/subscription traps, near-zero human customer support, and shallow learning depth. App-store star ratings remain high (4.5–4.7) but review-site scores are low (1.7 Trustpilot, 2.2 PissedConsumer), signalling a vocal dissatisfied minority that skews paying and long-term users.",
+  "issues": [
+    {
+      "title": "Energy System Seen as a Paywall That Blocks Free Learning",
+      "gist": "New Energy mechanic drains faster than Hearts, forcing ads, gem spend, or paid upgrade just to finish a session.",
+      "severity": 4,
+      "reach": 5,
+      "recency": 5,
+      "prevalence": "many reports",
+      "signal": 9.2,
+      "owner": "Product",
+      "evidence": [
+        {
+          "source": "Sitejabber",
+          "url": "https://www.sitejabber.com/reviews/duolingo.com",
+          "quote": "\"lessons cost energy even when perfect, and once it's gone you're stuck\""
+        },
+        {
+          "source": "Apple App Store",
+          "url": "https://apps.apple.com/lt/app/duolingo-language-chess/id570060128?see-all=reviews",
+          "quote": "\"the new energy bar update may made many users to quit Duolingo\""
+        },
+        {
+          "source": "Class Central / r/Duolingo analysis",
+          "url": "https://www.classcentral.com/report/duolingo-reddit-revolt-against-unpaid-support/",
+          "quote": "\"increasingly aggressive monetization that restricts learning for free users\""
+        }
+      ]
+    },
+    {
+      "title": "Billing Traps & Unauthorized Subscription Charges",
+      "gist": "Free-trial auto-renewals into annual plans catch users off guard; refunds are deflected to Apple with no direct resolution.",
+      "severity": 5,
+      "reach": 3,
+      "recency": 5,
+      "prevalence": "many reports",
+      "signal": 8.7,
+      "owner": "Billing",
+      "evidence": [
+        {
+          "source": "PissedConsumer",
+          "url": "https://duolingo.pissedconsumer.com/review.html",
+          "quote": "\"charged through my Apple account for the entire year … out not only $95\""
+        },
+        {
+          "source": "Trustpilot",
+          "url": "https://www.trustpilot.com/review/duolingo.com",
+          "quote": "\"shady billing practices and some of the worst customer service I've ever experienced\""
+        },
+        {
+          "source": "PissedConsumer summary",
+          "url": "https://duolingo.pissedconsumer.com/complaints/RT-P.html",
+          "quote": "\"Frequent customer complaints about billing, unauthorized charges, and refund delays\""
+        }
+      ]
+    },
+    {
+      "title": "Customer Support Is Effectively Non-Existent",
+      "gist": "Only ~2 full-time support staff for millions of users; Reddit mods revolted against serving as unpaid help desk.",
+      "severity": 4,
+      "reach": 4,
+      "recency": 5,
+      "prevalence": "many reports",
+      "signal": 8.4,
+      "owner": "Customer Support",
+      "evidence": [
+        {
+          "source": "Class Central / r/Duolingo",
+          "url": "https://www.classcentral.com/report/duolingo-reddit-revolt-against-unpaid-support/",
+          "quote": "\"the company maintains only two regular, full-time support staff members\""
+        },
+        {
+          "source": "PissedConsumer",
+          "url": "https://duolingo.pissedconsumer.com/review.html",
+          "quote": "\"no customer service, poor billing and refund handling\""
+        },
+        {
+          "source": "Trustpilot",
+          "url": "https://www.trustpilot.com/review/duolingo.com",
+          "quote": "\"I have been trying to contact Duolingo for two months and have not received a response\""
+        }
+      ]
+    },
+    {
+      "title": "Shallow Pedagogy: Gamification Replaces Real Learning",
+      "gist": "Rote drills and XP-chasing dominate; little grammar instruction means users plateau after beginner level.",
+      "severity": 3,
+      "reach": 4,
+      "recency": 4,
+      "prevalence": "many reports",
+      "signal": 7.1,
+      "owner": "Content",
+      "evidence": [
+        {
+          "source": "Sitejabber",
+          "url": "https://www.sitejabber.com/reviews/duolingo.com",
+          "quote": "\"565-day streak … my French is nul! The app just throws random sentences\""
+        },
+        {
+          "source": "myengineeringbuddy.com review roundup",
+          "url": "https://www.myengineeringbuddy.com/blog/duolingo-reviews-alternatives-pricing-offerings/",
+          "quote": "\"lessons have no bearing on real world situations\""
+        },
+        {
+          "source": "The Linguist blog",
+          "url": "https://blog.thelinguist.com/duolingo-review/",
+          "quote": "\"eventually you start playing the game to win points rather than to learn\""
+        }
+      ]
+    },
+    {
+      "title": "Speech Recognition & Audio Bugs Undermine Speaking Practice",
+      "gist": "Microphone fails to detect short words or quiet speech; audio playback cuts off, frustrating speaking exercises.",
+      "severity": 3,
+      "reach": 3,
+      "recency": 4,
+      "prevalence": "a few mentions",
+      "signal": 5.8,
+      "owner": "Engineering",
+      "evidence": [
+        {
+          "source": "Google Play",
+          "url": "https://play.google.com/store/apps/details?id=com.duolingo&hl=en_US",
+          "quote": "\"It doesn't detect short words well … playbacks also cut off the first or last part\""
+        },
+        {
+          "source": "Apple App Store",
+          "url": "https://apps.apple.com/lt/app/duolingo-language-chess/id570060128?see-all=reviews",
+          "quote": "\"the microphone won't listen … you gotta say the sentence way louder\""
+        },
+        {
+          "source": "PissedConsumer",
+          "url": "https://duolingo.pissedconsumer.com/review.html",
+          "quote": "\"lost access to respond/repeat answers … no longer have access to the microphone\""
+        }
+      ]
+    }
+  ],
+  "love": [
+    "Highly accessible free tier with 40+ languages and a genuinely fun, habit-forming gamified loop praised by hundreds of millions of users",
+    "Bite-sized lessons, instant feedback, and streak mechanics are widely credited with keeping casual learners consistently engaged",
+    "App Store ratings remain stellar (4.7 iOS / 4.5 Android), and new offerings like Chess course are growing rapidly with 7M+ daily active users"
+  ],
+  "actions": [
+    {
+      "action": "Redesign the Energy system to guarantee a meaningful daily free session (e.g., at least 3 full lessons) before ads or energy gates kick in",
+      "why": "The Energy paywall is the single loudest complaint across every platform in 2025–2026; easing it reduces churn and competitive pressure from free AI tools like ChatGPT",
+      "owner": "Product"
+    },
+    {
+      "action": "Add clear, in-app cancellation flow and proactive pre-renewal email 7 days before any trial converts to a paid plan",
+      "why": "Unauthorized charge complaints are driving 1-star reviews and regulatory risk; transparent billing is the fastest way to defuse billing-related Trustpilot/PissedConsumer damage",
+      "owner": "Billing"
+    },
+    {
+      "action": "Staff up human customer support to at least a 1:50,000 subscriber ratio and publish a tracked SLA for ticket resolution",
+      "why": "Reddit mods publicly revolted and withdrew community support; Duolingo is hemorrhaging goodwill by routing paying users into a void — this is a retention and PR risk",
+      "owner": "Customer Support"
+    },
+    {
+      "action": "Introduce structured grammar-tip cards and contextual explanation tooltips (free tier) rather than locking 'Explain My Answer' behind Duolingo Max",
+      "why": "The pedagogy depth gap is the primary reason serious learners defect to competitors; giving free users some grammar context materially improves learning outcomes and reduces churn to Babbel/ChatGPT",
+      "owner": "Content"
+    }
+  ]
+}
