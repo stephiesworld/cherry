@@ -132,8 +132,12 @@ async function callAnthropic(name, corrections, memory, debug) {
   const text = (data.content || [])
     .filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
 
-  // If web search produced no usable results, fail loudly with the error_code.
-  if (searchErrors.length) throw new Error("web_search error: " + searchErrors.join(", "));
+  // max_uses_exceeded is benign: the model wanted more searches than the per-call
+  // cap allows, but the searches that DID run still returned results. Only other
+  // search errors (unavailable, too_many_requests, ...) are fatal, and only when
+  // the model produced no usable answer at all.
+  const fatal = searchErrors.filter((c) => c !== "max_uses_exceeded");
+  if (!text && fatal.length) throw new Error("web_search error: " + fatal.join(", "));
   if (!text) throw new Error("empty response");
   const result = extractJSON(text);
 
