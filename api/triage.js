@@ -14,7 +14,7 @@
 
 export const config = { maxDuration: 60 }; // web search can take 20–40s
 
-const MODEL = process.env.CHERRY_MODEL || "claude-opus-4-8"; // flip to claude-sonnet-4-6 to cut cost
+const MODEL = process.env.CHERRY_MODEL || "claude-sonnet-4-6"; // Sonnet fits web-search calls under Vercel's 60s free-tier limit; set CHERRY_MODEL=claude-opus-4-8 on Pro (maxDuration 300)
 const MAX_USES = Number(process.env.CHERRY_MAX_SEARCHES || 3); // 3 keeps the call under Vercel's 60s function limit; raise via env on Pro
 const DAILY_CAP = Number(process.env.CHERRY_DAILY_CAP || 200);
 const PER_IP_PER_MIN = Number(process.env.CHERRY_PER_IP_PER_MIN || 6);
