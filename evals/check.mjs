@@ -33,6 +33,7 @@ issues.forEach((it, i) => {
   ok(Number.isFinite(it.signal), `${where}: signal is not a number`);
   ok(typeof it.owner === "string" && it.owner.length > 0, `${where}: no owner`);
   ok(["fixable gap", "intentional tradeoff"].includes(it.disposition), `${where}: disposition must be "fixable gap" or "intentional tradeoff" (got ${JSON.stringify(it.disposition)})`);
+  ok(Array.isArray(it.stakeholders) && it.stakeholders.every((s) => typeof s === "string") && !it.stakeholders.includes(it.owner), `${where}: stakeholders must be an array of team names not repeating the owner`);
   // The grounding contract: at least one real source URL per issue.
   ok(Array.isArray(it.evidence) && it.evidence.length >= 1, `${where}: NO EVIDENCE (must cite a source)`);
   (it.evidence || []).forEach((ev, j) =>

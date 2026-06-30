@@ -42,7 +42,8 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "prevalence": string,          // e.g. "many reports", "a few mentions"
    "disposition": string,         // "fixable gap" | "intentional tradeoff" (see rule)
    "signal": number,              // your holistic ranking score; higher = more important
-   "owner": string,               // ONE primary team (see owner rule) — no slashes/compounds
+   "owner": string,               // ONE primary team that owns the fix/decision (see owner rule)
+   "stakeholders": [string],      // 0-3 OTHER teams with a material stake (see stakeholder rule)
    "evidence": [ { "source": string, "url": string, "quote": string } ]
  } ],
  "love": [string, string, string],
@@ -73,12 +74,18 @@ Rules:
   Leadership (or Legal when there's regulatory exposure) as the owner rather than the
   team that merely built it.
 - "owner" (on issues AND actions) MUST be a SINGLE primary team — no "/" or "&"
-  compounds, no listing two teams. Pick the one team most accountable, and prefer
-  one of these canonical labels so related issues cluster: Engineering, Product,
-  Design, Billing, Customer Support, Trust & Safety, Security, Legal, Marketing,
+  compounds, no listing two teams. The owner is the one team that owns the FIX or the
+  DECISION. Prefer one of these canonical labels so related issues cluster: Engineering,
+  Product, Design, Billing, Customer Support, Trust & Safety, Security, Legal, Marketing,
   Content, Leadership. Only invent a different single label if none of these fits.
+- "stakeholders": 0-3 OTHER canonical teams (never repeating the owner) that have a real
+  stake and must be looped in — e.g. an intentional-tradeoff pricing issue is OWNED by
+  Leadership (they decide whether to change it) with Legal a STAKEHOLDER when there's
+  regulatory exposure; a checkout bug owned by Engineering may have Billing as a
+  stakeholder. Use [] when no other team genuinely needs a seat. Owner = who acts;
+  stakeholders = who must be consulted.
 - If a reviewer's prior corrections are provided, treat them as ground truth:
-  adjust severity, owner, and ranking to honor them.
+  adjust severity, owner, stakeholders, and ranking to honor them.
 - If real feedback is genuinely thin, say so in "takeaway" and set found=false.`;
 
 // Internal-intake mode: instead of searching the web, triage RAW feedback the
@@ -102,7 +109,8 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "prevalence": string,
    "disposition": string,         // "fixable gap" | "intentional tradeoff"
    "signal": number,
-   "owner": string,               // ONE primary team — no slashes/compounds
+   "owner": string,               // ONE primary team that owns the fix/decision
+   "stakeholders": [string],      // 0-3 other teams to loop in (e.g. Legal for regulatory risk); [] if none
    "evidence": [ { "source": string, "quote": string } ]  // quote VERBATIM from the text; source = who/where in the text (no url)
  } ],
  "love": [string], "actions": [ {"action": string, "why": string, "owner": string} ]
@@ -117,9 +125,11 @@ Rules:
 - Set "disposition": "fixable gap" (a bug/missing-feature/friction to close) or
   "intentional tradeoff" (a deliberate business choice customers dislike). Route an
   intentional tradeoff to Leadership/Legal as a strategy call, not a fix.
-- "owner" (issues AND actions) is a SINGLE primary team — prefer: Engineering, Product,
-  Design, Billing, Customer Support, Trust & Safety, Security, Legal, Marketing,
-  Content, Leadership. Only invent a single label if none fits.
+- "owner" (issues AND actions) is a SINGLE primary team that owns the fix/decision —
+  prefer: Engineering, Product, Design, Billing, Customer Support, Trust & Safety,
+  Security, Legal, Marketing, Content, Leadership. Only invent a single label if none fits.
+- "stakeholders": 0-3 other canonical teams (never the owner) that must be looped in
+  (e.g. Legal for regulatory risk). Use [] when none. Owner = who acts; stakeholders = who's consulted.
 - If prior corrections/preferences are provided, honor them and re-rank.
 - If the pasted text has no real product feedback, say so in "takeaway" and set found=false.`;
 
@@ -167,9 +177,12 @@ const TRIAGE_SCHEMA = {
           // choice customers hate? Drives whether the action is a fix or a strategy call.
           disposition: { type: "string", enum: ["fixable gap", "intentional tradeoff"] },
           signal: { type: "number" }, owner: { type: "string" },
+          // Stakeholders: other teams with a material stake (e.g. Legal owns the
+          // lawsuit even when Leadership owns the decision). Empty when there are none.
+          stakeholders: { type: "array", items: { type: "string" } },
           evidence: { type: "array", items: ev },
         },
-        required: ["title", "gist", "severity", "reach", "recency", "prevalence", "disposition", "signal", "owner", "evidence"],
+        required: ["title", "gist", "severity", "reach", "recency", "prevalence", "disposition", "signal", "owner", "stakeholders", "evidence"],
         additionalProperties: false,
       },
     },

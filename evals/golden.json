@@ -22,7 +22,8 @@
           "quote": "performance degrades badly with large databases"
         }
       ],
-      "disposition": "fixable gap"
+      "disposition": "fixable gap",
+      "stakeholders": []
     },
     {
       "title": "Offline mode is unreliable",
@@ -43,7 +44,8 @@
           "quote": "still no real offline support"
         }
       ],
-      "disposition": "fixable gap"
+      "disposition": "fixable gap",
+      "stakeholders": []
     },
     {
       "title": "AI add-on feels like nickel-and-diming",
@@ -59,7 +61,10 @@
           "quote": "felt nickel-and-dimed"
         }
       ],
-      "disposition": "intentional tradeoff"
+      "disposition": "intentional tradeoff",
+      "stakeholders": [
+        "Leadership"
+      ]
     },
     {
       "title": "Mobile app trails desktop",
@@ -75,7 +80,8 @@
           "quote": "mobile app is slow and clunky"
         }
       ],
-      "disposition": "fixable gap"
+      "disposition": "fixable gap",
+      "stakeholders": []
     },
     {
       "title": "Steep learning curve for new users",
@@ -91,7 +97,8 @@
           "quote": "most of my team never got past the blank page"
         }
       ],
-      "disposition": "fixable gap"
+      "disposition": "fixable gap",
+      "stakeholders": []
     }
   ],
   "love": [

@@ -64,7 +64,9 @@ function userContent(product, issue) {
   const lines = [`Product: ${product}`, `Issue: ${issue.title || ""}`];
   if (issue.gist) lines.push(`Detail: ${issue.gist}`);
   if (issue.severity != null) lines.push(`Severity: ${issue.severity}/5`);
-  if (issue.owner) lines.push(`Suggested owner: ${issue.owner}`);
+  if (issue.owner) lines.push(`Suggested owner (owns the fix/decision): ${issue.owner}`);
+  if (Array.isArray(issue.stakeholders) && issue.stakeholders.length)
+    lines.push(`Stakeholders to loop in: ${issue.stakeholders.join(", ")}`);
   (issue.evidence || []).slice(0, 3).forEach((ev) =>
     lines.push(`Source: ${ev.source || ""} ${ev.url || ""}${ev.quote ? ` — "${ev.quote}"` : ""}`));
   return lines.join("\n");
