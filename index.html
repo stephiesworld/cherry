@@ -119,6 +119,16 @@
   .teamdigest .td-chip{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;
     padding:4px 11px;border-radius:5px;border:1.4px solid var(--stem);color:var(--stem);background:#fff;}
   .teamdigest .td-chip b{color:var(--ink);font-weight:600;margin-right:5px;}
+  .srcmix{display:none;margin:-14px 0 28px;}
+  .srcmix.on{display:block;}
+  .srcmix .sm-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
+  .srcmix .sm-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
+  .srcmix .sm-chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.04em;padding:3px 9px;border-radius:5px;border:1.4px solid var(--rule-strong);color:var(--ink);background:#fff;}
+  .srcmix .sm-chip.cmp{border-color:#C99A3A;color:#8A6712;}
+  .srcmix .sm-chip b{color:var(--cherry);margin-right:5px;}
+  .srcmix .sm-warn{margin-top:11px;background:#FBF3E7;border:1.4px solid #E4C893;border-left:5px solid #C99A3A;border-radius:8px;padding:12px 16px;font-size:13.5px;line-height:1.5;color:#6B5320;}
+  .srcmix .sm-warn b{color:#5A4416;}
+  .srcmix .sm-good{margin-top:9px;font-size:13px;color:var(--stem);}
   .res-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:30px;}
   @media(max-width:880px){.res-grid{grid-template-columns:1fr;gap:34px;}}
   .col-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
@@ -358,6 +368,7 @@
     <div class="lowconf" id="lowConf"></div>
     <div class="takeaway" id="takeaway"></div>
     <div class="teamdigest" id="teamDigest"></div>
+    <div class="srcmix" id="srcMix"></div>
     <div class="res-grid">
       <div>
         <span class="col-label">Top issues, ranked by signal</span>
@@ -550,6 +561,42 @@
     el.classList.add('on');
   }
 
+  // Source-bias surface: the open web skews negative (people go to Trustpilot to vent).
+  // Show what the evidence is actually built from, and warn when it's complaint-heavy.
+  function classifySource(ev){
+    const s=((ev.source||'')+' '+(ev.url||'')).toLowerCase();
+    const map=[
+      [/trustpilot/,'Trustpilot',true],[/consumeraffairs/,'ConsumerAffairs',true],
+      [/pissedconsumer/,'PissedConsumer',true],[/sitejabber/,'Sitejabber',true],
+      [/complaintsboard/,'ComplaintsBoard',true],[/reviews\.io|resellerratings/,'Reviews.io',true],
+      [/\bbbb\b|better business/,'BBB',true],
+      [/app ?store|apps\.apple|itunes/,'App Store',false],[/google ?play|play\.google/,'Google Play',false],
+      [/reddit/,'Reddit',false],[/\bg2\b/,'G2',false],[/capterra/,'Capterra',false],
+      [/gartner/,'Gartner',false],[/hacker ?news|ycombinator/,'Hacker News',false],
+      [/twitter|x\.com/,'X',false],[/youtube/,'YouTube',false],
+    ];
+    for(const [re,label,complaint] of map) if(re.test(s)) return {label,complaint};
+    return {label:'News / other',complaint:false};
+  }
+  function renderSourceMix(issues,internal){
+    const el=document.getElementById('srcMix');
+    if(internal){ // first-party pasted feedback — the representative kind
+      el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span><span class="sm-chip">your pasted feedback</span></div><div class="sm-good">First-party data — the most representative source there is, not the self-selected public web.</div>`;
+      el.classList.add('on');return;
+    }
+    const counts={};let total=0,comp=0;
+    (issues||[]).forEach(it=>(it.evidence||[]).forEach(ev=>{
+      if(!ev||!(ev.source||ev.url))return;const c=classifySource(ev);total++;if(c.complaint)comp++;
+      counts[c.label]=(counts[c.label]||0)+1;}));
+    if(!total){el.classList.remove('on');el.innerHTML='';return;}
+    const chips=Object.entries(counts).sort((a,b)=>b[1]-a[1])
+      .map(([l,n])=>`<span class="sm-chip ${classifySource({source:l}).complaint?'cmp':''}"><b>${n}</b>${esc(l)}</span>`).join('');
+    const pct=Math.round(comp/total*100),skewed=comp/total>=0.5;
+    el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span>${chips}</div>`+
+      (skewed?`<div class="sm-warn"><b>Reads more negative than reality.</b> ${pct}% of this evidence comes from complaint sites, where people mostly show up to vent — so treat the <em>severity</em> as real, but the <em>prevalence</em> as a ceiling, not an average. For a truer picture, triage your own support tickets or survey data (“Paste feedback”).</div>`:'');
+    el.classList.add('on');
+  }
+
   // The measured learning loop: grade the triage's synthesis quality with an LLM
   // judge, and when the reviewer corrects + re-ranks, show the score MOVE — proof
   // that human feedback improves the AI, not just a claim.
@@ -601,6 +648,7 @@
     const issues=(r.issues||[]).slice().sort((a,b)=>scoreOf(b)-scoreOf(a));
     window._cherryIssues=issues;
     renderDigest(issues);
+    renderSourceMix(issues,!!currentFeedback);
     thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
     runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);renderLearning();
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`

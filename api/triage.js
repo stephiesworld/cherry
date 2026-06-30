@@ -58,6 +58,15 @@ Rules:
 - PREFER primary sources where customers speak directly — Trustpilot, G2, Capterra,
   Reddit, the App Store / Google Play, BBB, news outlets. Avoid SEO/AI "review
   roundup" aggregator sites (e.g. generic *.ai analyses) unless nothing primary exists.
+- BALANCE your sources and correct for selection bias. Complaint venues (Trustpilot,
+  ConsumerAffairs, PissedConsumer, BBB, Sitejabber) are SELF-SELECTED toward furious
+  users — their volume is NOT representative of the overall user base. Deliberately also
+  pull from the App Store / Google Play (where a star rating gives context), Reddit
+  (which carries praise and gripes), G2/Capterra, and expert/press reviews. When scoring
+  "reach" and "prevalence", calibrate by likely BASE RATE, not by how loud a complaint is
+  on a venting site: an issue that is loud on Trustpilot but absent everywhere else is
+  probably niche, so score its reach LOW. Do not let a complaint-heavy source mix inflate
+  severity or prevalence.
 - Paraphrase sentiment in your own words. Keep any quoted phrase short (<= 12 words).
 - Score severity, reach, and recency independently, each 1-5 — they are separate
   axes (a niche-but-brutal bug can be high-severity, low-reach). "signal" is your

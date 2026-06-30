@@ -5,6 +5,45 @@ A short record of the product decisions behind Cherry — the *why*, not just th
 
 ---
 
+## 2026-06-30 · Source bias: the open web skews negative
+
+**Context.** Cherry's web triage searches public sources for real customer feedback.
+
+**Trigger.** Reading a ChatGPT triage, most of the evidence came from Trustpilot and
+other complaint sites — which paints an overly negative picture. People don't post to
+Trustpilot after a good session; they go there to *vent*. So those venues are
+self-selected toward furious users (a J-shaped rating curve), and a product with
+hundreds of millions of mostly-happy users looks far worse there than it is.
+
+**The insight.** Cherry is a *complaint-triage* tool, so some negativity is by design —
+but a complaint-skewed **source mix** corrupts the thing it tries hardest to get right:
+*how widespread is this, really?* An issue that's loud on Trustpilot but rare everywhere
+else gets an inflated `reach`/`prevalence`. The skew doesn't just make it negative; it
+makes its sense of *proportion* unreliable. (App Store reviews help — bigger pool, a star
+rating for context — but they carry their own biases, e.g. review-gating, so the answer
+is *diversity + transparency*, not swapping one biased source for another.) The truest
+read is first-party data — your own support/survey channels — which is exactly the
+"Paste feedback" mode and the thesis of the role this was built for.
+
+**Decision.** Three fixes, attacking the bias at the input, the warning, and the display:
+
+1. **De-bias the prompt** — explicitly balance sources (App Store, Reddit, G2, press —
+   not just complaint aggregators) and calibrate `reach`/`prevalence` by likely base
+   rate, never by how loud a complaint is on a venting site.
+2. **A skew warning** — when the evidence is mostly complaint sites, Cherry says so:
+   *"Reads more negative than reality — X% from complaint sites; treat severity as real,
+   prevalence as a ceiling."*
+3. **Show the source mix** — an "evidence base" strip listing the platforms (complaint
+   sites flagged), so the bias is visible and you can discount it yourself. In paste
+   mode it instead affirms the data is first-party — the representative kind.
+
+**What it demonstrates.** Recognizing that *every public source is a self-selected slice*,
+and designing for representativeness instead of taking volume at face value, is the core
+of defining what "high-signal" means. The fix doesn't hide the bias — it surfaces it and
+calibrates around it.
+
+---
+
 ## 2026-06-30 · Routing: a primary owner *plus* stakeholders, not one team
 
 **Context.** Cherry routes every triaged issue to the team that should own it, and
