@@ -437,7 +437,7 @@
   const appliedNote=document.getElementById('appliedNote');
   const corrbar=document.getElementById('corrbar'),corrCount=document.getElementById('corrCount');
 
-  let currentName="", corrections=[], currentFeedback="", lastQuality=null;
+  let currentName="", corrections=[], currentFeedback="", lastQuality=null, currentResult=null;
 
   // Legible signal: the score is a transparent weighted blend of three 1-5 axes
   // the reviewer can re-weight live, not one opaque number. Default leans on
@@ -507,6 +507,8 @@
 
   async function callClaude(name,corr){
     const body={name,corrections:corr||[],memory:recentMemory(12)};
+    // Re-rank = apply my corrections to the CURRENT result in place (clean, fast).
+    if((corr||[]).length&&currentResult)body.current=currentResult;
     if(currentFeedback)body.feedback=currentFeedback;   // internal-intake mode
     const resp=await fetch("/api/triage",{
       method:"POST",headers:{"Content-Type":"application/json"},
@@ -579,7 +581,7 @@
   }
 
   function render(r,name,wasReranked){
-    currentName=r.product||name;
+    currentName=r.product||name;currentResult=r;
     document.getElementById('resFor').textContent=currentName;
     document.getElementById('takeaway').textContent=r.takeaway||"";
 

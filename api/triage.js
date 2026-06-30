@@ -123,6 +123,19 @@ Rules:
 - If prior corrections/preferences are provided, honor them and re-rank.
 - If the pasted text has no real product feedback, say so in "takeaway" and set found=false.`;
 
+// Revise-in-place: apply a reviewer's corrections to an EXISTING triage, changing
+// only what the corrections require. No web search, no regeneration — this keeps
+// the quality measurement clean (the only delta is the reviewer's judgment) and is
+// the right behavior anyway: the reviewer wants their call applied, not a fresh rewrite.
+const SYSTEM_REVISE = `You are Cherry. You are given a CURRENT triage (JSON) and a reviewer's corrections.
+Apply the corrections as GROUND TRUTH and return the UPDATED triage in the SAME JSON shape.
+
+Critical: change ONLY what the corrections require — and any re-ranking that logically follows from
+them. Every other issue, title, gist, severity, reach, recency, disposition, owner, quote, source, url,
+"love", and "action" MUST stay BYTE-FOR-BYTE IDENTICAL to the input. Do not reword, re-score, re-search,
+or invent anything. Do not add or drop issues. If a correction changes an issue's signal/severity, re-sort
+issues by signal so the list stays ranked. Return the full object, not a diff.`;
+
 // Structured-output contract. We hand this schema to the API (output_config.format)
 // so the model's final answer is GUARANTEED to be valid JSON in this exact shape —
 // no more parsing JSON out of free text (which intermittently failed when a review
@@ -201,18 +214,28 @@ function extractJSON(txt) {
   return JSON.parse(t);
 }
 
-async function callAnthropic(name, corrections, memory, feedback) {
-  const internal = !!(feedback && feedback.trim());
-  let userMsg = internal
-    ? `Triage this pasted internal customer feedback${name ? ` about ${name}` : ""}:\n\n"""\n${feedback}\n"""`
-    : "Research and triage customer feedback for: " + name;
-  if (corrections && corrections.length) {
-    userMsg += "\n\nA reviewer corrected the previous pass. Honor these as ground truth and re-rank:\n" +
+async function callAnthropic(name, corrections, memory, feedback, current) {
+  // Revise-in-place when we have a prior result + corrections: surgically apply the
+  // reviewer's judgment to the existing triage (no web search, no rewrite).
+  const revise = !!(current && Array.isArray(current.issues) && current.issues.length && corrections && corrections.length);
+  const internal = !revise && !!(feedback && feedback.trim());
+  let userMsg;
+  if (revise) {
+    userMsg = "CURRENT triage:\n" + JSON.stringify(current) +
+      "\n\nReviewer corrections — apply as ground truth, change only what they require, keep everything else identical:\n" +
       corrections.map((c) => `- On "${c.title}": ${c.note}`).join("\n");
-  }
-  if (memory && memory.length) {
-    userMsg += "\n\nLearned preferences from this reviewer's past corrections — apply these tendencies, but they are guidance, not gospel; still judge each product on its own evidence:\n" +
-      memory.map((m) => `- On "${m.title}"${m.product ? ` (${m.product})` : ""}: ${m.note}`).join("\n");
+  } else {
+    userMsg = internal
+      ? `Triage this pasted internal customer feedback${name ? ` about ${name}` : ""}:\n\n"""\n${feedback}\n"""`
+      : "Research and triage customer feedback for: " + name;
+    if (corrections && corrections.length) {
+      userMsg += "\n\nA reviewer corrected the previous pass. Honor these as ground truth and re-rank:\n" +
+        corrections.map((c) => `- On "${c.title}": ${c.note}`).join("\n");
+    }
+    if (memory && memory.length) {
+      userMsg += "\n\nLearned preferences from this reviewer's past corrections — apply these tendencies, but they are guidance, not gospel; still judge each product on its own evidence:\n" +
+        memory.map((m) => `- On "${m.title}"${m.product ? ` (${m.product})` : ""}: ${m.note}`).join("\n");
+    }
   }
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -224,10 +247,10 @@ async function callAnthropic(name, corrections, memory, feedback) {
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 4096,
-      system: internal ? SYSTEM_INTERNAL : SYSTEM,
+      system: revise ? SYSTEM_REVISE : internal ? SYSTEM_INTERNAL : SYSTEM,
       messages: [{ role: "user", content: userMsg }],
-      // Internal mode triages the pasted text directly — no web search.
-      ...(internal ? {} : { tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }] }),
+      // Web search only for a fresh web triage — not for revise or pasted-feedback modes.
+      ...(revise || internal ? {} : { tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }] }),
       output_config: { format: { type: "json_schema", schema: TRIAGE_SCHEMA } },
     }),
   });
@@ -272,7 +295,8 @@ export default async function handler(req, res) {
   const corrections = Array.isArray(body && body.corrections) ? body.corrections.slice(0, 8) : [];
   const memory = Array.isArray(body && body.memory) ? body.memory.slice(0, 12) : [];
   const feedback = (body && body.feedback ? String(body.feedback) : "").trim().slice(0, 8000);
-  const internal = !!feedback;
+  const current = body && body.current && Array.isArray(body.current.issues) ? body.current : null;
+  const internal = !!feedback && !current;
   if (!internal && !name) return res.status(400).json({ error: "give me a product or company name" });
   if (internal && feedback.length < 40) return res.status(400).json({ error: "paste a bit more feedback to triage (a few lines at least)" });
 
@@ -293,7 +317,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = await callAnthropic(name, corrections, memory, feedback);
+    const data = await callAnthropic(name, corrections, memory, feedback, current);
     if (cacheable) cache.set(key, { at: Date.now(), data });
     return res.status(200).json(data);
   } catch (e) {
