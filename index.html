@@ -194,6 +194,27 @@
   .lovelist li{font-size:15px;color:#4a4036;padding:8px 0 8px 22px;position:relative;border-bottom:1px solid var(--rule);}
   .lovelist li:last-child{border-bottom:none;}
   .lovelist li::before{content:"";position:absolute;left:0;top:14px;width:9px;height:9px;border-radius:50%;background:var(--cherry);border:1.4px solid var(--line);}
+  /* synthesis-quality scorecard (the measured learning loop) */
+  .qcard:empty{display:none;}
+  .qcard .q-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .qcard .q-head h3{margin-bottom:0;}
+  .qcard .q-by{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:var(--stem);padding:3px 7px;border-radius:3px;white-space:nowrap;}
+  .qcard .q-load{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.05em;color:var(--muted);padding:4px 0;}
+  .qcard .q-score{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;margin-bottom:15px;}
+  .qcard .q-num{font-family:'Fraunces',serif;font-size:46px;font-weight:700;line-height:0.85;color:var(--cherry);}
+  .qcard .q-of{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);}
+  .qcard .q-delta{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;padding:4px 9px;border-radius:5px;border:1.4px solid var(--line);margin-left:6px;}
+  .qcard .q-delta.up{color:#fff;background:var(--stem);}
+  .qcard .q-delta.down{color:#fff;background:var(--cherry);}
+  .qcard .q-delta.flat{color:var(--muted);background:#fff;}
+  .qcard .q-dims{display:flex;flex-direction:column;gap:8px;margin-bottom:13px;}
+  .qcard .q-dim{display:flex;align-items:center;gap:10px;}
+  .qcard .q-dim .dn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);width:88px;flex:none;}
+  .qcard .q-dim .dt{flex:1;height:7px;border-radius:999px;background:var(--panel-deep);overflow:hidden;}
+  .qcard .q-dim .dt i{display:block;height:100%;background:var(--cherry);}
+  .qcard .q-dim .dv{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink);width:26px;text-align:right;}
+  .qcard .q-improve{font-size:13px;color:#5a4f44;line-height:1.45;border-top:1px solid var(--rule);padding-top:11px;}
+  .qcard .q-improve b{color:var(--ink);}
   .actions{margin-top:8px;}
   .action{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--rule);}
   .action:last-child{border-bottom:none;}
@@ -354,6 +375,7 @@
         </div>
       </div>
       <div>
+        <div class="sidecard qcard" id="qualityCard"></div>
         <div class="sidecard"><h3>What they love</h3><ul class="lovelist" id="loveList"></ul></div>
         <div class="sidecard"><h3>Recommended next steps</h3><div class="actions" id="actionList"></div></div>
       </div>
@@ -415,7 +437,7 @@
   const appliedNote=document.getElementById('appliedNote');
   const corrbar=document.getElementById('corrbar'),corrCount=document.getElementById('corrCount');
 
-  let currentName="", corrections=[], currentFeedback="";
+  let currentName="", corrections=[], currentFeedback="", lastQuality=null;
 
   // Legible signal: the score is a transparent weighted blend of three 1-5 axes
   // the reviewer can re-weight live, not one opaque number. Default leans on
@@ -525,6 +547,37 @@
     el.classList.add('on');
   }
 
+  // The measured learning loop: grade the triage's synthesis quality with an LLM
+  // judge, and when the reviewer corrects + re-ranks, show the score MOVE — proof
+  // that human feedback improves the AI, not just a claim.
+  async function scoreQuality(r,wasReranked){
+    const card=document.getElementById('qualityCard');
+    if(!r||!(r.issues||[]).length){card.innerHTML='';lastQuality=null;return;}
+    const prev=wasReranked?lastQuality:null;
+    card.innerHTML=`<div class="q-head"><h3>Synthesis quality</h3><span class="q-by">LLM-judged</span></div><div class="q-load">Grading this triage…</div>`;
+    try{
+      const resp=await fetch('/api/judge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result:r})});
+      const data=await resp.json();
+      if(!resp.ok||data.error)throw new Error(data.error||('error '+resp.status));
+      renderQuality(data,prev);lastQuality=data.overall;
+    }catch(e){card.innerHTML=`<div class="q-head"><h3>Synthesis quality</h3></div><div class="q-load">Couldn’t grade this one — ${esc(e.message||'try again')}.</div>`;}
+  }
+  function renderQuality(data,prev){
+    const card=document.getElementById('qualityCard');
+    const dims=[['grounding','Grounding'],['clustering','Clustering'],['ranking','Ranking'],['routing','Routing'],['actionability','Actionability']];
+    let delta='';
+    if(prev!=null){
+      const d=Math.round((data.overall-prev)*10)/10;
+      const cls=d>0?'up':d<0?'down':'flat',arrow=d>0?'▲':d<0?'▼':'—',sign=d>0?'+':'';
+      delta=`<span class="q-delta ${cls}">${arrow} ${sign}${d.toFixed(1)} after your correction</span>`;
+    }
+    const rows=dims.map(([k,lab])=>`<div class="q-dim"><span class="dn">${lab}</span><span class="dt"><i style="width:${Math.round((data.scores[k]||0)/5*100)}%"></i></span><span class="dv">${data.scores[k]}/5</span></div>`).join('');
+    card.innerHTML=`<div class="q-head"><h3>Synthesis quality</h3><span class="q-by">LLM-judged</span></div>
+      <div class="q-score"><span class="q-num">${data.overall.toFixed(1)}</span><span class="q-of">/ 5</span>${delta}</div>
+      <div class="q-dims">${rows}</div>
+      <div class="q-improve"><b>Weakest: ${esc(data.weakest||'—')}.</b> ${esc(data.improve||'')}</div>`;
+  }
+
   function render(r,name,wasReranked){
     currentName=r.product||name;
     document.getElementById('resFor').textContent=currentName;
@@ -595,6 +648,7 @@
 
     results.classList.add('on');
     results.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+    scoreQuality(r,wasReranked);   // grade synthesis quality (async, fills in after render)
   }
 
   /* human-in-the-loop interactions (event delegation) */
