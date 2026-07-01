@@ -5,6 +5,43 @@ A short record of the product decisions behind Cherry — the *why*, not just th
 
 ---
 
+## 2026-07-01 · Authenticity: is this feedback even from real people?
+
+**Context.** Cherry's web triage pulls "real customer feedback" from public review sites.
+But public reviews are gamed at scale — vendors buy 5-stars, competitors plant 1-stars,
+and review farms mass-produce text. If astroturf drives an issue, Cherry prioritizes a
+problem that doesn't exist.
+
+**Trigger.** The question "how do we ensure the feedback we've taken in isn't written by
+bots?" Selection bias (the prior entry) fixes *who shows up to complain*; it does nothing
+about *feedback that was never a real customer at all*.
+
+**Options weighed.** (a) A separate classifier/API call per review — accurate but slow,
+costly, and another dependency for a no-DB portfolio tool. (b) Hard-block sources — too
+blunt; even gamed venues carry real complaints. (c) Fold it into synthesis: the model
+already reads every review, and LLMs are good at spotting templated/duplicate text,
+detail-free superlatives, and timing bursts.
+
+**Decision.** Extend the synthesis prompt, mirroring the source-bias pattern. The model
+scores each issue's **authenticity** 1-5, weights verified-provenance sources (App Store,
+Google Play, G2/Capterra, verified-purchase) over anonymous open-submission venues,
+**collapses** near-duplicate bot clusters to a single low-confidence mention, and refuses
+to let suspect signal inflate reach/prevalence/severity. The UI flags shaky issues
+(`⚠ maybe not genuine`) and warns when the triage leans on suspect signal; the eval gate
+now requires the field.
+
+**The honest tradeoff.** This *reduces and surfaces* bot contamination — it doesn't
+guarantee zero. Model-judged authenticity is a heuristic, not proof. The strongest lever
+stays provenance and first-party data (your own tickets, verified-purchase surveys via
+"Paste feedback"), which the warning points users toward rather than pretending the open
+web is clean.
+
+**What it demonstrates.** Taking a trust question seriously enough to build a defensible,
+transparent answer — down-weight and disclose — instead of laundering scraped reviews as
+ground truth.
+
+---
+
 ## 2026-06-30 · Source bias: the open web skews negative
 
 **Context.** Cherry's web triage searches public sources for real customer feedback.

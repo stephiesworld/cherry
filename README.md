@@ -19,6 +19,11 @@ with a human in the loop at every step and evals measuring quality.
 - **Legible signal** — each issue scores severity, reach, and recency as separate
   1-5 axes; a live `Signal = severity·reach·recency` control lets you re-weight what
   "high-signal" means and the ranking re-sorts in place. No opaque number.
+- **Screens out fake signal** — public reviews get gamed (bought 5-stars, planted
+  1-stars, review-farm text). Cherry scores each issue's *authenticity* 1-5, weights
+  verified-provenance sources (App Store, G2) over anonymous ones, collapses templated
+  bot clusters, and flags issues that may not come from real users — so astroturf
+  doesn't inflate your priorities.
 - **Human-in-the-loop & self-improving** — disagree with a call, tell Cherry what's
   off, and it re-ranks with your judgment as ground truth. Corrections persist and
   ride along into future queries; an on-page metric shows your *correction rate dropping*.

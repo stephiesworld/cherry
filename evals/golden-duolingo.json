@@ -32,7 +32,8 @@
       "disposition": "intentional tradeoff",
       "stakeholders": [
         "Leadership"
-      ]
+      ],
+      "authenticity": 5
     },
     {
       "title": "Billing Traps & Unauthorized Subscription Charges",
@@ -64,7 +65,8 @@
       "stakeholders": [
         "Legal",
         "Leadership"
-      ]
+      ],
+      "authenticity": 5
     },
     {
       "title": "Customer Support Is Effectively Non-Existent",
@@ -93,7 +95,8 @@
         }
       ],
       "disposition": "fixable gap",
-      "stakeholders": []
+      "stakeholders": [],
+      "authenticity": 5
     },
     {
       "title": "Shallow Pedagogy: Gamification Replaces Real Learning",
@@ -124,7 +127,8 @@
       "disposition": "intentional tradeoff",
       "stakeholders": [
         "Product"
-      ]
+      ],
+      "authenticity": 5
     },
     {
       "title": "Speech Recognition & Audio Bugs Undermine Speaking Practice",
@@ -153,7 +157,8 @@
         }
       ],
       "disposition": "fixable gap",
-      "stakeholders": []
+      "stakeholders": [],
+      "authenticity": 5
     }
   ],
   "love": [

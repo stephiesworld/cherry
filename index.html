@@ -129,6 +129,10 @@
   .srcmix .sm-warn{margin-top:11px;background:#FBF3E7;border:1.4px solid #E4C893;border-left:5px solid #C99A3A;border-radius:8px;padding:12px 16px;font-size:13.5px;line-height:1.5;color:#6B5320;}
   .srcmix .sm-warn b{color:#5A4416;}
   .srcmix .sm-good{margin-top:9px;font-size:13px;color:var(--stem);}
+  /* Authenticity warning: bot/fake/astroturfed feedback. Cherry-red accent to set it
+     apart from the amber "reads negative" skew strip — a different kind of caution. */
+  .srcmix .sm-warn.bot{background:#FBECEF;border-color:#E7B8C3;border-left-color:var(--cherry);color:#6E2534;margin-top:0;}
+  .srcmix .sm-warn.bot b{color:var(--cherry-deep);}
   .res-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:30px;}
   @media(max-width:880px){.res-grid{grid-template-columns:1fr;gap:34px;}}
   .col-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
@@ -164,6 +168,7 @@
   .tg.disp{font-weight:700;}
   .tg.disp.fix{color:var(--muted);border-color:var(--rule-strong);}
   .tg.disp.trade{color:var(--sour-d,#5A6E10);border-color:#5A6E10;background:#fff;}
+  .tg.auth{font-weight:700;color:var(--cherry);border-color:var(--cherry);background:#FBECEF;}
   .tg.sour{font-weight:700;color:var(--cherry-deep);border-color:var(--cherry-deep);background:#fff;}
   .tg.sour.s5{transform:rotate(-2.5deg);}
   .life{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0 2px;}
@@ -369,6 +374,7 @@
     <div class="takeaway" id="takeaway"></div>
     <div class="teamdigest" id="teamDigest"></div>
     <div class="srcmix" id="srcMix"></div>
+    <div class="srcmix" id="authWarn"></div>
     <div class="res-grid">
       <div>
         <span class="col-label">Top issues, ranked by signal</span>
@@ -597,6 +603,21 @@
     el.classList.add('on');
   }
 
+  // Authenticity surface: feedback scraped from the open web (or pasted in bulk) can be
+  // bot-written, fake, or astroturfed. The model scores each issue's "authenticity" 1-5 and
+  // down-weights suspect clusters; here we make that visible — flag the shaky issues and, when
+  // enough of the triage leans on suspect signal, warn that some of it may not come from real users.
+  function renderAuthenticity(issues){
+    const el=document.getElementById('authWarn');
+    const scored=(issues||[]).filter(it=>Number.isFinite(+it.authenticity)&&+it.authenticity>=1);
+    if(!scored.length){el.classList.remove('on');el.innerHTML='';return;}
+    const flagged=scored.filter(it=>+it.authenticity<=2);
+    if(!flagged.length){el.classList.remove('on');el.innerHTML='';return;}
+    const n=flagged.length,many=n>1;
+    el.innerHTML=`<div class="sm-warn bot"><b>Some of this may not be real people.</b> ${n} of ${scored.length} issue${scored.length>1?'s':''} lean${n>1?'':'s'} on feedback that reads as bot-written, fake, or astroturfed — templated or near-duplicate text, generic praise/outrage with no specifics, or reviews from anonymous, easily-gamed venues. Cherry has down-weighted ${many?'their':'its'} reach and prevalence, but treat ${many?'those issues':'that issue'} (tagged <em>⚠ maybe not genuine</em>) as a lead to verify, not a finding. First-party data — your own tickets or a verified-purchase survey — is the surest fix.</div>`;
+    el.classList.add('on');
+  }
+
   // The measured learning loop: grade the triage's synthesis quality with an LLM
   // judge, and when the reviewer corrects + re-ranks, show the score MOVE — proof
   // that human feedback improves the AI, not just a claim.
@@ -649,6 +670,7 @@
     window._cherryIssues=issues;
     renderDigest(issues);
     renderSourceMix(issues,!!currentFeedback);
+    renderAuthenticity(issues);
     thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
     runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);renderLearning();
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`
@@ -669,6 +691,7 @@
             <span class="tg own" title="owns the fix or the decision">${esc(it.owner||'')}</span>
             ${(it.stakeholders||[]).slice(0,3).map(s=>`<span class="tg stake" title="stakeholder — must be looped in">+ ${esc(s)}</span>`).join('')}
             ${it.disposition?`<span class="tg disp ${it.disposition==='intentional tradeoff'?'trade':'fix'}" title="${it.disposition==='intentional tradeoff'?'a deliberate business choice — weigh it, do not just fix it':'a gap the team would want to close'}">${esc(it.disposition)}</span>`:''}
+            ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${it.authenticity}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
           </div>
           ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
           <div class="life" data-role="life">
