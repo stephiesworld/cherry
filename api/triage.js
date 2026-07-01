@@ -295,7 +295,16 @@ async function callAnthropic(name, corrections, memory, feedback, current) {
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 4096,
-      system: revise ? SYSTEM_REVISE : internal ? SYSTEM_INTERNAL : SYSTEM,
+      // Cache the system prompt: it's identical across every triage, so after the
+      // first request the model reads it from cache (~90% cheaper) instead of
+      // reprocessing it. Below the model's min-prefix size it silently no-ops — safe.
+      system: [
+        {
+          type: "text",
+          text: revise ? SYSTEM_REVISE : internal ? SYSTEM_INTERNAL : SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
       messages: [{ role: "user", content: userMsg }],
       // Web search only for a fresh web triage — not for revise or pasted-feedback modes.
       ...(revise || internal ? {} : { tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }] }),
