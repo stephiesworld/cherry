@@ -30,6 +30,7 @@ issues.forEach((it, i) => {
   const where = `issue[${i}] "${it.title || "?"}"`;
   ok(typeof it.title === "string" && it.title.length > 0, `${where}: no title`);
   ok(Number.isFinite(it.severity) && it.severity >= 1 && it.severity <= 5, `${where}: severity ${it.severity} not 1..5`);
+  ok(Number.isFinite(it.authenticity) && it.authenticity >= 1 && it.authenticity <= 5, `${where}: authenticity ${it.authenticity} not 1..5 (bot/fake screen)`);
   ok(Number.isFinite(it.signal), `${where}: signal is not a number`);
   ok(typeof it.owner === "string" && it.owner.length > 0, `${where}: no owner`);
   ok(["fixable gap", "intentional tradeoff"].includes(it.disposition), `${where}: disposition must be "fixable gap" or "intentional tradeoff" (got ${JSON.stringify(it.disposition)})`);

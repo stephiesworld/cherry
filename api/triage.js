@@ -39,6 +39,7 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "severity": number,            // 1-5: how painful for an affected user
    "reach": number,               // 1-5: how widespread (how many users hit it)
    "recency": number,             // 1-5: how current (5 = actively complained about now)
+   "authenticity": number,        // 1-5: how likely this issue rests on GENUINE customer voice vs bot/fake/astroturfed reviews (5 = clearly real people, 1 = likely inauthentic)
    "prevalence": string,          // e.g. "many reports", "a few mentions"
    "disposition": string,         // "fixable gap" | "intentional tradeoff" (see rule)
    "signal": number,              // your holistic ranking score; higher = more important
@@ -67,6 +68,20 @@ Rules:
   on a venting site: an issue that is loud on Trustpilot but absent everywhere else is
   probably niche, so score its reach LOW. Do not let a complaint-heavy source mix inflate
   severity or prevalence.
+- AUTHENTICITY — screen for FAKE, BOT-WRITTEN, and ASTROTURFED feedback and do not let it
+  drive an issue. Public reviews are gamed: vendors buy 5-stars, competitors plant 1-stars,
+  and review farms mass-produce text. Treat these as likely-inauthentic signals: near-DUPLICATE
+  or templated phrasing repeated across many reviews; generic superlatives ("best app ever!!!")
+  or generic outrage with NO specific product detail; a burst of reviews clustered in time or all
+  freshly posted; star rating that contradicts the review text; off-topic or keyword-stuffed text.
+  Weight by PROVENANCE: sources with identity/verification signals (App Store & Google Play — tied
+  to an install, G2/Capterra — business-email/LinkedIn verified, Amazon "verified purchase") are
+  harder to fake than anonymous open-submission venues. When a cluster looks inauthentic, COLLAPSE
+  it to one low-confidence mention and do NOT let it inflate reach, prevalence, or severity — an
+  issue seen only in suspicious reviews may not be real at all. Set "authenticity" 1-5 per issue:
+  5 = grounded in clearly genuine, specific, verifiable customer voice; 1 = rests mostly on feedback
+  that reads as bot/fake/astroturfed. When authenticity is low, say so plainly in the gist or
+  takeaway rather than presenting the issue as solid.
 - Paraphrase sentiment in your own words. Keep any quoted phrase short (<= 12 words).
 - Score severity, reach, and recency independently, each 1-5 — they are separate
   axes (a niche-but-brutal bug can be high-severity, low-reach). "signal" is your
@@ -115,6 +130,7 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "severity": number,            // 1-5: how painful for an affected user
    "reach": number,               // 1-5: how many distinct people/accounts raise it in the text
    "recency": number,             // 1-5: leave 3 unless the text carries dates/timestamps
+   "authenticity": number,        // 1-5: how likely this rests on GENUINE customer voice vs spam/bot-submitted entries in the text (5 = clearly real, 1 = likely inauthentic)
    "prevalence": string,
    "disposition": string,         // "fixable gap" | "intentional tradeoff"
    "signal": number,
@@ -131,6 +147,12 @@ Rules:
   copied from the pasted text, with "source" naming who or where in the text it came
   from. Do NOT invent feedback that is not in the text. Omit "url".
 - Score severity, reach, and recency 1-5 each as separate axes.
+- AUTHENTICITY — pasted feedback can still carry spam or bot-submitted noise (form-spam
+  support tickets, promotional/off-topic messages, copy-pasted templated complaints, entries
+  with no specific product detail). Do NOT let such entries manufacture an issue: collapse
+  near-duplicate templated text to one mention and don't let it inflate reach or prevalence.
+  Set "authenticity" 1-5 per issue: 5 = grounded in specific, plausibly real customer voice
+  from the text; 1 = rests mostly on entries that read as spam/bot/templated.
 - Set "disposition": "fixable gap" (a bug/missing-feature/friction to close) or
   "intentional tradeoff" (a deliberate business choice customers dislike). Route an
   intentional tradeoff to Leadership/Legal as a strategy call, not a fix.
@@ -150,7 +172,7 @@ const SYSTEM_REVISE = `You are Cherry. You are given a CURRENT triage (JSON) and
 Apply the corrections as GROUND TRUTH and return the UPDATED triage in the SAME JSON shape.
 
 Critical: change ONLY what the corrections require — and any re-ranking that logically follows from
-them. Every other issue, title, gist, severity, reach, recency, disposition, owner, quote, source, url,
+them. Every other issue, title, gist, severity, reach, recency, authenticity, disposition, owner, quote, source, url,
 "love", and "action" MUST stay BYTE-FOR-BYTE IDENTICAL to the input. Do not reword, re-score, re-search,
 or invent anything. Do not add or drop issues. If a correction changes an issue's signal/severity, re-sort
 issues by signal so the list stays ranked. Return the full object, not a diff.`;
@@ -181,6 +203,10 @@ const TRIAGE_SCHEMA = {
           // Legible, separable signal components (each 1-5) so the score can be
           // re-weighted client-side instead of being one opaque number.
           severity: { type: "integer" }, reach: { type: "integer" }, recency: { type: "integer" },
+          // Authenticity (1-5): how likely the issue rests on genuine customer voice vs
+          // bot/fake/astroturfed reviews (web) or spam/bot-submitted entries (pasted). Lets
+          // the UI flag — and the model down-weight — signal that may not come from real users.
+          authenticity: { type: "integer" },
           prevalence: { type: "string" },
           // Disposition: is this a gap the team would close, or a deliberate business
           // choice customers hate? Drives whether the action is a fix or a strategy call.
@@ -191,7 +217,7 @@ const TRIAGE_SCHEMA = {
           stakeholders: { type: "array", items: { type: "string" } },
           evidence: { type: "array", items: ev },
         },
-        required: ["title", "gist", "severity", "reach", "recency", "prevalence", "disposition", "signal", "owner", "stakeholders", "evidence"],
+        required: ["title", "gist", "severity", "reach", "recency", "authenticity", "prevalence", "disposition", "signal", "owner", "stakeholders", "evidence"],
         additionalProperties: false,
       },
     },
