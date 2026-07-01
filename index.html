@@ -605,8 +605,8 @@
 
   // Authenticity surface: feedback scraped from the open web (or pasted in bulk) can be
   // bot-written, fake, or astroturfed. The model scores each issue's "authenticity" 1-5 and
-  // down-weights suspect clusters; here we make that visible — flag the shaky issues and, when
-  // enough of the triage leans on suspect signal, warn that some of it may not come from real users.
+  // down-weights suspect clusters; here we make that visible — flag every shaky issue and, whenever
+  // any of them lean on suspect signal, warn plainly (the strip names how many: "1 of 5 issues").
   function renderAuthenticity(issues){
     const el=document.getElementById('authWarn');
     const scored=(issues||[]).filter(it=>Number.isFinite(+it.authenticity)&&+it.authenticity>=1);
@@ -691,7 +691,7 @@
             <span class="tg own" title="owns the fix or the decision">${esc(it.owner||'')}</span>
             ${(it.stakeholders||[]).slice(0,3).map(s=>`<span class="tg stake" title="stakeholder — must be looped in">+ ${esc(s)}</span>`).join('')}
             ${it.disposition?`<span class="tg disp ${it.disposition==='intentional tradeoff'?'trade':'fix'}" title="${it.disposition==='intentional tradeoff'?'a deliberate business choice — weigh it, do not just fix it':'a gap the team would want to close'}">${esc(it.disposition)}</span>`:''}
-            ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${it.authenticity}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
+            ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${esc(String(it.authenticity))}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
           </div>
           ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
           <div class="life" data-role="life">
