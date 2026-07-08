@@ -92,7 +92,7 @@ Every push to the repo auto-redeploys.
 ## Cost & safety
 
 Roughly **$0.15–0.20 per query** (the web search is most of it; the model adds
-~5¢). A handful of hiring managers clicking around ≈ a few dollars. The guards
+~5¢). A handful of users clicking around ≈ a few dollars. The guards
 that keep it there: identical product names are **cached 24h** (repeat plays are
 free), a **per-IP rate limit**, and a **hard daily cap**. As a backstop, set a
 spend limit on your key in the Anthropic Console. The in-memory cache/limiter is

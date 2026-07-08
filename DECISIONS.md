@@ -5,6 +5,112 @@ A short record of the product decisions behind Cherry — the *why*, not just th
 
 ---
 
+## 2026-07-08 · Three cuts deeper — persona views, a review queue, and trend
+
+**Context.** Cherry already intakes, scores, routes, and closes the loop. The gaps left
+weren't about *more* triage — they were about *reach* (who the triage serves), *where human
+attention should go*, and *time* (is this getting better or worse?).
+
+**Trigger.** Re-reading the role: "one shared platform every team plugs into," "humans focus
+on verification and judgment, not triage," and health metrics like time-to-triage and signal
+quality. A single ranked list serves a PM well but under-serves GTM, Research, and Support —
+it treats every issue as equally worth a human's time, and every run as a fresh snapshot with
+no memory of last week.
+
+**Decisions.**
+
+1. **Persona views — one triage, four cuts.** The same issues, re-weighted for who's acting:
+   Product ranks by user pain, GTM by breadth and freshness (what to get ahead of in renewals),
+   Support by how sharply it stings right now, Research by systemic, authentic signal. Crucially
+   this *reuses the transparent signal weights* instead of inventing a new hidden score — each
+   persona is a weighting preset with a plain-English caption, and you can still drag the sliders
+   to a custom cut. "High-signal" gets defined per audience, in the open.
+
+2. **Active-learning review queue.** Cherry scores each issue's confidence (authenticity +
+   evidence density + overall thinness) and surfaces the *least* confident first — a "review
+   first" callout plus a per-card badge. It's triage of the triage: send scarce human judgment
+   to the shaky calls, not to re-checking the obvious ones. The human-in-the-loop model, pointed
+   at the issues where a human actually moves the needle.
+
+3. **Trend vs last check.** On a repeat run for a product, Cherry diffs against the last snapshot
+   and reports new / recurring / resolved, tags new issues, and names what's gone. Proportion over
+   time, not just a point-in-time list — the start of velocity.
+
+**The honest tradeoff.** All three are client-side and honest about their limits. The
+review-queue confidence is a heuristic, not a calibrated probability. Trend compares *your own*
+prior result (stored locally), so it's real but single-user, single-machine — true cross-team
+velocity, regression alerts, and "spiking this week" at scale need the persistent store v2 would
+add (the same database the integration entry points to). I built the honest version rather than
+fake a dashboard of invented history.
+
+**What it demonstrates.** Treating the feedback loop as a product with *users* — four of them,
+each with a different job — deciding where automation earns a human's attention and where it
+doesn't, and measuring change over time. The operating instincts the role names, shipped as
+working software rather than described.
+
+---
+
+## 2026-07-08 · Closing the loop for real — connect to systems of record, don't rebuild them
+
+**Context.** Cherry's v1 is deliberately self-contained: it web-searches or takes pasted
+text, and "Send to Slack" is the one live integration. That's the right scope for a demo,
+but it raises the obvious production question — *where does this actually plug in?*
+
+**Trigger.** Two questions that a real deployment forces: (1) once an issue is routed to a
+team, how does its status get back to *shipped* without someone manually updating Cherry?
+(2) the richest customer signal isn't on the open web at all — it's in the company's own
+Slack, Gong calls, CRM, support tickets, and data warehouse. A tool that can't reach those
+is triaging the shallow end of the pool.
+
+**The insight.** Cherry should be the **synthesis and judgment layer**, not another system
+of record teams have to maintain by hand. Every "update Cherry manually" step is a
+documentation tax that guarantees the data goes stale. The design principle: **pull signal
+*from* the systems where customers already speak, push work *to* the systems where teams
+already work, and let status flow *back* automatically.** Cherry sits in the middle and
+adds the one thing those systems don't — *which few things matter and why*.
+
+**Decision (the integration architecture).** Three connection surfaces, all thin adapters
+around the same triage core:
+
+1. **Intake connectors — pull signal from where it lives.** Beyond web search and paste:
+   - **Slack** — watch a `#feedback`/`#support` channel; new messages stream into intake.
+   - **Gong** — pull call transcripts so sales/CS voice-of-customer is triaged, not lost.
+   - **CRM (Salesforce/HubSpot)** — read opportunity-loss reasons and account notes.
+   - **Support (Zendesk/Intercom)** — the highest-authenticity first-party signal there is.
+   Each is a small adapter that normalizes its source into the same feedback shape the
+   triage already accepts — the core doesn't change, only the front door.
+
+2. **Status sync — no manual documentation tax.** When an issue is routed, Cherry files
+   the work item in the **system of record for engineering work (Linear/Jira)** and stores
+   the returned work-item ID against the issue. Status (`triaged → routed → shipped`) then
+   **flows automatically from that link** — Cherry reads the ticket's state; a human never
+   re-types it. Cherry does *not* read anyone's email or guess; it connects to the one
+   place work status is authoritative.
+
+3. **Warehouse sync — first-party signal at scale.** For volume beyond what a live call can
+   read, Cherry connects to the company's **data warehouse (Snowflake / BigQuery /
+   Databricks)**. The pattern is the scaling pattern: cheap SQL and coded rules shrink
+   millions of rows (reviews, tickets, NPS verbatims) to the slice that needs judgment, and
+   *that* slice goes to the model — never the raw millions. Triaged issues and their
+   lifecycle write **back** to the warehouse so they're queryable and trendable alongside
+   the rest of the business's data.
+
+**The honest tradeoff.** None of this is wired in v1 — it's the architecture, not the
+build. Each connector is real engineering (auth, rate limits, schema mapping, a persistent
+store to replace localStorage). But the *shape* is deliberate and load-bearing: keeping
+the triage core source-agnostic (it already accepts normalized feedback via paste mode)
+means every one of these is an adapter, not a rewrite. The Slack routing that *is* live —
+and its graceful "not configured yet" handling — is the working proof of the pattern.
+
+**What it demonstrates.** Understanding that a feedback-loops tool's value is being the
+*connective synthesis layer* across a company's existing stack — meeting teams in Slack,
+Gong, the CRM, the warehouse, and Linear/Jira rather than asking them to adopt and hand-
+maintain yet another tool. That "integrate with the system of record, don't recreate it"
+instinct is the difference between a product ops function that scales and one that becomes
+a manual-update bottleneck.
+
+---
+
 ## 2026-07-01 · Authenticity: is this feedback even from real people?
 
 **Context.** Cherry's web triage pulls "real customer feedback" from public review sites.

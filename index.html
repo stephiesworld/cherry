@@ -261,6 +261,52 @@
   .step h3{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:9px;}
   .step p{color:var(--muted);font-size:16px;}
 
+  /* Persona views — one triage, four cuts. A lens that re-weights the same issues. */
+  .personas{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px;}
+  .personas .plbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
+  .pbtn{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;padding:5px 11px;border-radius:999px;border:1.4px solid var(--rule-strong);background:none;color:var(--ink);cursor:pointer;transition:all .15s;}
+  .pbtn:hover{border-color:var(--cherry);color:var(--cherry);}
+  .pbtn.on{background:var(--ink);color:var(--ground);border-color:var(--ink);}
+  .pcap{font-size:13px;color:#5a4f50;line-height:1.45;margin:0 0 14px;max-width:560px;}
+
+  /* Trend vs last check — new / recurring / resolved since your last run for this product. */
+  .trend{display:none;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:9px 14px;margin-bottom:14px;}
+  .trend.on{display:flex;}
+  .trend .tr-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+  .trend .tr-chip{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.03em;color:var(--ink);}
+  .trend .tr-chip b{color:var(--cherry);font-weight:600;margin-right:4px;}
+  .trend .tr-gone{font-size:12px;color:var(--muted);margin-left:auto;}
+
+  /* Active-learning review queue — the least-confident issues, flagged for human eyes first. */
+  .revqueue{display:none;flex-direction:column;gap:6px;background:#FBF3E4;border:1px solid #E4C88A;border-left:3px solid #C99A3A;border-radius:8px;padding:11px 14px;margin-bottom:14px;}
+  .revqueue.on{display:flex;}
+  .revqueue .rq-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8A6712;}
+  .revqueue .rq-txt{font-size:13px;color:#5a4f50;line-height:1.45;}
+  .revqueue .rq-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;}
+  .revqueue .rq-chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.02em;padding:4px 9px;border-radius:5px;border:1.3px solid #C99A3A;background:#fff;color:#8A6712;cursor:pointer;text-align:left;}
+  .revqueue .rq-chip:hover{background:#8A6712;color:#fff;}
+  .tg.new{color:var(--cherry);border-color:var(--cherry);font-weight:700;}
+  .tg.rev{color:#8A6712;border-color:#C99A3A;background:#FBF3E4;font-weight:700;}
+  .rissue.flash{animation:cflash 1.15s ease;}
+  @keyframes cflash{0%,100%{background:transparent;}28%{background:rgba(199,31,56,0.09);}}
+
+  /* "Where Cherry connects" — the integration architecture. Honest: Slack routing is
+     live today; the rest is the design (see DECISIONS.md). Chips mirror the .sm-chip look. */
+  .connects{padding:46px 0 10px;}
+  .connects .cx-lead{color:var(--muted);font-size:16px;max-width:660px;margin:12px 0 26px;line-height:1.5;}
+  .cx-flow{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .cx-group{display:flex;flex-direction:column;gap:9px;}
+  .cx-glab{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);}
+  .cx-chips{display:flex;gap:7px;flex-wrap:wrap;max-width:280px;}
+  .cx-chip{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.04em;padding:5px 10px;border-radius:6px;border:1.5px solid var(--rule-strong);color:var(--ink);background:#fff;display:inline-flex;align-items:center;gap:6px;}
+  .cx-chip.live{border-color:var(--stem);color:var(--stem);}
+  .cx-chip.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--stem);flex:none;}
+  .cx-node{font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:#fff;background:var(--cherry);padding:11px 20px;border-radius:9px;box-shadow:3px 3px 0 var(--line);white-space:nowrap;}
+  .cx-arrow{font-family:'JetBrains Mono',monospace;font-size:19px;color:var(--cherry);font-weight:700;}
+  .cx-foot{font-size:13.5px;color:#5a4f50;margin-top:22px;line-height:1.5;max-width:660px;}
+  .cx-foot b{color:var(--stem);font-weight:600;}
+  @media(max-width:680px){.cx-flow{flex-direction:column;align-items:flex-start;gap:13px;}.cx-arrow{transform:rotate(90deg);margin-left:34px;}}
+
   footer{padding:50px 0 60px;border-top:1px solid var(--rule);margin-top:30px;}
   .foot{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;}
   .foot .tag{font-family:'Fraunces',serif;font-style:italic;color:var(--muted);font-size:18px;}
@@ -372,6 +418,7 @@
     <div class="learnstrip" id="learnStrip"></div>
     <div class="lowconf" id="lowConf"></div>
     <div class="takeaway" id="takeaway"></div>
+    <div class="trend" id="trendStrip"></div>
     <div class="teamdigest" id="teamDigest"></div>
     <div class="srcmix" id="srcMix"></div>
     <div class="srcmix" id="authWarn"></div>
@@ -379,6 +426,14 @@
       <div>
         <span class="col-label">Top issues, ranked by signal</span>
         <div class="col-hint">Cherry proposes — you decide. Confirm a call, or tell Cherry what's off and re-rank.</div>
+        <div class="personas" id="personas">
+          <span class="plbl">View for</span>
+          <button class="pbtn on" data-persona="pm">Product</button>
+          <button class="pbtn" data-persona="gtm">GTM</button>
+          <button class="pbtn" data-persona="research">Research</button>
+          <button class="pbtn" data-persona="support">Support</button>
+        </div>
+        <div class="pcap" id="pcap"></div>
         <div class="weights" id="weights">
           <span class="wlbl">Signal =</span>
           <label>severity<input type="range" min="0" max="5" step="1" value="5" data-w="sev"><b>5</b></label>
@@ -386,6 +441,7 @@
           <label>recency<input type="range" min="0" max="5" step="1" value="2" data-w="rec"><b>2</b></label>
           <a class="wreset" id="wReset">reset</a>
         </div>
+        <div class="revqueue" id="revQueue"></div>
         <div id="issueList"></div>
         <div class="corrbar" id="corrbar">
           <div class="ct"><b id="corrCount">0 corrections</b> <span>— Cherry will re-rank with your judgment.</span></div>
@@ -412,6 +468,35 @@
       <div class="step rise"><span class="n">03 / Rank</span><h3>By signal</h3><p>Severity and prevalence combine into one score, so the top of the list is genuinely the top.</p></div>
       <div class="step rise"><span class="n">04 / Learn</span><h3>You correct, it adapts</h3><p>Disagree with a call? Tell Cherry, and it re-ranks with your judgment — sharper every pass.</p></div>
     </div>
+  </div>
+</section>
+
+<section class="connects" id="connects">
+  <div class="wrap">
+    <div class="sec-head rise"><h2>Where Cherry connects</h2><span class="label">Architecture</span></div>
+    <p class="cx-lead">Cherry is the synthesis layer — it pulls signal from where customers already speak, and pushes work to where teams already act. It connects to systems of record; it doesn't try to replace them.</p>
+    <div class="cx-flow rise">
+      <div class="cx-group">
+        <span class="cx-glab">Intake — signal in</span>
+        <div class="cx-chips">
+          <span class="cx-chip">Slack</span>
+          <span class="cx-chip">Gong</span>
+          <span class="cx-chip">CRM</span>
+          <span class="cx-chip">Warehouse</span>
+        </div>
+      </div>
+      <span class="cx-arrow" aria-hidden="true">&rarr;</span>
+      <span class="cx-node">Cherry</span>
+      <span class="cx-arrow" aria-hidden="true">&rarr;</span>
+      <div class="cx-group">
+        <span class="cx-glab">Route &amp; close — work out</span>
+        <div class="cx-chips">
+          <span class="cx-chip live">Slack</span>
+          <span class="cx-chip">Linear / Jira</span>
+        </div>
+      </div>
+    </div>
+    <p class="cx-foot"><b>&#9679; Live today: Slack routing.</b> The rest is the integration design — each intake source is a thin adapter into the same triage core, and issue status flows back from the linked work item, so there's no manual documentation tax.</p>
   </div>
 </section>
 
@@ -496,6 +581,70 @@
   const skey=(title)=>(currentName+'::'+(title||'')).toLowerCase();
   function getStatus(title){return statusMap[skey(title)]||'new';}
   function setStatus(title,s){statusMap[skey(title)]=s;try{localStorage.setItem(STATUS_KEY,JSON.stringify(statusMap));}catch{}}
+
+  // ── Persona views: one triage, four cuts. Each audience acts on the SAME issues,
+  // re-weighted for what they own — reusing the transparent signal weights, not a new score.
+  const PERSONAS={
+    pm:{w:{sev:5,reach:3,rec:2},cap:'Product view — ranked by user pain and how widespread it is. Fixable gaps route to the owning team; deliberate tradeoffs go up to Leadership.'},
+    gtm:{w:{sev:2,reach:5,rec:4},cap:'GTM view — the most widespread and current issues to get ahead of in renewals, plus the wins worth leading with. Breadth and freshness over depth.'},
+    research:{w:{sev:4,reach:4,rec:3},cap:'Research view — genuine, systemic patterns worth studying. Low-authenticity noise is flagged (⚠) and weighted down.'},
+    support:{w:{sev:5,reach:2,rec:5},cap:'Support view — the sharpest, most current pain to respond to now and close the loop on. How badly it stings today matters more than how many hit it.'},
+  };
+  let persona='pm';
+  function syncPersona(){
+    const P=PERSONAS[persona]||PERSONAS.pm, we=document.getElementById('weights');
+    if(we)we.querySelectorAll('input[type=range]').forEach(r=>{r.value=weights[r.dataset.w];r.parentElement.querySelector('b').textContent=r.value;});
+    document.querySelectorAll('#personas .pbtn').forEach(b=>b.classList.toggle('on',b.dataset.persona===persona));
+    const cap=document.getElementById('pcap');
+    if(cap)cap.textContent=(persona&&PERSONAS[persona])?P.cap:'Custom weighting — your own definition of high-signal.';
+  }
+  function setPersona(p){persona=p;weights={...PERSONAS[p].w};syncPersona();applyWeights();}
+
+  // ── Active-learning: score each issue's confidence (authenticity + evidence density +
+  // overall thinness) and surface the LEAST confident first, so human review lands where
+  // it's scarce — verification effort on the shaky calls, not re-checking the obvious ones.
+  function confidenceOf(it){
+    let s=100; const auth=+it.authenticity||0;
+    if(auth){ if(auth<=2)s-=45; else if(auth===3)s-=22; else if(auth===4)s-=6; }
+    const ev=(it.evidence||[]).length;
+    if(ev<=0)s-=32; else if(ev===1)s-=12;
+    if(currentResult&&currentResult.found===false)s-=15;
+    return Math.max(0,Math.min(100,s));
+  }
+  function confBand(it){const c=confidenceOf(it);return c>=72?'high':c>=48?'med':'low';}
+  function renderReviewQueue(issues){
+    const el=document.getElementById('revQueue');if(!el)return;
+    const low=issues.map((it,i)=>({it,i,c:confidenceOf(it)})).filter(x=>confBand(x.it)==='low').sort((a,b)=>a.c-b.c);
+    if(!low.length){el.classList.remove('on');el.innerHTML='';return;}
+    const chips=low.map(x=>`<button class="rq-chip" data-idx="${x.i}">${esc(x.it.title||'issue')}</button>`).join('');
+    el.innerHTML=`<span class="rq-lbl">◆ Review first</span><span class="rq-txt">Cherry is least confident on ${low.length} issue${low.length>1?'s':''} — verify ${low.length>1?'these':'this'} before trusting ${low.length>1?'them':'it'}. Human judgment goes where it's scarce, not on the easy calls.</span><div class="rq-chips">${chips}</div>`;
+    el.classList.add('on');
+  }
+
+  // ── Trend vs last check: snapshot each product's triage locally; on the next fresh run,
+  // flag what's NEW, RECURRING, or RESOLVED since. Honest — it diffs your real prior result,
+  // not synthetic data. (True velocity across a team/time needs the DB v2 would add.)
+  const SNAP_KEY='cherry.snap.v1';
+  let snaps=(()=>{try{return JSON.parse(localStorage.getItem(SNAP_KEY))||{};}catch{return{};}})();
+  const normTitle=(t)=>String(t||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>3).sort().slice(0,5).join(' ');
+  function simTitle(a,b){if(!a||!b)return false;if(a===b)return true;const A=new Set(a.split(' '));return b.split(' ').filter(w=>A.has(w)).length>=2;}
+  function relTime(ts){const d=Math.floor((Date.now()-ts)/86400000);return d<=0?'earlier today':d===1?'yesterday':d+' days ago';}
+  function computeTrend(issues,wasReranked){
+    const strip=document.getElementById('trendStrip'), empty={newSet:new Set()};
+    if(!strip)return empty;
+    if(wasReranked||currentFeedback){strip.classList.remove('on');strip.innerHTML='';return empty;}
+    const key=(currentName||'').toLowerCase(), prior=snaps[key];
+    const cur={at:Date.now(),issues:issues.map(it=>({t:it.title,n:normTitle(it.title)}))};
+    if(!prior||!(prior.issues||[]).length){snaps[key]=cur;jset(SNAP_KEY,snaps);strip.classList.remove('on');strip.innerHTML='';return empty;}
+    const priorNorms=prior.issues.map(p=>p.n), curNorms=cur.issues.map(c=>c.n);
+    const newSet=new Set(); issues.forEach((it,i)=>{if(!priorNorms.some(pn=>simTitle(pn,normTitle(it.title))))newSet.add(i);});
+    const resolved=prior.issues.filter(p=>!curNorms.some(cn=>simTitle(cn,p.n)));
+    const recurring=issues.length-newSet.size;
+    const parts=[`<span class="tr-chip"><b>${newSet.size}</b>new</span>`,`<span class="tr-chip"><b>${recurring}</b>recurring</span>`];
+    if(resolved.length)parts.push(`<span class="tr-chip"><b>${resolved.length}</b>resolved</span>`);
+    strip.innerHTML=`<span class="tr-lbl">Since your last check · ${relTime(prior.at)}</span>`+parts.join('')+(resolved.length?`<span class="tr-gone">Gone: ${esc(resolved.map(r=>r.t).slice(0,2).join('; '))}</span>`:'');
+    strip.classList.add('on'); snaps[key]=cur; jset(SNAP_KEY,snaps); return {newSet};
+  }
   function renderLearning(){
     const el=document.getElementById('learnStrip');if(!el)return;
     const n=memory.length, recent=runs.slice(-6).filter(r=>r.shown>0);
@@ -666,6 +815,9 @@
     if(wasReranked){appliedNote.textContent="✓ Re-picked with your "+corrections.length+" correction"+(corrections.length>1?"s":"")+". Cherry kept your judgment.";appliedNote.classList.add('on');}
     else{appliedNote.classList.remove('on');}
 
+    // Fresh run resets to the Product persona; a correction/rerank keeps the view you're in.
+    if(!wasReranked){weights={sev:5,reach:3,rec:2};persona='pm';}
+
     const issues=(r.issues||[]).slice().sort((a,b)=>scoreOf(b)-scoreOf(a));
     window._cherryIssues=issues;
     renderDigest(issues);
@@ -673,6 +825,9 @@
     renderAuthenticity(issues);
     thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
     runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);renderLearning();
+    syncPersona();
+    const trend=computeTrend(issues,wasReranked), newSet=trend.newSet;
+    renderReviewQueue(issues);
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`
       <div class="rissue ${i===0?'top':''}" data-idx="${i}">
         <div class="rscore"><div class="nm">${scoreOf(it)}</div><div class="lb">signal</div>
@@ -692,6 +847,8 @@
             ${(it.stakeholders||[]).slice(0,3).map(s=>`<span class="tg stake" title="stakeholder — must be looped in">+ ${esc(s)}</span>`).join('')}
             ${it.disposition?`<span class="tg disp ${it.disposition==='intentional tradeoff'?'trade':'fix'}" title="${it.disposition==='intentional tradeoff'?'a deliberate business choice — weigh it, do not just fix it':'a gap the team would want to close'}">${esc(it.disposition)}</span>`:''}
             ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${esc(String(it.authenticity))}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
+            ${newSet.has(i)?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
+            ${confBand(it)==='low'?`<span class="tg rev" title="Cherry is least confident here — verify before trusting">◆ review first</span>`:''}
           </div>
           ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
           <div class="life" data-role="life">
@@ -829,12 +986,21 @@
   }
   weightsEl.addEventListener('input',e=>{
     const w=e.target.closest('input[type=range]');if(!w)return;
-    weights[w.dataset.w]=+w.value;w.parentElement.querySelector('b').textContent=w.value;applyWeights();
-  });
-  document.getElementById('wReset').addEventListener('click',()=>{
-    weights={sev:5,reach:3,rec:2};
-    weightsEl.querySelectorAll('input[type=range]').forEach(r=>{r.value=weights[r.dataset.w];r.parentElement.querySelector('b').textContent=r.value;});
+    weights[w.dataset.w]=+w.value;w.parentElement.querySelector('b').textContent=w.value;
+    // Moving a slider by hand means you've left the preset — reflect that as a custom view.
+    persona='';document.querySelectorAll('#personas .pbtn').forEach(b=>b.classList.remove('on'));
+    const cap=document.getElementById('pcap');if(cap)cap.textContent='Custom weighting — your own definition of high-signal.';
     applyWeights();
+  });
+  document.getElementById('wReset').addEventListener('click',()=>{setPersona('pm');});
+  // Persona toggle — same issues, four cuts. Reuses the signal weights and re-sorts in place.
+  document.getElementById('personas').addEventListener('click',e=>{const b=e.target.closest('.pbtn');if(b)setPersona(b.dataset.persona);});
+  // Review queue — jump to the least-confident issue and flash it.
+  document.getElementById('revQueue').addEventListener('click',e=>{
+    const c=e.target.closest('.rq-chip');if(!c)return;
+    const card=document.querySelector('.rissue[data-idx="'+c.dataset.idx+'"]');if(!card)return;
+    card.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});
+    if(!reduce){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
   });
 
   function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];refreshCorrbar();runCherry(n,[]);}
