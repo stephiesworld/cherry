@@ -290,6 +290,18 @@
   .rissue.flash{animation:cflash 1.15s ease;}
   @keyframes cflash{0%,100%{background:transparent;}28%{background:rgba(199,31,56,0.09);}}
 
+  /* Capability signal — the systemic gaps that feed roadmap & (for AI) model-training priorities. */
+  .capsig{display:none;flex-direction:column;gap:6px;background:#F1F4E4;border:1px solid #cdd79f;border-left:3px solid var(--stem);border-radius:8px;padding:11px 14px;margin-bottom:14px;}
+  .capsig.on{display:flex;}
+  .capsig .cs-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--stem);}
+  .capsig .cs-txt{font-size:13px;color:#49521f;line-height:1.45;}
+  .capsig .cs-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;}
+  .capsig .cs-chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.02em;padding:4px 9px;border-radius:5px;border:1.3px solid var(--stem);background:#fff;color:#3f4a1a;}
+  .capsig .cs-chip b{color:var(--stem);font-weight:700;}
+  .tg.cap{color:#fff;background:var(--stem);border-color:var(--stem);font-weight:700;}
+  .ucline{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.02em;color:var(--muted);margin-top:5px;}
+  .ucline b{color:var(--stem);font-weight:600;text-transform:uppercase;letter-spacing:.08em;}
+
   /* "Where Cherry connects" — the integration architecture. Honest: Slack routing is
      live today; the rest is the design (see DECISIONS.md). Chips mirror the .sm-chip look. */
   .connects{padding:46px 0 10px;}
@@ -420,6 +432,7 @@
     <div class="takeaway" id="takeaway"></div>
     <div class="trend" id="trendStrip"></div>
     <div class="teamdigest" id="teamDigest"></div>
+    <div class="capsig" id="capSig"></div>
     <div class="srcmix" id="srcMix"></div>
     <div class="srcmix" id="authWarn"></div>
     <div class="res-grid">
@@ -618,6 +631,18 @@
     if(!low.length){el.classList.remove('on');el.innerHTML='';return;}
     const chips=low.map(x=>`<button class="rq-chip" data-idx="${x.i}">${esc(x.it.title||'issue')}</button>`).join('');
     el.innerHTML=`<span class="rq-lbl">◆ Review first</span><span class="rq-txt">Cherry is least confident on ${low.length} issue${low.length>1?'s':''} — verify ${low.length>1?'these':'this'} before trusting ${low.length>1?'them':'it'}. Human judgment goes where it's scarce, not on the easy calls.</span><div class="rq-chips">${chips}</div>`;
+    el.classList.add('on');
+  }
+
+  // ── Capability signal: surface the issues that point at a systemic capability gap — or, for
+  // an AI product, the model itself — the pattern that feeds roadmap & model-training priorities,
+  // not a one-off ticket. This is the "customer signal back into what we build" cut.
+  function renderCapSig(issues){
+    const el=document.getElementById('capSig');if(!el)return;
+    const caps=issues.filter(it=>it.signalType==='capability signal');
+    if(!caps.length){el.classList.remove('on');el.innerHTML='';return;}
+    const chips=caps.map(it=>`<span class="cs-chip"><b>${esc(it.title||'')}</b>${it.useCase?` · ${esc(it.useCase)}`:''}</span>`).join('');
+    el.innerHTML=`<span class="cs-lbl">◈ Capability signal → Research &amp; roadmap</span><span class="cs-txt">${caps.length} issue${caps.length>1?'s':''} point at a systemic capability gap, not a one-off fix — the pattern that should shape roadmap direction and, for an AI product, model-training priorities.</span><div class="cs-chips">${chips}</div>`;
     el.classList.add('on');
   }
 
@@ -828,6 +853,7 @@
     syncPersona();
     const trend=computeTrend(issues,wasReranked), newSet=trend.newSet;
     renderReviewQueue(issues);
+    renderCapSig(issues);
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`
       <div class="rissue ${i===0?'top':''}" data-idx="${i}">
         <div class="rscore"><div class="nm">${scoreOf(it)}</div><div class="lb">signal</div>
@@ -841,11 +867,13 @@
         <div class="rbody">
           <h4>${esc(it.title||'')}</h4>
           <div class="gist">${esc(it.gist||'')}</div>
+          ${it.useCase?`<div class="ucline"><b>Use case</b> · ${esc(it.useCase)}</div>`:''}
           <div class="tags">
             <span class="tg sour ${sour(it.severity).cls}" title="how much it stings — severity ${it.severity??'?'}/5">${sour(it.severity).label}</span>
             <span class="tg own" title="owns the fix or the decision">${esc(it.owner||'')}</span>
             ${(it.stakeholders||[]).slice(0,3).map(s=>`<span class="tg stake" title="stakeholder — must be looped in">+ ${esc(s)}</span>`).join('')}
             ${it.disposition?`<span class="tg disp ${it.disposition==='intentional tradeoff'?'trade':'fix'}" title="${it.disposition==='intentional tradeoff'?'a deliberate business choice — weigh it, do not just fix it':'a gap the team would want to close'}">${esc(it.disposition)}</span>`:''}
+            ${it.signalType==='capability signal'?`<span class="tg cap" title="a systemic capability gap — feeds roadmap & (for AI) model-training priorities, not just a ticket">◈ capability signal</span>`:''}
             ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${esc(String(it.authenticity))}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
             ${newSet.has(i)?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
             ${confBand(it)==='low'?`<span class="tg rev" title="Cherry is least confident here — verify before trusting">◆ review first</span>`:''}

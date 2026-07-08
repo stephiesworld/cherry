@@ -42,6 +42,8 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "authenticity": number,        // 1-5: how likely this issue rests on GENUINE customer voice vs bot/fake/astroturfed reviews (5 = clearly real people, 1 = likely inauthentic)
    "prevalence": string,          // e.g. "many reports", "a few mentions"
    "disposition": string,         // "fixable gap" | "intentional tradeoff" (see rule)
+   "signalType": string,          // "surface fix" | "capability signal" (see rule)
+   "useCase": string,             // what the customer was trying to DO (e.g. "speaking practice", "large-workspace docs")
    "signal": number,              // your holistic ranking score; higher = more important
    "owner": string,               // ONE primary team that owns the fix/decision (see owner rule)
    "stakeholders": [string],      // 0-3 OTHER teams with a material stake (see stakeholder rule)
@@ -97,6 +99,16 @@ Rules:
   weighing the customer/brand/legal cost against the business upside, and prefer
   Leadership (or Legal when there's regulatory exposure) as the owner rather than the
   team that merely built it.
+- Set "signalType" per issue: a SURFACE FIX is a specific, boundable problem a team closes
+  (a bug, a pricing/policy change, a support-staffing gap, a UI rough edge). A CAPABILITY SIGNAL
+  is a systemic shortcoming in the product's CORE capability — or, for an AI/ML product, the
+  underlying MODEL (e.g. speech recognition that mishears, summaries that miss nuance, answers
+  that don't hold up for a use case) — a PATTERN that should inform roadmap direction and, for an
+  AI product, model-training/research priorities, not just a one-off ticket. When unsure, prefer
+  "surface fix"; reserve "capability signal" for gaps in the core thing the product is supposed
+  to be good at. Also set "useCase": a short phrase (<= 8 words) naming what the customer was
+  trying to DO when they hit the issue (e.g. "speaking practice", "managing a large workspace"),
+  so patterns are legible by use case.
 - "owner" (on issues AND actions) MUST be a SINGLE primary team — no "/" or "&"
   compounds, no listing two teams. The owner is the one team that owns the FIX or the
   DECISION. Prefer one of these canonical labels so related issues cluster: Engineering,
@@ -133,6 +145,8 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "authenticity": number,        // 1-5: how likely this rests on GENUINE customer voice vs spam/bot-submitted entries in the text (5 = clearly real, 1 = likely inauthentic)
    "prevalence": string,
    "disposition": string,         // "fixable gap" | "intentional tradeoff"
+   "signalType": string,          // "surface fix" | "capability signal"
+   "useCase": string,             // what the customer was trying to DO
    "signal": number,
    "owner": string,               // ONE primary team that owns the fix/decision
    "stakeholders": [string],      // 0-3 other teams to loop in (e.g. Legal for regulatory risk); [] if none
@@ -156,6 +170,11 @@ Rules:
 - Set "disposition": "fixable gap" (a bug/missing-feature/friction to close) or
   "intentional tradeoff" (a deliberate business choice customers dislike). Route an
   intentional tradeoff to Leadership/Legal as a strategy call, not a fix.
+- Set "signalType": "surface fix" (a specific, boundable problem a team closes) or
+  "capability signal" (a systemic shortcoming in the core product — or, for an AI/ML product,
+  the underlying model — that should inform roadmap and model-training/research priorities, not
+  just a ticket). Prefer "surface fix" unless it's a gap in the core thing the product is meant
+  to be good at. Also set "useCase": a short phrase for what the customer was trying to DO.
 - "owner" (issues AND actions) is a SINGLE primary team that owns the fix/decision —
   prefer: Engineering, Product, Design, Billing, Customer Support, Trust & Safety,
   Security, Legal, Marketing, Content, Leadership. Only invent a single label if none fits.
@@ -172,8 +191,8 @@ const SYSTEM_REVISE = `You are Cherry. You are given a CURRENT triage (JSON) and
 Apply the corrections as GROUND TRUTH and return the UPDATED triage in the SAME JSON shape.
 
 Critical: change ONLY what the corrections require — and any re-ranking that logically follows from
-them. Every other issue, title, gist, severity, reach, recency, authenticity, disposition, owner, quote, source, url,
-"love", and "action" MUST stay BYTE-FOR-BYTE IDENTICAL to the input. Do not reword, re-score, re-search,
+them. Every other issue, title, gist, severity, reach, recency, authenticity, disposition, signalType, useCase,
+owner, quote, source, url, "love", and "action" MUST stay BYTE-FOR-BYTE IDENTICAL to the input. Do not reword, re-score, re-search,
 or invent anything. Do not add or drop issues. If a correction changes an issue's signal/severity, re-sort
 issues by signal so the list stays ranked. Return the full object, not a diff.`;
 
@@ -211,13 +230,20 @@ const TRIAGE_SCHEMA = {
           // Disposition: is this a gap the team would close, or a deliberate business
           // choice customers hate? Drives whether the action is a fix or a strategy call.
           disposition: { type: "string", enum: ["fixable gap", "intentional tradeoff"] },
+          // Signal type: a boundable SURFACE FIX (a specific bug/policy/UI change a team
+          // closes) vs a CAPABILITY SIGNAL — a systemic shortcoming in the core product or,
+          // for an AI product, the underlying model — that should feed roadmap direction and
+          // model-training priorities, not just a ticket. useCase names what the customer was
+          // trying to DO, so patterns are visible by use case (what Research needs).
+          signalType: { type: "string", enum: ["surface fix", "capability signal"] },
+          useCase: { type: "string" },
           signal: { type: "number" }, owner: { type: "string" },
           // Stakeholders: other teams with a material stake (e.g. Legal owns the
           // lawsuit even when Leadership owns the decision). Empty when there are none.
           stakeholders: { type: "array", items: { type: "string" } },
           evidence: { type: "array", items: ev },
         },
-        required: ["title", "gist", "severity", "reach", "recency", "authenticity", "prevalence", "disposition", "signal", "owner", "stakeholders", "evidence"],
+        required: ["title", "gist", "severity", "reach", "recency", "authenticity", "prevalence", "disposition", "signalType", "useCase", "signal", "owner", "stakeholders", "evidence"],
         additionalProperties: false,
       },
     },

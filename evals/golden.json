@@ -6,6 +6,8 @@
     {
       "title": "Large workspaces get slow",
       "gist": "Load lag and laggy typing once a workspace passes a few thousand pages.",
+      "signalType": "capability signal",
+      "useCase": "managing a large workspace",
       "severity": 4,
       "prevalence": "many reports",
       "signal": 38,
@@ -29,6 +31,8 @@
     {
       "title": "Offline mode is unreliable",
       "gist": "Edits lost without a connection; the top reason power users leave for local-first tools.",
+      "signalType": "capability signal",
+      "useCase": "offline editing while traveling",
       "severity": 4,
       "prevalence": "many reports",
       "signal": 33,
@@ -52,6 +56,8 @@
     {
       "title": "AI add-on feels like nickel-and-diming",
       "gist": "Paid users resent a second per-seat charge for AI when rivals bundle it.",
+      "signalType": "surface fix",
+      "useCase": "AI-assisted writing",
       "severity": 3,
       "prevalence": "a recurring theme",
       "signal": 21,
@@ -72,6 +78,8 @@
     {
       "title": "Mobile app trails desktop",
       "gist": "Slow open and clunky database editing make mobile a viewer, not an editor.",
+      "signalType": "surface fix",
+      "useCase": "editing on mobile",
       "severity": 3,
       "prevalence": "a few mentions",
       "signal": 16,
@@ -90,6 +98,8 @@
     {
       "title": "Steep learning curve for new users",
       "gist": "Databases and relations overwhelm newcomers before they reach the payoff.",
+      "signalType": "capability signal",
+      "useCase": "onboarding a new team",
       "severity": 2,
       "prevalence": "a recurring theme",
       "signal": 12,

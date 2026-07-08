@@ -34,6 +34,10 @@ issues.forEach((it, i) => {
   ok(Number.isFinite(it.signal), `${where}: signal is not a number`);
   ok(typeof it.owner === "string" && it.owner.length > 0, `${where}: no owner`);
   ok(["fixable gap", "intentional tradeoff"].includes(it.disposition), `${where}: disposition must be "fixable gap" or "intentional tradeoff" (got ${JSON.stringify(it.disposition)})`);
+  // Capability-signal classification: is this a boundable fix or a systemic capability gap
+  // that should feed roadmap/model-training priorities? Plus the use case it surfaced in.
+  ok(["surface fix", "capability signal"].includes(it.signalType), `${where}: signalType must be "surface fix" or "capability signal" (got ${JSON.stringify(it.signalType)})`);
+  ok(typeof it.useCase === "string" && it.useCase.length > 0, `${where}: no useCase (what the customer was trying to do)`);
   ok(Array.isArray(it.stakeholders) && it.stakeholders.every((s) => typeof s === "string") && !it.stakeholders.includes(it.owner), `${where}: stakeholders must be an array of team names not repeating the owner`);
   // The grounding contract: at least one real source URL per issue.
   ok(Array.isArray(it.evidence) && it.evidence.length >= 1, `${where}: NO EVIDENCE (must cite a source)`);

@@ -6,6 +6,8 @@
     {
       "title": "Energy System Seen as a Paywall That Blocks Free Learning",
       "gist": "New Energy mechanic drains faster than Hearts, forcing ads, gem spend, or paid upgrade just to finish a session.",
+      "signalType": "surface fix",
+      "useCase": "free daily language practice",
       "severity": 4,
       "reach": 5,
       "recency": 5,
@@ -38,6 +40,8 @@
     {
       "title": "Billing Traps & Unauthorized Subscription Charges",
       "gist": "Free-trial auto-renewals into annual plans catch users off guard; refunds are deflected to Apple with no direct resolution.",
+      "signalType": "surface fix",
+      "useCase": "managing a subscription",
       "severity": 5,
       "reach": 3,
       "recency": 5,
@@ -71,6 +75,8 @@
     {
       "title": "Customer Support Is Effectively Non-Existent",
       "gist": "Only ~2 full-time support staff for millions of users; Reddit mods revolted against serving as unpaid help desk.",
+      "signalType": "surface fix",
+      "useCase": "getting help with an account",
       "severity": 4,
       "reach": 4,
       "recency": 5,
@@ -101,6 +107,8 @@
     {
       "title": "Shallow Pedagogy: Gamification Replaces Real Learning",
       "gist": "Rote drills and XP-chasing dominate; little grammar instruction means users plateau after beginner level.",
+      "signalType": "capability signal",
+      "useCase": "actually learning to speak a language",
       "severity": 3,
       "reach": 4,
       "recency": 4,
@@ -133,6 +141,8 @@
     {
       "title": "Speech Recognition & Audio Bugs Undermine Speaking Practice",
       "gist": "Microphone fails to detect short words or quiet speech; audio playback cuts off, frustrating speaking exercises.",
+      "signalType": "capability signal",
+      "useCase": "speaking and pronunciation practice",
       "severity": 3,
       "reach": 3,
       "recency": 4,
