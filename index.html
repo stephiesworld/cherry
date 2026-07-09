@@ -333,6 +333,19 @@
   .cx-foot b{color:var(--stem);font-weight:600;}
   @media(max-width:680px){.cx-flow{flex-direction:column;align-items:flex-start;gap:13px;}.cx-arrow{transform:rotate(90deg);margin-left:34px;}}
 
+  /* Scaling-notes CTA — the honest "where this breaks" page, made impossible to miss. */
+  .scale-cta{display:block;background:var(--panel);border:1.5px solid var(--line);border-left:8px solid var(--cherry);
+    border-radius:12px;padding:26px 30px;margin:8px 0 8px;text-decoration:none;color:var(--ink);
+    box-shadow:6px 6px 0 var(--line);transition:transform .12s,box-shadow .12s;}
+  .scale-cta:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--line);}
+  .scale-cta .sc-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.16em;
+    text-transform:uppercase;color:var(--cherry);display:block;margin-bottom:8px;}
+  .scale-cta .sc-title{font-family:'Fraunces',serif;font-size:clamp(20px,2.8vw,27px);font-weight:600;
+    letter-spacing:-0.01em;line-height:1.2;display:block;margin-bottom:8px;}
+  .scale-cta .sc-sub{font-size:14.5px;color:#5a4f44;display:block;max-width:56em;line-height:1.5;}
+  nav a.hot{color:var(--cherry);font-weight:700;}
+  nav a.hot:hover{color:var(--cherry-deep);}
+
   footer{padding:50px 0 60px;border-top:1px solid var(--rule);margin-top:30px;}
   .foot{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;}
   .foot .tag{font-family:'Fraunces',serif;font-style:italic;color:var(--muted);font-size:18px;}
@@ -382,7 +395,7 @@
         </svg>
         <span class="word">Cherry</span><span class="by">sour or sweet</span>
       </div>
-      <nav><a href="#how">How it works</a><a href="scale.html">Scaling notes</a><a href="#top">Top of page</a></nav>
+      <nav><a href="#how">How it works</a><a class="hot" href="scale.html">Scaling notes</a><a href="#top">Top of page</a></nav>
     </div>
   </header>
 
@@ -532,6 +545,12 @@
       </div>
     </div>
     <p class="cx-foot"><b>&#9679; Live today: Slack routing.</b> The rest is the integration design — each intake source is a thin adapter into the same triage core, and issue status flows back from the linked work item, so there's no manual documentation tax.</p>
+
+    <a class="scale-cta rise" href="scale.html">
+      <span class="sc-kicker">The honest part · v1 &rarr; v2</span>
+      <span class="sc-title">Where Cherry breaks at scale — and what v2 does about it &rarr;</span>
+      <span class="sc-sub">Ten break&rarr;fix cards: who wins when two reviewers disagree, cost guards that survive a cold start, staged prompt rollout, contract-driven data permissions, and the operability floor. A demo that knows where it breaks is halfway to a platform.</span>
+    </a>
   </div>
 </section>
 
