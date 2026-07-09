@@ -302,6 +302,20 @@
   .ucline{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.02em;color:var(--muted);margin-top:5px;}
   .ucline b{color:var(--stem);font-weight:600;text-transform:uppercase;letter-spacing:.08em;}
 
+  /* Revenue at stake — weight the ISSUE, not the speaker: a visible axis, never a hidden thumb. */
+  .tg.money{color:#8A6712;border-color:#C99A3A;background:#FBF3E4;font-weight:700;text-transform:none;letter-spacing:.02em;}
+  /* Amplified reach — a few high-visibility voices echoed = a leading indicator to verify. */
+  .tg.amp{color:var(--cherry-deep);border-color:var(--cherry-deep);border-style:dashed;font-weight:700;}
+  /* Coverage strip: segments heard vs silent — silence ≠ satisfaction. */
+  .srcmix .sm-chip.silent{border-style:dashed;color:#8A6712;border-color:#C99A3A;background:transparent;}
+  /* Data-terms selector (paste mode) + enforcement strip: permission lives in the
+     pipeline metadata, not the prompt — default-deny when terms are unspecified. */
+  .pastebar select{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.02em;color:var(--ink);
+    background:#fff;border:1px solid var(--rule-strong);border-radius:6px;padding:8px 10px;max-width:100%;cursor:pointer;}
+  .pastebar select:focus{outline:none;border-color:var(--cherry);}
+  .srcmix .sm-lock{margin-top:0;background:#F1F0FB;border:1.4px solid #B9B6E0;border-left:5px solid #5D57A8;border-radius:8px;padding:12px 16px;font-size:13.5px;line-height:1.5;color:#3E3A6E;}
+  .srcmix .sm-lock b{color:#2E2A5C;}
+
   /* "Where Cherry connects" — the integration architecture. Honest: Slack routing is
      live today; the rest is the design (see DECISIONS.md). Chips mirror the .sm-chip look. */
   .connects{padding:46px 0 10px;}
@@ -368,7 +382,7 @@
         </svg>
         <span class="word">Cherry</span><span class="by">sour or sweet</span>
       </div>
-      <nav><a href="#how">How it works</a><a href="#top">Top of page</a></nav>
+      <nav><a href="#how">How it works</a><a href="scale.html">Scaling notes</a><a href="#top">Top of page</a></nav>
     </div>
   </header>
 
@@ -395,7 +409,13 @@
         <textarea id="feedbackInput" placeholder="Paste raw feedback — a Slack thread, support tickets, sales-call notes — and Cherry triages it directly (no web search). The signal lives inside your company too." aria-label="Paste customer feedback"></textarea>
         <div class="pastebar">
           <button class="btn btn-primary" id="runFeedback">Triage this feedback</button>
-          <span class="paste-hint">Stays in your browser → backend → Claude. Nothing stored.</span>
+          <select id="dataTerms" aria-label="Data terms for this feedback" title="Contract terms travel with the data as metadata — enforced by the pipeline, default-deny when unspecified.">
+            <option value="">Data terms: unspecified → zero retention (default-deny)</option>
+            <option value="unrestricted">Unrestricted — ok to remember &amp; learn from</option>
+            <option value="analytics-only">Analytics only — metrics, no learning</option>
+            <option value="zero-retention">Zero retention — store nothing</option>
+          </select>
+          <span class="paste-hint">Stays in your browser → backend → Claude.</span>
         </div>
       </div>
     </div>
@@ -434,7 +454,9 @@
     <div class="teamdigest" id="teamDigest"></div>
     <div class="capsig" id="capSig"></div>
     <div class="srcmix" id="srcMix"></div>
+    <div class="srcmix" id="covStrip"></div>
     <div class="srcmix" id="authWarn"></div>
+    <div class="srcmix" id="dataStrip"></div>
     <div class="res-grid">
       <div>
         <span class="col-label">Top issues, ranked by signal</span>
@@ -585,6 +607,17 @@
     memory=memory.slice(-60);jset(MEM_KEY,memory);
   }
   function recentMemory(n){return memory.slice(-n).map(m=>({product:m.product,title:m.title,note:m.note}));}
+
+  // ── Data permissions: contract terms travel WITH the data as pipeline metadata, and the
+  // harness enforces them — not the prompt, and not anyone re-reading an NDA at triage time.
+  // Default-deny: unspecified terms are treated as the most restrictive (zero retention).
+  // Web mode is public data → unrestricted. Enforcement: zero-retention persists nothing
+  // (no memory, no run metrics); analytics-only keeps metrics but never learns from it.
+  const dataTermsSel=document.getElementById('dataTerms');
+  function dataLevel(){ if(!currentFeedback)return 'unrestricted';
+    return (dataTermsSel&&dataTermsSel.value)||'zero-retention'; }
+  const allowLearn=()=>dataLevel()==='unrestricted';
+  const allowMetrics=()=>dataLevel()!=='zero-retention';
 
   // Closing the loop: each issue carries a lifecycle status, persisted locally,
   // so you can see the path from customer signal to shipped outcome.
@@ -792,6 +825,37 @@
     el.classList.add('on');
   }
 
+  // Coverage surface: which customer segments have a voice in this evidence, and which
+  // plausible segments are SILENT. Silence ≠ satisfaction — the enterprise that's quietly
+  // churning filed 3 polite tickets while the dev community filed 300 memes. Naming the
+  // silent segments keeps the triage honest about what it did NOT hear.
+  function renderCoverage(cov){
+    const el=document.getElementById('covStrip');if(!el)return;
+    const heard=((cov&&cov.heard)||[]).filter(Boolean), silent=((cov&&cov.silent)||[]).filter(Boolean);
+    if(!heard.length&&!silent.length){el.classList.remove('on');el.innerHTML='';return;}
+    const hChips=heard.map(s=>`<span class="sm-chip">${esc(s)}</span>`).join('');
+    const sChips=silent.map(s=>`<span class="sm-chip silent">${esc(s)}</span>`).join('');
+    el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Heard from</span>${hChips||'<span class="sm-chip">—</span>'}`+
+      (silent.length?`<span class="sm-lbl" style="margin-left:12px">Silent</span>${sChips}`:'')+`</div>`+
+      (silent.length?`<div class="sm-good" style="color:#8A6712">Silence &ne; satisfaction — a segment with no voice in this evidence is a gap in the coverage, not proof they're happy.</div>`:'');
+    el.classList.add('on');
+  }
+
+  // Data-terms surface: show what the pipeline is (and is not) allowed to keep from this
+  // triage — visible enforcement, so the default-deny isn't silent.
+  function renderDataTerms(){
+    const el=document.getElementById('dataStrip');if(!el)return;
+    if(!currentFeedback){el.classList.remove('on');el.innerHTML='';return;}
+    const lvl=dataLevel(), chose=(dataTermsSel&&dataTermsSel.value)||'';
+    const msg=lvl==='unrestricted'
+      ?`<b>Data terms: unrestricted.</b> Corrections on this triage may be remembered in this browser and reused to sharpen future triages.`
+      :lvl==='analytics-only'
+      ?`<b>Data terms: analytics only.</b> Correction-rate metrics are kept; nothing from this feedback — including your corrections on it — is remembered or reused for learning.`
+      :`<b>Data terms: zero retention${chose?'':' (default-deny — no terms were specified, so Cherry assumes the most restrictive)'}.</b> Nothing from this triage persists: no learned corrections, no snapshots, not even the run counter. At enterprise scale these flags come from the contract via the CRM — enforced by the pipeline, not by someone re-reading an NDA.`;
+    el.innerHTML=`<div class="sm-lock">${msg}</div>`;
+    el.classList.add('on');
+  }
+
   // The measured learning loop: grade the triage's synthesis quality with an LLM
   // judge, and when the reviewer corrects + re-ranks, show the score MOVE — proof
   // that human feedback improves the AI, not just a claim.
@@ -847,9 +911,14 @@
     window._cherryIssues=issues;
     renderDigest(issues);
     renderSourceMix(issues,!!currentFeedback);
+    renderCoverage(r.coverage);
     renderAuthenticity(issues);
-    thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
-    runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);renderLearning();
+    renderDataTerms();
+    if(allowMetrics()){
+      thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
+      runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);
+    } else { thisRun=null; }   // zero retention: not even the run counter persists
+    renderLearning();
     syncPersona();
     const trend=computeTrend(issues,wasReranked), newSet=trend.newSet;
     renderReviewQueue(issues);
@@ -874,6 +943,8 @@
             ${(it.stakeholders||[]).slice(0,3).map(s=>`<span class="tg stake" title="stakeholder — must be looped in">+ ${esc(s)}</span>`).join('')}
             ${it.disposition?`<span class="tg disp ${it.disposition==='intentional tradeoff'?'trade':'fix'}" title="${it.disposition==='intentional tradeoff'?'a deliberate business choice — weigh it, do not just fix it':'a gap the team would want to close'}">${esc(it.disposition)}</span>`:''}
             ${it.signalType==='capability signal'?`<span class="tg cap" title="a systemic capability gap — feeds roadmap & (for AI) model-training priorities, not just a ticket">◈ capability signal</span>`:''}
+            ${it.revenueContext?`<span class="tg money" title="revenue at stake — aggregated across the accounts raising this issue; its own visible axis, never a hidden thumb on the scale">$ ${esc(it.revenueContext)}</span>`:''}
+            ${it.reachBasis==='few amplified voices'?`<span class="tg amp" title="reach traces back to one or a few high-visibility voices being echoed — a leading indicator worth verifying against first-party data, not proof of breadth">◉ amplified — verify reach</span>`:''}
             ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${esc(String(it.authenticity))}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
             ${newSet.has(i)?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
             ${confBand(it)==='low'?`<span class="tg rev" title="Cherry is least confident here — verify before trusting">◆ review first</span>`:''}
@@ -951,7 +1022,9 @@
   function upsertCorrection(title,note){
     const ex=corrections.find(c=>c.title===title);
     if(ex)ex.note=note;else corrections.push({title,note});
-    rememberCorrection(currentName,title,note);
+    // Corrections still drive THIS re-rank; persisting them for future sessions is a
+    // data-use question the terms decide (default-deny when unspecified).
+    if(allowLearn())rememberCorrection(currentName,title,note);
     if(thisRun){thisRun.corrected=new Set(corrections.map(c=>c.title)).size;jset(RUN_KEY,runs);}
     refreshCorrbar();renderLearning();
   }

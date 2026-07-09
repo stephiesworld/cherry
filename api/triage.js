@@ -44,11 +44,14 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "disposition": string,         // "fixable gap" | "intentional tradeoff" (see rule)
    "signalType": string,          // "surface fix" | "capability signal" (see rule)
    "useCase": string,             // what the customer was trying to DO (e.g. "speaking practice", "large-workspace docs")
+   "revenueContext": string,      // revenue at stake when sources carry it (e.g. "~$1.2M ARR across 3 accounts"); "" when unknown (see revenue rule)
+   "reachBasis": string,          // "many independent voices" | "few amplified voices" (see reach-basis rule)
    "signal": number,              // your holistic ranking score; higher = more important
    "owner": string,               // ONE primary team that owns the fix/decision (see owner rule)
    "stakeholders": [string],      // 0-3 OTHER teams with a material stake (see stakeholder rule)
    "evidence": [ { "source": string, "url": string, "quote": string } ]
  } ],
+ "coverage": { "heard": [string], "silent": [string] },  // customer segments with a voice in the evidence vs plausibly affected but silent (see coverage rule)
  "love": [string, string, string],
  "actions": [ {"action": string, "why": string, "owner": string} ]
 }
@@ -109,6 +112,23 @@ Rules:
   to be good at. Also set "useCase": a short phrase (<= 8 words) naming what the customer was
   trying to DO when they hit the issue (e.g. "speaking practice", "managing a large workspace"),
   so patterns are legible by use case.
+- REVENUE — weight the ISSUE, not the speaker. When sources carry real revenue/account context
+  (an enterprise buyer, seat counts, contract or plan size), set "revenueContext" to a short
+  phrase AGGREGATED across the accounts raising the issue (e.g. "~$1.2M ARR across 3 accounts",
+  "several enterprise seats"). Never let one big account's mere presence inflate severity or
+  reach — revenue is its own visible axis, not a hidden thumb on the scale. Public web reviews
+  rarely carry this; set "" when unknown rather than guessing.
+- REACH BASIS — say what "reach" rests on. "many independent voices" = the issue is raised by
+  many unrelated people/accounts. "few amplified voices" = the volume traces back to one or a
+  few high-visibility voices (a viral post, an influential reviewer) being echoed. An amplified
+  issue is a LEADING INDICATOR — early warning worth verifying against first-party data — not
+  proof of current breadth, so score its "reach" by the independent voices only and let the
+  basis flag carry the prediction.
+- COVERAGE — silence is not satisfaction. Set top-level "coverage": "heard" lists the customer
+  segments actually speaking in the evidence (e.g. "individual users", "enterprise admins",
+  "developers", "mobile users"); "silent" lists 1-3 plausible segments for this product with NO
+  voice in the evidence. A segment's absence is a gap in the evidence, not proof it is happy —
+  naming the silent segments keeps the triage honest about what it did NOT hear.
 - "owner" (on issues AND actions) MUST be a SINGLE primary team — no "/" or "&"
   compounds, no listing two teams. The owner is the one team that owns the FIX or the
   DECISION. Prefer one of these canonical labels so related issues cluster: Engineering,
@@ -147,11 +167,14 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "disposition": string,         // "fixable gap" | "intentional tradeoff"
    "signalType": string,          // "surface fix" | "capability signal"
    "useCase": string,             // what the customer was trying to DO
+   "revenueContext": string,      // revenue at stake if the text carries it, aggregated across accounts; "" when unknown
+   "reachBasis": string,          // "many independent voices" | "few amplified voices"
    "signal": number,
    "owner": string,               // ONE primary team that owns the fix/decision
    "stakeholders": [string],      // 0-3 other teams to loop in (e.g. Legal for regulatory risk); [] if none
    "evidence": [ { "source": string, "quote": string } ]  // quote VERBATIM from the text; source = who/where in the text (no url)
  } ],
+ "coverage": { "heard": [string], "silent": [string] },  // segments speaking in the text vs plausibly affected but silent
  "love": [string], "actions": [ {"action": string, "why": string, "owner": string} ]
 }
 
@@ -180,6 +203,16 @@ Rules:
   Security, Legal, Marketing, Content, Leadership. Only invent a single label if none fits.
 - "stakeholders": 0-3 other canonical teams (never the owner) that must be looped in
   (e.g. Legal for regulatory risk). Use [] when none. Owner = who acts; stakeholders = who's consulted.
+- REVENUE — weight the ISSUE, not the speaker: when the text names account/contract/seat context,
+  set "revenueContext" to a short phrase aggregated across the accounts raising the issue
+  (e.g. "$400K renewal + 2 mid-market accounts"); "" when the text carries none. Never let one
+  big account's presence inflate severity or reach — revenue is its own visible axis.
+- REACH BASIS — "many independent voices" when many unrelated people/accounts raise it; "few
+  amplified voices" when the volume traces to one or a few high-visibility voices being echoed
+  (treat as a leading indicator to verify, and score "reach" by independent voices only).
+- COVERAGE — set top-level "coverage": "heard" = the segments actually speaking in this text;
+  "silent" = 1-3 plausible segments with no voice in it. Silence is a gap in the evidence, not
+  satisfaction.
 - If prior corrections/preferences are provided, honor them and re-rank.
 - If the pasted text has no real product feedback, say so in "takeaway" and set found=false.`;
 
@@ -192,9 +225,11 @@ Apply the corrections as GROUND TRUTH and return the UPDATED triage in the SAME 
 
 Critical: change ONLY what the corrections require — and any re-ranking that logically follows from
 them. Every other issue, title, gist, severity, reach, recency, authenticity, disposition, signalType, useCase,
-owner, quote, source, url, "love", and "action" MUST stay BYTE-FOR-BYTE IDENTICAL to the input. Do not reword, re-score, re-search,
+revenueContext, reachBasis, coverage, owner, quote, source, url, "love", and "action" MUST stay BYTE-FOR-BYTE IDENTICAL to the input. Do not reword, re-score, re-search,
 or invent anything. Do not add or drop issues. If a correction changes an issue's signal/severity, re-sort
-issues by signal so the list stays ranked. Return the full object, not a diff.`;
+issues by signal so the list stays ranked. Return the full object, not a diff.
+If the input triage predates a field the output shape requires, carry a neutral value instead of
+inventing one: revenueContext "" · reachBasis "many independent voices" · coverage {"heard":[],"silent":[]}.`;
 
 // Structured-output contract. We hand this schema to the API (output_config.format)
 // so the model's final answer is GUARANTEED to be valid JSON in this exact shape —
@@ -237,15 +272,34 @@ const TRIAGE_SCHEMA = {
           // trying to DO, so patterns are visible by use case (what Research needs).
           signalType: { type: "string", enum: ["surface fix", "capability signal"] },
           useCase: { type: "string" },
+          // Revenue at stake, aggregated across the accounts raising the issue ("" when the
+          // sources carry none). Weight the ISSUE, not the speaker: a big account never
+          // secretly inflates severity/reach — revenue is its own visible axis.
+          revenueContext: { type: "string" },
+          // What "reach" rests on: many independent voices, or few amplified ones (a viral
+          // post / influential reviewer). Amplified = a leading indicator to verify, not
+          // proof of breadth — the famous-developer signal, made explicit.
+          reachBasis: { type: "string", enum: ["many independent voices", "few amplified voices"] },
           signal: { type: "number" }, owner: { type: "string" },
           // Stakeholders: other teams with a material stake (e.g. Legal owns the
           // lawsuit even when Leadership owns the decision). Empty when there are none.
           stakeholders: { type: "array", items: { type: "string" } },
           evidence: { type: "array", items: ev },
         },
-        required: ["title", "gist", "severity", "reach", "recency", "authenticity", "prevalence", "disposition", "signalType", "useCase", "signal", "owner", "stakeholders", "evidence"],
+        required: ["title", "gist", "severity", "reach", "recency", "authenticity", "prevalence", "disposition", "signalType", "useCase", "revenueContext", "reachBasis", "signal", "owner", "stakeholders", "evidence"],
         additionalProperties: false,
       },
+    },
+    // Coverage: which customer segments have a voice in the evidence, and which plausible
+    // segments are silent. Silence is a gap in the evidence, not satisfaction — the segments
+    // Cherry did NOT hear from are part of an honest triage.
+    coverage: {
+      type: "object",
+      properties: {
+        heard: { type: "array", items: { type: "string" } },
+        silent: { type: "array", items: { type: "string" } },
+      },
+      required: ["heard", "silent"], additionalProperties: false,
     },
     love: { type: "array", items: { type: "string" } },
     actions: {
@@ -257,7 +311,7 @@ const TRIAGE_SCHEMA = {
       },
     },
   },
-  required: ["product", "found", "takeaway", "issues", "love", "actions"],
+  required: ["product", "found", "takeaway", "issues", "coverage", "love", "actions"],
   additionalProperties: false,
 };
 

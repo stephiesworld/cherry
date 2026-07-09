@@ -38,6 +38,12 @@ issues.forEach((it, i) => {
   // that should feed roadmap/model-training priorities? Plus the use case it surfaced in.
   ok(["surface fix", "capability signal"].includes(it.signalType), `${where}: signalType must be "surface fix" or "capability signal" (got ${JSON.stringify(it.signalType)})`);
   ok(typeof it.useCase === "string" && it.useCase.length > 0, `${where}: no useCase (what the customer was trying to do)`);
+  // Newer fields (revenue-at-stake, reach basis) validate when present — golden files
+  // recorded before a field existed stay honest instead of being hand-edited to carry it.
+  if (it.revenueContext !== undefined)
+    ok(typeof it.revenueContext === "string", `${where}: revenueContext must be a string ("" when unknown)`);
+  if (it.reachBasis !== undefined)
+    ok(["many independent voices", "few amplified voices"].includes(it.reachBasis), `${where}: reachBasis must be "many independent voices" or "few amplified voices" (got ${JSON.stringify(it.reachBasis)})`);
   ok(Array.isArray(it.stakeholders) && it.stakeholders.every((s) => typeof s === "string") && !it.stakeholders.includes(it.owner), `${where}: stakeholders must be an array of team names not repeating the owner`);
   // The grounding contract: at least one real source URL per issue.
   ok(Array.isArray(it.evidence) && it.evidence.length >= 1, `${where}: NO EVIDENCE (must cite a source)`);
@@ -49,6 +55,12 @@ issues.forEach((it, i) => {
 const signals = issues.map((x) => x.signal ?? 0);
 for (let i = 1; i < signals.length; i++)
   ok(signals[i] <= signals[i - 1], `not ranked: signal rises at position ${i} (${signals[i - 1]} -> ${signals[i]})`);
+
+// Coverage (when present): heard/silent segment lists — silence ≠ satisfaction.
+if (r.coverage !== undefined) {
+  ok(Array.isArray(r.coverage.heard) && r.coverage.heard.every((s) => typeof s === "string"), "coverage.heard must be an array of segment names");
+  ok(Array.isArray(r.coverage.silent) && r.coverage.silent.every((s) => typeof s === "string"), "coverage.silent must be an array of segment names");
+}
 
 // Every recommended action must carry its reasoning.
 (r.actions || []).forEach((a, i) =>
