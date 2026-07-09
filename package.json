@@ -7,6 +7,7 @@
   "engines": { "node": ">=18" },
   "scripts": {
     "eval": "node evals/check.mjs evals/golden.json && node evals/check.mjs evals/golden-duolingo.json",
+    "eval:classify": "node evals/classify.mjs",
     "judge": "node evals/judge.mjs evals/golden.json",
     "test": "npm run eval"
   }

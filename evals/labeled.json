@@ -1,0 +1,71 @@
+{
+  "_readme": "Labeled classification cases for evals/classify.mjs — the ACCURACY eval (did Cherry classify correctly?), as opposed to check.mjs, the CONTRACT eval (is the output well-formed?). Each case is a short paste-mode feedback bundle with ONE dominant issue, so the top-ranked issue is the one being graded. 'expect.owner' is a list because routing can have more than one defensible answer; disposition and signalType are exact-match. Boundary cases are deliberate — they sit on the line the prompt has to hold (surface fix vs capability signal is the blurry one). Grow this file from production misses: every classification a human corrects becomes a candidate case.",
+  "cases": [
+    {
+      "id": "crash-on-export",
+      "note": "clear bug — the easy anchor case",
+      "feedback": "Ticket #4411: App crashes every time I export a project over 200MB. Reproduced on two machines.\nTicket #4415: Export to PDF just dies with a spinner, file never downloads. Started after the last update.\nTicket #4420: Same crash on export here. Losing work because of it.",
+      "expect": { "disposition": "fixable gap", "signalType": "surface fix", "owner": ["Engineering"] }
+    },
+    {
+      "id": "cancellation-friction",
+      "note": "deliberate business choice — must NOT be framed as a fix-it ticket",
+      "feedback": "Trustpilot-style paste: 'Cancelling took me 45 minutes, four confirmation screens, and a mandatory retention call. This is designed to stop you leaving.'\nSupport thread: 'Customer furious about the $180 early termination fee — says it was buried in the signup flow.'\nAnother: 'The cancel button is hidden behind three menus on purpose. Predatory.'",
+      "expect": { "disposition": "intentional tradeoff", "signalType": "surface fix", "owner": ["Leadership", "Legal"] }
+    },
+    {
+      "id": "transcription-accents",
+      "note": "AI product, core capability failing across a use case — the capability-signal anchor",
+      "feedback": "User interview notes: 'The meeting transcription consistently mishears our Indian and Scottish colleagues — names, numbers, all garbled. We can't share notes without a full manual pass.'\nSupport ticket: 'Transcripts are unusable for our Singapore office. Accuracy is fine for US accents only.'\nSales call note: prospect passed on the deal, said transcription quality on non-US accents was the blocker for a global team.",
+      "expect": { "disposition": "fixable gap", "signalType": "capability signal", "owner": ["Product", "Engineering"] }
+    },
+    {
+      "id": "summaries-miss-decisions",
+      "note": "boundary: reads like a feature complaint, is actually the core capability underperforming",
+      "feedback": "Slack #feedback: 'The AI summary of our 90-minute planning doc missed both decisions we actually made and highlighted the small talk.'\n'Same — summaries are fine for short docs but anything long, it loses the thread and I have to re-read the whole thing anyway.'\n'Asked it to summarize the contract review; it skipped the liability clause entirely. That's the one thing I needed.'",
+      "expect": { "disposition": "fixable gap", "signalType": "capability signal", "owner": ["Product", "Engineering"] }
+    },
+    {
+      "id": "big-file-crash-boundary",
+      "note": "boundary the other way: mentions scale/limits but is a boundable bug, not a systemic gap",
+      "feedback": "Ticket: 'Uploading a 1.2GB video fails at 99% every single time. Small files are fine.'\nTicket: 'Upload of large media files times out — progress bar hits the end then errors.'\nForum post: 'Known issue? Big uploads die at the last second. Retried five times.'",
+      "expect": { "disposition": "fixable gap", "signalType": "surface fix", "owner": ["Engineering"] }
+    },
+    {
+      "id": "double-billing",
+      "note": "routing check — billing owns billing",
+      "feedback": "Support ticket: 'I was charged twice this month, two identical invoices dated the same day.'\nSupport ticket: 'Duplicate charge on my card after the plan renewal, still no refund after 10 days.'\nChat log: 'Billed for 12 seats, we only have 8. Second month running.'",
+      "expect": { "disposition": "fixable gap", "signalType": "surface fix", "owner": ["Billing"] }
+    },
+    {
+      "id": "support-wait-times",
+      "note": "an ops gap, not a product bug — owner is the support org",
+      "feedback": "NPS verbatim: 'Took 9 days to get a first response on a P1 ticket. Unacceptable at this price.'\nNPS verbatim: 'Support is a black hole. Auto-reply, then silence for a week.'\nRenewal call note: CS flagged that the account nearly churned over response times, not the product itself.",
+      "expect": { "disposition": "fixable gap", "signalType": "surface fix", "owner": ["Customer Support"] }
+    },
+    {
+      "id": "aggressive-upsells",
+      "note": "deliberate monetization choice customers hate — strategy call, not a ticket",
+      "feedback": "App review: 'Every single session opens with a full-screen upgrade modal. I already pay for Plus!'\nApp review: 'Three upsell popups before I can do anything. It's relentless and clearly intentional.'\nReddit-style paste: 'They A/B tested even MORE upgrade nags last month. Product is good, the constant selling is why I'm leaving.'",
+      "expect": { "disposition": "intentional tradeoff", "signalType": "surface fix", "owner": ["Leadership", "Product"] }
+    },
+    {
+      "id": "search-irrelevant",
+      "note": "boundary: for a search-centric product, bad relevance is the core capability, not a UI bug",
+      "feedback": "User research notes (product: an enterprise knowledge-search tool): 'Search returns documents that merely contain the words, not what I meant. For anything beyond exact keywords it's useless.'\n'Asked for the Q3 pricing deck, got 40 results, the actual deck was #17.'\n'Our team has reverted to asking each other in Slack because search can't find things by meaning. That's the whole reason we bought it.'",
+      "expect": { "disposition": "fixable gap", "signalType": "capability signal", "owner": ["Product", "Engineering"] }
+    },
+    {
+      "id": "docs-examples-broken",
+      "note": "content defect — routes to the docs/content owner, not core engineering",
+      "feedback": "GitHub-style paste: 'The quickstart example in the docs throws a TypeError as written — the import path changed two versions ago and the docs never caught up.'\n'Copy-pasted the webhook tutorial verbatim, three of the five snippets fail.'\n'Docs code samples are consistently stale. New users bounce off the first tutorial.'",
+      "expect": { "disposition": "fixable gap", "signalType": "surface fix", "owner": ["Content", "Engineering"] }
+    },
+    {
+      "id": "enterprise-sso-blocker",
+      "note": "revenue-carrying case — also exercises revenueContext extraction",
+      "feedback": "Sales call notes: 'Acme Corp ($400K/yr renewal) says no SSO/SAML is now a hard compliance blocker — security team will not approve renewal without it.'\nCS note: 'Two more mid-market accounts (~$60K combined) asked for SSO this quarter, same compliance driver.'\nOpportunity-loss reason: 'Lost Initech deal at contract stage: no SSO.'",
+      "expect": { "disposition": "fixable gap", "signalType": "surface fix", "owner": ["Engineering", "Product", "Security"] }
+    }
+  ]
+}
