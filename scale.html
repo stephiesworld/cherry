@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Scaling Cherry — from demo to enterprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#19120F;--muted:#8A7A66;--ground:#F8EFDF;--panel:#F2E7D0;--panel-deep:#EAD9BB;
+    --cherry:#C71F38;--cherry-bright:#D8324B;--cherry-deep:#8E1428;--stem:#5A6E10;--sour:#AEC42B;
+    --line:#19120F;--rule:rgba(25,18,15,0.13);--rule-strong:rgba(25,18,15,0.34);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--ground);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;
+    font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:920px;margin:0 auto;padding:0 32px;}
+  .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--cherry);font-weight:500;}
+  header{padding:28px 0 0;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
+  .brand .word{font-size:24px;font-weight:700;letter-spacing:-0.02em;}
+  .brand .by{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:500;letter-spacing:0.1em;
+    text-transform:uppercase;color:#fff;background:var(--cherry);padding:3px 7px;border-radius:3px;}
+  nav a{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.12em;
+    text-transform:uppercase;color:var(--muted);text-decoration:none;margin-left:26px;}
+  nav a:hover{color:var(--ink);}
+  .hero{padding:56px 0 26px;}
+  .hero h1{font-family:'Fraunces',serif;font-size:clamp(38px,5.4vw,60px);line-height:1.0;font-weight:600;letter-spacing:-0.02em;margin:16px 0 18px;}
+  .hero h1 em{font-style:italic;color:var(--cherry);}
+  .hero .lede{font-size:18.5px;color:#4a4036;max-width:38em;line-height:1.55;}
+  .hero .lede b{color:var(--ink);}
+  section{padding:34px 0 8px;}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:26px;border-bottom:1px solid var(--rule);padding-bottom:14px;}
+  .sec-head h2{font-family:'Fraunces',serif;font-size:clamp(24px,3.2vw,32px);font-weight:600;letter-spacing:-0.015em;}
+  .sec-head .label{margin-left:auto;}
+  .brk{background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:22px 24px;margin-bottom:18px;box-shadow:4px 4px 0 var(--panel-deep);}
+  .brk h3{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin-bottom:10px;}
+  .brk h3 .n{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--cherry);margin-right:10px;vertical-align:2px;}
+  .brk p{font-size:15.5px;color:#4a4036;margin-bottom:10px;}
+  .brk p:last-child{margin-bottom:0;}
+  .brk b{color:var(--ink);}
+  .brk .tag-break,.brk .tag-fix{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2.5px 8px;border-radius:4px;margin-right:8px;white-space:nowrap;}
+  .tag-break{color:#fff;background:var(--cherry);}
+  .tag-fix{color:#fff;background:var(--stem);}
+  .callout{background:var(--panel);border:1.5px solid var(--line);border-left:6px solid var(--cherry);border-radius:10px;padding:20px 24px;margin:6px 0 22px;font-size:16px;line-height:1.55;}
+  .callout b{color:var(--ink);}
+  .ladder{list-style:none;counter-reset:step;margin:4px 0 14px;}
+  .ladder li{counter-increment:step;position:relative;padding:12px 0 12px 52px;border-bottom:1px solid var(--rule);font-size:15.5px;color:#4a4036;}
+  .ladder li:last-child{border-bottom:none;}
+  .ladder li::before{content:counter(step,decimal-leading-zero);position:absolute;left:0;top:12px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--cherry);letter-spacing:.06em;}
+  .ladder li b{color:var(--ink);}
+  .mono{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:2px 7px;white-space:nowrap;}
+  footer{padding:44px 0 60px;border-top:1px solid var(--rule);margin-top:40px;}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;}
+  .foot .tag{font-family:'Fraunces',serif;font-style:italic;color:var(--muted);font-size:17px;}
+  .foot .label{color:var(--muted);}
+  a.txt{color:var(--cherry-deep);text-decoration:none;border-bottom:1.5px solid var(--sour);}
+  a.txt:hover{border-color:var(--cherry);}
+  @media(max-width:640px){nav{display:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M20 6 C16 9 13 13 12 19" stroke="#5A6E10" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M20 6 C21 11 22 16 22 20" stroke="#5A6E10" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="11" cy="23" r="6" fill="#C71F38" stroke="#19120F" stroke-width="1.4"/><circle cx="23" cy="24" r="5.5" fill="#C71F38" stroke="#19120F" stroke-width="1.4"/>
+        </svg>
+        <span class="word">Cherry</span><span class="by">scaling notes</span>
+      </a>
+      <nav><a href="index.html">← Back to Cherry</a></nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <span class="label">An honest map, not a pitch</span>
+    <h1>Where Cherry <em>breaks</em> at scale — and what v2 does about it.</h1>
+    <p class="lede">Cherry v1 is deliberately demo-scale: one user, one browser, no database. That was the right scope to prove the synthesis-and-judgment core. But a feedback platform serving <b>hundreds of submitters and dozens of teams</b> breaks in specific, predictable places. This page names each break honestly and gives the v2 answer — because knowing where your own system fails is the difference between a demo and a platform.</p>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>The breaks, and the fixes</h2><span class="label">v1 → v2</span></div>
+
+    <div class="brk">
+      <h3><span class="n">01</span>Ground truth lives in one person's browser</h3>
+      <p><span class="tag-break">Break</span>Corrections — the human judgment Cherry learns from — persist in <span class="mono">localStorage</span>. One user, one machine. A colleague's Cherry knows nothing your Cherry learned, so the system can't compound judgment across a team, and trend detection only diffs <em>your own</em> prior runs.</p>
+      <p><span class="tag-fix">Fix</span>A persistent store (Postgres + the warehouse sync in the <a class="txt" href="index.html#connects">integration architecture</a>): corrections, snapshots, and lifecycle states become org-wide. Every correction carries <b>provenance</b> — who, when, why — because shared ground truth that can't be audited isn't ground truth. Which immediately raises the governance question ↓</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">02</span>Two PMs give contradictory corrections — who wins?</h3>
+      <p><span class="tag-break">Break</span>v1 has one reviewer, so "ground truth" is whatever they said. At scale, the Product PM corrects an issue's severity down while the Support lead corrects it up. Last-write-wins silently destroys one person's judgment; averaging destroys both.</p>
+      <p><span class="tag-fix">Fix</span>Three rules, in order. <b>(1) Scope before you adjudicate:</b> most "conflicts" aren't — severity-for-Product and severity-for-Support are different jobs, which is what persona views already model. A correction applies first to the corrector's view. <b>(2) Ownership decides shared fields:</b> for fields with one true value (owner, disposition), the issue's <em>owning team's</em> reviewer has authority; others' corrections attach as stakeholder annotations, not overwrites. <b>(3) Disagreement is signal, not noise:</b> genuinely contested calls get flagged <em>contested</em> — both corrections visible — and routed to a steward's adjudication queue. Every adjudication becomes a labeled eval case, so governance doesn't just resolve conflicts, it <b>manufactures golden data</b>.</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">03</span>Single-tenant, no auth</h3>
+      <p><span class="tag-break">Break</span>Anyone with the URL is "the reviewer." There are no teams, no roles, no separation between who may <em>view</em> a triage, who may <em>correct</em> it, and who may <em>send</em> a ticket to Slack.</p>
+      <p><span class="tag-fix">Fix</span>SSO, workspaces per team, and role-scoped authority: viewers, correctors (whose judgment feeds learning), and senders (who fire external actions). Authority maps to the autonomy ladder below — the permission system <em>is</em> the guardrail layer.</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">04</span>Cost guards reset when the server blinks</h3>
+      <p><span class="tag-break">Break</span>The per-IP rate limit, daily cap, and 24-hour result cache are in-memory — per serverless instance. They vanish on cold start and don't coordinate across instances. Fine for a portfolio tool; a hole at scale.</p>
+      <p><span class="tag-fix">Fix</span>Shared state (Redis / Vercel KV) for limits and cache, plus real cost governance: the bill is <span class="mono">users × runs/day × tokens × price</span> — at 800 users it's a budget line someone must defend. Levers: prompt caching (live in v1), result caching, model right-sizing (small models enrich and tag; the frontier model synthesizes), context trimming. Budget alerts at 50/80/100%, and the metric that ends arguments: <b>cost per triaged issue vs. the human hour it replaces</b>.</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">05</span>No observability</h3>
+      <p><span class="tag-break">Break</span>v1 keeps no record of model calls. When a user says "Tuesday's triage was weird," there is nothing to replay — the diagnosis is a shrug.</p>
+      <p><span class="tag-fix">Fix</span>Log every call — full input, output, model version, latency, cost — replayable. Text is nearly free to store (a year of transcripts costs less than one video call's recording); the real constraint is <b>policy</b>: retention windows, PII, and honoring zero-retention contracts, which is exactly what the data-terms flags enforce.</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">06</span>The eval set is one person's opinion</h3>
+      <p><span class="tag-break">Break</span>Golden files and labeled cases are authored and graded by one builder. At scale that's a single point of judgment: the evals encode one person's definition of "correct."</p>
+      <p><span class="tag-fix">Fix</span>Eval governance: labeled sets get an owner and a review cadence; production corrections flow in weekly as candidate cases (adjudicated conflicts first — see 02); the LLM judge is recalibrated against human labels quarterly. Two eval kinds run in CI: the <b>contract</b> gate (<span class="mono">check.mjs</span> — is the output well-formed?) and the <b>accuracy</b> gate (<span class="mono">classify.mjs</span> — did it put issues in the right box?). A wrong-but-well-formed answer passes the first and fails the second; you need both.</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">07</span>Prompt changes ship to everyone, instantly</h3>
+      <p><span class="tag-break">Break</span>Editing the system prompt in v1 deploys to 100% of users at once. With 800 users, that's betting the whole fleet on every wording change — and "rollback" means digging through git at 11pm.</p>
+      <p><span class="tag-fix">Fix</span>Prompts become versioned <b>config, not code</b>. The rollout ladder: shadow (new prompt runs silently alongside old, outputs compared offline) → 5% of users → 25% → 100%, each stage gated on metrics (correction rate, receiver-usefulness, eval scores). Rollback is a pointer flip — seconds, no deploy. Never change the prompt and the model version in the same step, for the same reason as the ladder below: an unattributable failure forces a total rollback.</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">08</span>Data permissions are chosen per paste</h3>
+      <p><span class="tag-break">Break</span>v1 asks the person pasting to declare the data terms. Honest for a demo, but at scale nobody should re-read an NDA at triage time — and nobody will.</p>
+      <p><span class="tag-fix">Fix</span>Terms are captured <b>once, at contract signing</b>, as structured CRM fields (usable for analytics? for learning? retention window?). Every feedback record carries its account ID and inherits the flags; the pipeline enforces them mechanically, <b>default-deny</b> when flags are missing — so the failure mode is "overly careful," never "learned from something we shouldn't have." New contracts get a standard data-use clause; the top accounts get a one-time backfill.</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">09</span>Intake is manual</h3>
+      <p><span class="tag-break">Break</span>Search-the-web and paste are two doors; the richest signal — support tickets, Gong calls, CRM loss reasons, the warehouse — never walks through either on its own. Manual intake is a documentation tax, and taxed data goes stale.</p>
+      <p><span class="tag-fix">Fix</span>The <a class="txt" href="index.html#connects">connector architecture</a>: thin adapters normalize each source into the shape paste-mode already accepts (the core never changes), work items file into Linear/Jira, and status flows <em>back</em> automatically. For warehouse volume, cheap SQL shrinks millions of rows to the slice needing judgment — the model reads the slice, never the millions.</p>
+    </div>
+
+    <div class="brk">
+      <h3><span class="n">10</span>The bus factor is one</h3>
+      <p><span class="tag-break">Break</span>One builder knows how Cherry runs, fails, and turns off. People leave on one day's notice; a system without an operability floor dies with its owner.</p>
+      <p><span class="tag-fix">Fix</span><b>Minimum viable operability</b> before the user base widens: a one-page runbook (what it is, how to tell it's broken, how to turn it off, who inherits it), a named backup owner who has run it once, a documented kill switch, and a failure taxonomy — each known failure mode with its detection, severity, and containment. Scale is a privilege operability has to earn.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>The order of operations</h2><span class="label">Scale × autonomy</span></div>
+    <div class="callout"><b>Never increase scale and autonomy in the same step.</b> If both change at once, the first bad outcome is unattributable — was it the new users' novel inputs, or the removed human gate? — and the only safe response is rolling everything back. One axis at a time makes every regression attributable and every rollback surgical.</div>
+    <ol class="ladder">
+      <li><b>Shadow.</b> The system runs, humans decide, outputs are only compared. Zero blast radius; this is where trust data comes from.</li>
+      <li><b>Propose, human disposes.</b> Full capability, gated authority — Cherry drafts everything, a human fires anything external. (v1 lives here: drafts are free, the Slack send is a button.)</li>
+      <li><b>Scale wide, autonomy frozen.</b> More teams, more intake — with the human gate still on, so scale's edge cases surface while someone is watching.</li>
+      <li><b>Autonomy by reversibility, not by workflow.</b> Where months of review data support it, unhook the human from <em>reversible</em> actions first (tagging, clustering, drafting stay autonomous; sending, closing, paying stay gated) — one action type at a time, each earning its own gate removal.</li>
+      <li><b>Never fully unattended.</b> Sampled human audit, drift alarms, and the kill switch stay forever. Trust here isn't a milestone you pass — it's a monitoring system you believe in.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <div class="foot">
+      <span class="tag">A demo that knows where it breaks is halfway to a platform.</span>
+      <span class="label"><a class="txt" href="index.html" style="border:none">← Cherry</a> · Studio Felix</span>
+    </div>
+  </footer>
+</div>
+</body>
+</html>
