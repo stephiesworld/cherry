@@ -346,6 +346,11 @@
   nav a.hot{color:var(--cherry);font-weight:700;}
   nav a.hot:hover{color:var(--cherry-deep);}
 
+  /* Pipeline strip — the eight stages under the hood; scrolls sideways on small screens. */
+  .pipe-lead{font-size:15px;color:var(--muted);margin:34px 0 14px;}
+  .pipe-card{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:16px 14px;
+    box-shadow:6px 6px 0 var(--line);overflow-x:auto;}
+  .pipe-card svg{min-width:980px;width:100%;height:auto;display:block;}
   /* The operating theory — the diagram, on a white card so the drawing reads. */
   .theory-card{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:26px 22px;box-shadow:6px 6px 0 var(--line);}
   .theory-card svg{width:100%;height:auto;display:block;}
@@ -521,6 +526,53 @@
       <div class="step rise"><span class="n">02 / Read</span><h3>Tagged &amp; clustered</h3><p>It names each theme and groups the hundred ways people describe one problem into a single issue.</p></div>
       <div class="step rise"><span class="n">03 / Rank</span><h3>By signal</h3><p>Severity and prevalence combine into one score, so the top of the list is genuinely the top.</p></div>
       <div class="step rise"><span class="n">04 / Learn</span><h3>You correct, it adapts</h3><p>Disagree with a call? Tell Cherry, and it re-ranks with your judgment — sharper every pass.</p></div>
+    </div>
+    <p class="pipe-lead rise">Under the hood: the same journey in eight stages, ending where it starts.</p>
+    <div class="pipe-card rise">
+<svg viewBox="0 0 1160 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Eight-stage pipeline: raw feedback from many channels is normalized and enriched, deduplicated and clustered, mined for use case, problem, severity and evidence, ranked and routed, verified by a human, decided by product or research, and the loop closes with field and customer — generating new signal.">
+  <defs>
+    <marker id="pp-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#19120F"/></marker>
+    <marker id="pp-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8A7A66"/></marker>
+  </defs>
+  <style>
+    .pp-t{font:700 10px 'JetBrains Mono',ui-monospace,monospace;fill:#19120F;}
+    .pp-s{font:400 8.5px 'JetBrains Mono',ui-monospace,monospace;fill:#6E6259;}
+  </style>
+  <rect x="6" y="28" width="130" height="58" rx="6" fill="#F8EFDF" stroke="#19120F" stroke-width="1.4"/>
+  <text x="71.0" y="50" text-anchor="middle" class="pp-t">RAW FEEDBACK</text>
+  <text x="71.0" y="64" text-anchor="middle" class="pp-s">many channels</text>
+  <line x1="136" y1="57.0" x2="148" y2="57.0" stroke="#19120F" stroke-width="1.3" marker-end="url(#pp-a)"/>
+  <rect x="150" y="28" width="130" height="58" rx="6" fill="#F8EFDF" stroke="#19120F" stroke-width="1.4"/>
+  <text x="215.0" y="50" text-anchor="middle" class="pp-t">NORMALIZE</text>
+  <text x="215.0" y="64" text-anchor="middle" class="pp-s">+ enrich</text>
+  <line x1="280" y1="57.0" x2="292" y2="57.0" stroke="#19120F" stroke-width="1.3" marker-end="url(#pp-a)"/>
+  <rect x="294" y="28" width="130" height="58" rx="6" fill="#F8EFDF" stroke="#19120F" stroke-width="1.4"/>
+  <text x="359.0" y="50" text-anchor="middle" class="pp-t">DEDUPE</text>
+  <text x="359.0" y="64" text-anchor="middle" class="pp-s">+ cluster</text>
+  <line x1="424" y1="57.0" x2="436" y2="57.0" stroke="#19120F" stroke-width="1.3" marker-end="url(#pp-a)"/>
+  <rect x="438" y="28" width="130" height="58" rx="6" fill="#F8EFDF" stroke="#19120F" stroke-width="1.4"/>
+  <text x="503.0" y="47" text-anchor="middle" class="pp-t">EXTRACT</text>
+  <text x="503.0" y="61" text-anchor="middle" class="pp-s">use case · problem</text>
+  <text x="503.0" y="72" text-anchor="middle" class="pp-s">severity · evidence</text>
+  <line x1="568" y1="57.0" x2="580" y2="57.0" stroke="#19120F" stroke-width="1.3" marker-end="url(#pp-a)"/>
+  <rect x="582" y="28" width="130" height="58" rx="6" fill="#F8EFDF" stroke="#19120F" stroke-width="1.4"/>
+  <text x="647.0" y="50" text-anchor="middle" class="pp-t">RANK + ROUTE</text>
+  <text x="647.0" y="64" text-anchor="middle" class="pp-s">weigh the axes</text>
+  <line x1="712" y1="57.0" x2="724" y2="57.0" stroke="#19120F" stroke-width="1.3" marker-end="url(#pp-a)"/>
+  <rect x="726" y="28" width="130" height="58" rx="6" fill="#fff" stroke="#C71F38" stroke-width="2"/>
+  <text x="791.0" y="50" text-anchor="middle" class="pp-t" fill='#C71F38'>HUMAN</text>
+  <text x="791.0" y="64" text-anchor="middle" class="pp-s">verification</text>
+  <line x1="856" y1="57.0" x2="868" y2="57.0" stroke="#19120F" stroke-width="1.3" marker-end="url(#pp-a)"/>
+  <rect x="870" y="28" width="130" height="58" rx="6" fill="#F8EFDF" stroke="#19120F" stroke-width="1.4"/>
+  <text x="935.0" y="50" text-anchor="middle" class="pp-t">DECIDE</text>
+  <text x="935.0" y="64" text-anchor="middle" class="pp-s">product or research</text>
+  <line x1="1000" y1="57.0" x2="1012" y2="57.0" stroke="#19120F" stroke-width="1.3" marker-end="url(#pp-a)"/>
+  <rect x="1014" y="28" width="130" height="58" rx="6" fill="#F8EFDF" stroke="#19120F" stroke-width="1.4"/>
+  <text x="1079.0" y="50" text-anchor="middle" class="pp-t">CLOSE THE LOOP</text>
+  <text x="1079.0" y="64" text-anchor="middle" class="pp-s">field + customer</text>
+  <path d="M 1079.0 94 C 1079.0 132, 71.0 132, 71.0 98" fill="none" stroke="#8A7A66" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#pp-g)"/>
+  <text x="580" y="152" text-anchor="middle" class="pp-s">closing the loop generates new signal — the pipeline is a circle wearing a straight line's clothes</text>
+</svg>
     </div>
   </div>
 </section>
