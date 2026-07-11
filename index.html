@@ -681,6 +681,48 @@
 </svg>
     </div>
     <p class="cx-foot">Internal tools have product-market fit when teams can't make a decision without them. Cherry's bet is that feedback earns that seat by being cut per reader — "high-signal" is a property of the audience. <a class="theory-link" href="https://stephiedelpaggio.vercel.app/writing/who-is-feedback-for">Read the full essay &rarr;</a></p>
+    <div class="sec-head rise" style="margin-top:52px"><h2>Why a human stays in the loop</h2><span class="label">Propose &middot; correct &middot; measure</span></div>
+    <p class="cx-lead">Cherry drafts every ticket and never sends one on its own. That's the design: the model does the repetitive first pass, a person makes the calls that need context the model was never given, and the system measures whether each correction genuinely helped — so tomorrow starts ahead of today.</p>
+    <div class="theory-card rise">
+<svg viewBox="0 0 680 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Without correction: feedback to model to output, a straight line. With correction: the model proposes, a human edits, the edit is measured, and the improvement feeds back into the model's future behavior." style="width:100%;height:auto;display:block;margin:2rem 0;">
+  <defs>
+    <marker id="loop-ha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#000"/></marker>
+    <marker id="loop-hc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B01E36"/></marker>
+  </defs>
+  <style>
+    .lp-lbl{font:600 10px 'JetBrains Mono',ui-monospace,monospace;fill:#000;}
+    .lp-sm{font:400 9px 'JetBrains Mono',ui-monospace,monospace;fill:#666;}
+  </style>
+  <text x="8" y="20" class="lp-sm">WITHOUT CORRECTION — a line: tomorrow is exactly as good as today</text>
+  <rect x="8" y="34" width="130" height="36" fill="#f3f3f3" stroke="#000" stroke-width="1.3"/>
+  <text x="73" y="56" text-anchor="middle" class="lp-lbl">FEEDBACK</text>
+  <line x1="138" y1="52" x2="188" y2="52" stroke="#000" stroke-width="1.2" marker-end="url(#loop-ha)"/>
+  <rect x="190" y="34" width="130" height="36" fill="#f3f3f3" stroke="#000" stroke-width="1.3"/>
+  <text x="255" y="56" text-anchor="middle" class="lp-lbl">MODEL</text>
+  <line x1="320" y1="52" x2="370" y2="52" stroke="#000" stroke-width="1.2" marker-end="url(#loop-ha)"/>
+  <rect x="372" y="34" width="130" height="36" fill="#f3f3f3" stroke="#000" stroke-width="1.3"/>
+  <text x="437" y="56" text-anchor="middle" class="lp-lbl">OUTPUT</text>
+  <text x="8" y="118" class="lp-sm" fill="#B01E36">WITH CORRECTION — a loop: the human improves tomorrow, not just today</text>
+  <rect x="8" y="132" width="118" height="36" fill="#f3f3f3" stroke="#000" stroke-width="1.3"/>
+  <text x="67" y="154" text-anchor="middle" class="lp-lbl">FEEDBACK</text>
+  <line x1="126" y1="150" x2="158" y2="150" stroke="#000" stroke-width="1.2" marker-end="url(#loop-ha)"/>
+  <rect x="160" y="132" width="118" height="36" fill="#fff" stroke="#000" stroke-width="1.5"/>
+  <text x="219" y="149" text-anchor="middle" class="lp-lbl">MODEL</text>
+  <text x="219" y="162" text-anchor="middle" class="lp-sm">proposes</text>
+  <line x1="278" y1="150" x2="310" y2="150" stroke="#000" stroke-width="1.2" marker-end="url(#loop-ha)"/>
+  <rect x="312" y="132" width="118" height="36" fill="#fff" stroke="#B01E36" stroke-width="2"/>
+  <text x="371" y="149" text-anchor="middle" class="lp-lbl">HUMAN</text>
+  <text x="371" y="162" text-anchor="middle" class="lp-sm">edits</text>
+  <line x1="430" y1="150" x2="462" y2="150" stroke="#000" stroke-width="1.2" marker-end="url(#loop-ha)"/>
+  <rect x="464" y="132" width="118" height="36" fill="#fff" stroke="#000" stroke-width="1.5"/>
+  <text x="523" y="149" text-anchor="middle" class="lp-lbl">MEASURE</text>
+  <text x="523" y="162" text-anchor="middle" class="lp-sm">did the edit help?</text>
+  <path d="M 582 168 C 620 210, 260 226, 219 172" fill="none" stroke="#B01E36" stroke-width="1.6" marker-end="url(#loop-hc)"/>
+  <text x="400" y="216" text-anchor="middle" class="lp-sm" fill="#B01E36">what helped becomes tomorrow's behavior — prompts, retrieval, evals</text>
+</svg>
+    </div>
+    <p class="cx-foot">The edit is a data point; the measurement is what turns it into learning. <a class="theory-link" href="https://stephiedelpaggio.vercel.app/writing/why-the-human-stays-in-the-loop">Read: why the human stays in the loop &rarr;</a></p>
+
   </div>
 </section>
 
