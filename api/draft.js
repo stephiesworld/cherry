@@ -9,7 +9,7 @@
 
 export const config = { maxDuration: 30 };
 
-const MODEL = process.env.CHERRY_MODEL || "claude-opus-4-8";
+const MODEL = process.env.CHERRY_MODEL || "claude-sonnet-4-6"; // match triage/judge default; set CHERRY_MODEL=claude-opus-4-8 for richer drafts
 const DAILY_CAP = Number(process.env.CHERRY_DRAFT_DAILY_CAP || 300);
 const PER_IP_PER_MIN = Number(process.env.CHERRY_PER_IP_PER_MIN || 12);
 
