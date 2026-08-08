@@ -41,9 +41,21 @@ export default async function handler(req, res) {
   // Not wired up yet — tell the UI so it can show the one-line setup instead of failing.
   if (!hook) return res.status(200).json({ configured: false });
 
+  // Only post to Slack Incoming Webhooks — a typo'd env value must never become an
+  // open SSRF / data-exfil path for drafted ticket text. Allow commercial Slack and
+  // GovSlack (hooks.slack-gov.com); reject everything else.
+  let hookUrl;
+  try { hookUrl = new URL(hook); } catch { hookUrl = null; }
+  const host = hookUrl && hookUrl.hostname;
+  const slackHost = host === "hooks.slack.com" || host === "hooks.slack-gov.com"
+    || (host && (host.endsWith(".hooks.slack.com") || host.endsWith(".hooks.slack-gov.com")));
+  if (!hookUrl || hookUrl.protocol !== "https:" || !slackHost) {
+    return res.status(500).json({ error: "CHERRY_SLACK_WEBHOOK must be an https://hooks.slack.com/… (or hooks.slack-gov.com) URL" });
+  }
+
   const header = `:cherries: *New ticket from Cherry*${owner ? ` — _${owner}_` : ""}${title ? `\n*${title}*` : ""}`;
   try {
-    const r = await fetch(hook, {
+    const r = await fetch(hookUrl.href, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ text: `${header}\n\n${text}` }),
