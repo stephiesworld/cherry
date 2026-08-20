@@ -17,16 +17,17 @@ with a human in the loop at every step and evals measuring quality.
 - **Intake, two ways** — search the public web, or paste internal feedback and
   Cherry triages it directly (no web search). The signal lives inside your company too.
 - **Legible signal** — each issue scores severity, reach, and recency as separate
-  1-5 axes; a live `Signal = severity·reach·recency` control lets you re-weight what
-  "high-signal" means and the ranking re-sorts in place. No opaque number.
+  1-5 axes. The default 0-100 score is an explicit weighted average (50% severity,
+  30% reach, 20% recency); live controls let you re-weight what "high-signal" means
+  and the ranking re-sorts in place. No opaque number.
 - **Screens out fake signal** — public reviews get gamed (bought 5-stars, planted
   1-stars, review-farm text). Cherry scores each issue's *authenticity* 1-5, weights
   verified-provenance sources (App Store, G2) over anonymous ones, collapses templated
   bot clusters, and flags issues that may not come from real users — so astroturf
   doesn't inflate your priorities.
 - **Human-in-the-loop & self-improving** — disagree with a call, tell Cherry what's
-  off, and it re-ranks with your judgment as ground truth. Corrections persist and
-  ride along into future queries; an on-page metric shows your *correction rate dropping*.
+  off, and it re-ranks with your judgment as ground truth. When browser retention is
+  enabled, corrections are scoped to that same product rather than generalized blindly.
 - **Routes the work** — a one-line digest (`3 Engineering · 1 Billing · 1 Legal`)
   reframes the list into who owns what; each issue's ticket is framed for that team,
   and tickets can be **sent straight to Slack**.
@@ -61,6 +62,8 @@ vercel dev                      # serves index.html + /api/triage on localhost
 ```
 
 Open the local URL, type "Notion", and you'll get a live, cited result.
+For a fast UI walkthrough that spends no API tokens, open `/?fixture=duolingo` or
+click **preview a saved result** beneath the search box.
 
 ## Deploy it (Vercel — ~5 clicks)
 

@@ -12,6 +12,8 @@
 // Note: caches/limiters are in-memory (per serverless instance) — fine for a
 // portfolio tool. For real scale, back them with Vercel KV / Upstash.
 
+import { normalizeTriageSignal } from "../signal.js";
+
 export const config = { maxDuration: 60 }; // web search can take 20–40s
 
 const MODEL = process.env.CHERRY_MODEL || "claude-sonnet-4-6"; // Sonnet fits web-search calls under Vercel's 60s free-tier limit; set CHERRY_MODEL=claude-opus-4-8 on Pro (maxDuration 300)
@@ -57,7 +59,7 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
 }
 
 Rules:
-- Up to 5 issues (most important first), gist <= 22 words, up to 3 love, up to 4 actions.
+- Up to 5 issues (most important first), takeaway <= 45 words, gist <= 22 words, up to 3 love, up to 4 actions.
 - EVERY issue MUST carry 1–3 evidence items, each with a real source platform and a
   real URL you found via search. An issue you cannot ground in a source does not
   belong in the list — drop it.
@@ -89,9 +91,9 @@ Rules:
   takeaway rather than presenting the issue as solid.
 - Paraphrase sentiment in your own words. Keep any quoted phrase short (<= 12 words).
 - Score severity, reach, and recency independently, each 1-5 — they are separate
-  axes (a niche-but-brutal bug can be high-severity, low-reach). "signal" is your
-  own holistic rank; higher = more important. Rank by impact, not by how loud a
-  single review is.
+  axes (a niche-but-brutal bug can be high-severity, low-reach). The server derives
+  "signal" deterministically as a 0-100 weighted average: severity 50%, reach 30%,
+  recency 20%. Rank by that score, not by how loud a single review is.
 - "actions" are concrete next steps (a product change, feature, pricing move, docs
   fix), each with the reasoning in "why".
 - Set "disposition" per issue: a FIXABLE GAP (a bug, missing feature, or unintended
@@ -179,7 +181,7 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
 }
 
 Rules:
-- Up to 5 issues (most important first), gist <= 22 words, up to 3 love, up to 4 actions.
+- Up to 5 issues (most important first), takeaway <= 45 words, gist <= 22 words, up to 3 love, up to 4 actions.
 - EVERY issue MUST carry 1–3 evidence items, each a SHORT verbatim quote (<= 14 words)
   copied from the pasted text, with "source" naming who or where in the text it came
   from. Do NOT invent feedback that is not in the text. Omit "url".
@@ -414,7 +416,7 @@ async function callAnthropic(name, corrections, memory, feedback, current) {
   const fatal = searchErrors.filter((c) => c !== "max_uses_exceeded");
   if (!text && fatal.length) throw new Error("web_search error: " + fatal.join(", "));
   if (!text) throw new Error("empty response");
-  return extractJSON(text);
+  return normalizeTriageSignal(extractJSON(text));
 }
 
 export default async function handler(req, res) {
@@ -432,6 +434,10 @@ export default async function handler(req, res) {
   const corrections = Array.isArray(body && body.corrections) ? body.corrections.slice(0, 8) : [];
   const memory = Array.isArray(body && body.memory) ? body.memory.slice(0, 12) : [];
   const feedback = (body && body.feedback ? String(body.feedback) : "").trim().slice(0, 8000);
+  const dataTerms = String((body && body.dataTerms) || (feedback ? "zero-retention" : "unrestricted"));
+  if (!["unrestricted", "analytics-only", "zero-retention"].includes(dataTerms)) {
+    return res.status(400).json({ error: "invalid data terms" });
+  }
   const current = body && body.current && Array.isArray(body.current.issues) ? body.current : null;
   const internal = !!feedback && !current;
   if (!internal && !name) return res.status(400).json({ error: "give me a product or company name" });
@@ -442,7 +448,12 @@ export default async function handler(req, res) {
 
   // Cache: only fresh web lookups (no corrections, no pasted feedback). Pasted
   // feedback is one-off and corrections always re-run.
-  const cacheable = !corrections.length && !internal;
+  // Dev-only bypass: ?nocache=1 skips read+write so same-name re-runs can diff
+  // against a local snap. Ignored in production so public URLs can't burn quota.
+  const nocacheParam = String((req.query && req.query.nocache) || "").trim();
+  const bypassCache = process.env.VERCEL_ENV !== "production"
+    && (nocacheParam === "1" || nocacheParam === "true");
+  const cacheable = !corrections.length && !internal && !bypassCache;
   const key = name.toLowerCase() + ":" + sig(memory);
   if (cacheable) {
     const hit = cache.get(key);

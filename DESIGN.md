@@ -43,9 +43,10 @@ Loaded via Google Fonts in the `<head>`. Don't swap families.
 - **Hero**: two columns — copy + live input on the left, the "sort" demo on the
   right (raw note chips that resolve into 3 ranked issue cards on load). The sort
   animation is the signature; keep it.
-- **Results**: a takeaway box (Fraunces, cherry left-border), then a 1.5fr/1fr
-  grid — ranked issue cards on the left, "what they love" + "recommended next
-  steps" on the right.
+- **Results**: a takeaway box (Fraunces, cherry left-border), then a focused
+  decision queue: change summary, uncertain issue to review, and the top three
+  issue cards. Ranking controls and methodology use progressive disclosure. The
+  1.5fr/1fr grid keeps issues left and recommended next steps right.
 - **Issue card** (`.rissue`): signal score (mono, cherry) on the left; title,
   gist, and tags (severity / prevalence / owner) on the right. Top issue gets the
   `.top` emphasis. States: `.confirmed` (stem border) and `.corrected` (cherry
