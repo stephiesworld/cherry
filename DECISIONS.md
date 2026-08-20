@@ -5,6 +5,63 @@ A short record of the product decisions behind Cherry — the *why*, not just th
 
 ---
 
+## 2026-08-20 · Fused intake — the two sources of truth meet
+
+**Context.** Cherry already had two intake doors: search the public web, or paste
+internal feedback. The model treated any paste as internal and **skipped web
+search**, so a PM who had both slices had to run two triages and merge them by
+hand — which is the synthesis Cherry claims to do. Every later judgment axis
+(authenticity, reach calibration, the Trustpilot warning, coverage) was
+compensating for a biased slice it was never allowed to combine.
+
+**Trigger.** Re-reading the product: the source-bias warning already tells the
+user to paste their tickets "for a truer picture," then turns the web off. First-
+party data is the representative kind; the public web is cited, current, and
+skewed. The actual job is *what's loud outside, what's showing up inside, and
+which of those is the same problem.*
+
+**Decisions.**
+
+1. **A third mode, not a redesign.** Search the web and Paste feedback stay
+   exactly as they are — paste stays web-off, because some internal data must
+   never hit search (zero-retention, NDA, "just cluster this thread"). **Web +
+   yours** requires a product name *and* a paste, then one Claude call with the
+   same 3-search cap. No new hue, font, or radius: corroboration chips reuse
+   `.tg` / `.sm-chip`.
+
+2. **Corroboration is a visible tag, not a hidden multiplier.** Each issue is
+   `both` (public URL *and* a no-URL first-party quote), `first-party only`, or
+   `public only`. Rank by the existing axes; corroboration is a tie-break when
+   those are similar — same thesis as revenue. `both` without both kinds of
+   evidence is illegal; the eval gate enforces it. Web-only runs emit
+   `public only`; paste-only emits `first-party only`, so one schema stays valid.
+
+3. **Fused reach is calibrated by the tag.** Public-only reach is a ceiling
+   (complaint-site volume is not base rate; the paste did not confirm it).
+   First-party-only reach is distinct voices in the paste. Both may use both
+   pools without double-counting. The source-mix strip shows public platforms
+   *and* `your pasted feedback`, plus a digest — and does not claim the paste
+   makes the public mix representative.
+
+4. **Paste-only remains on purpose.** Fused is never cacheable (the paste is
+   one-off). Trend stays off for fused: a web-only prior snap is not comparable
+   to a mixed-evidence run. Existing goldens are untouched; `golden-fused.json`
+   is a new fixture. Classification evals stay paste-only so they stay
+   deterministic (no web-search flake).
+
+**The honest tradeoff.** Fused still uses 3 searches; longer paste context is
+the only extra latency. If a live call blows the 60s free-tier cap, trim the
+paste before raising searches. Corroboration is model-judged matching, not an
+embedding — titles get reworded, so a ticket and a Reddit thread about the
+"same" issue can miss each other. Better a conservative `public only` /
+`first-party only` split than a fake `both`.
+
+**What it demonstrates.** The next cut was not another 1–5 axis. It was letting
+the two sources of truth sit in the same ranking so the axes Cherry already
+scores can mean something.
+
+---
+
 ## 2026-07-08 · Three cuts deeper — persona views, a review queue, and trend
 
 **Context.** Cherry already intakes, scores, routes, and closes the loop. The gaps left

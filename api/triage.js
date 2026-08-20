@@ -49,6 +49,7 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "signal": number,              // your holistic ranking score; higher = more important
    "owner": string,               // ONE primary team that owns the fix/decision (see owner rule)
    "stakeholders": [string],      // 0-3 OTHER teams with a material stake (see stakeholder rule)
+   "corroboration": string,       // "public only" — this pass is web-only (see corroboration rule)
    "evidence": [ { "source": string, "url": string, "quote": string } ]
  } ],
  "coverage": { "heard": [string], "silent": [string] },  // customer segments with a voice in the evidence vs plausibly affected but silent (see coverage rule)
@@ -140,6 +141,8 @@ Rules:
   regulatory exposure; a checkout bug owned by Engineering may have Billing as a
   stakeholder. Use [] when no other team genuinely needs a seat. Owner = who acts;
   stakeholders = who must be consulted.
+- CORROBORATION — this is a public-web triage (no first-party paste), so set every
+  issue's "corroboration" to "public only". Do not emit "both" or "first-party only".
 - If a reviewer's prior corrections are provided, treat them as ground truth:
   adjust severity, owner, stakeholders, and ranking to honor them.
 - If real feedback is genuinely thin, say so in "takeaway" and set found=false.`;
@@ -172,6 +175,7 @@ Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
    "signal": number,
    "owner": string,               // ONE primary team that owns the fix/decision
    "stakeholders": [string],      // 0-3 other teams to loop in (e.g. Legal for regulatory risk); [] if none
+   "corroboration": string,       // "first-party only" — this pass is paste-only (see corroboration rule)
    "evidence": [ { "source": string, "quote": string } ]  // quote VERBATIM from the text; source = who/where in the text (no url)
  } ],
  "coverage": { "heard": [string], "silent": [string] },  // segments speaking in the text vs plausibly affected but silent
@@ -213,8 +217,103 @@ Rules:
 - COVERAGE — set top-level "coverage": "heard" = the segments actually speaking in this text;
   "silent" = 1-3 plausible segments with no voice in it. Silence is a gap in the evidence, not
   satisfaction.
+- CORROBORATION — this is first-party pasted feedback only (no web search), so set
+  every issue's "corroboration" to "first-party only". Do not emit "both" or "public only".
 - If prior corrections/preferences are provided, honor them and re-rank.
 - If the pasted text has no real product feedback, say so in "takeaway" and set found=false.`;
+
+// Fused intake: web search AND pasted first-party feedback in one pass. The two
+// sources meet; corroboration says whether an issue showed up in both, only inside,
+// or only on the public web. Same output shape as web triage.
+const SYSTEM_FUSED = `You are Cherry, a customer-feedback intelligence engine.
+You are given a product name AND raw first-party customer feedback (tickets, Slack,
+sales-call notes) pasted by the user. Use web search to find REAL, recent, public
+customer feedback for that product (reviews, Reddit, forums, news — last ~12 months)
+AND cluster the pasted text. Synthesize BOTH into one ranked list of the few issues
+that matter most. GROUND every issue in real sources — public URLs, verbatim paste
+quotes, or both.
+
+Return ONLY a JSON object — no preamble, no markdown, no code fences. Shape:
+{
+ "product": string,
+ "found": boolean,
+ "takeaway": string,
+ "issues": [ {
+   "title": string,
+   "gist": string,
+   "severity": number,            // 1-5: how painful for an affected user
+   "reach": number,               // 1-5: how widespread — see fused reach rule
+   "recency": number,             // 1-5: how current (5 = actively complained about now)
+   "authenticity": number,        // 1-5: genuine customer voice vs bot/fake/spam
+   "prevalence": string,
+   "disposition": string,         // "fixable gap" | "intentional tradeoff"
+   "signalType": string,          // "surface fix" | "capability signal"
+   "useCase": string,
+   "revenueContext": string,      // aggregated across accounts; "" when unknown
+   "reachBasis": string,          // "many independent voices" | "few amplified voices"
+   "signal": number,
+   "owner": string,               // ONE primary team that owns the fix/decision
+   "stakeholders": [string],
+   "corroboration": string,       // "both" | "first-party only" | "public only"
+   "evidence": [ { "source": string, "url": string, "quote": string } ]
+ } ],
+ "coverage": { "heard": [string], "silent": [string] },
+ "love": [string, string, string],
+ "actions": [ {"action": string, "why": string, "owner": string} ]
+}
+
+Rules:
+- Up to 5 issues (most important first), gist <= 22 words, up to 3 love, up to 4 actions.
+- EVERY issue MUST carry 1–3 evidence items. Web evidence: a real source platform, a
+  real URL you found via search, and a short quote. First-party evidence: a SHORT
+  verbatim quote (<= 14 words) copied from the pasted text, with "source" naming who
+  or where in the text it came from, and OMIT "url" — never invent a URL for pasted
+  text, never invent a paste quote that is not in the text.
+- CORROBORATION is a visible tag, not a hidden multiplier. Set it from the evidence:
+  "both" = at least one public URL AND at least one no-URL first-party quote; illegal
+  without both. "public only" = grounded in web evidence, absent from the paste.
+  "first-party only" = grounded in the paste, absent (or not found) on the public web.
+  Rank by severity, reach, and recency as usual. When those axes are similar, prefer
+  corroborated ("both") issues as a TIE-BREAK only — do not inflate signal, severity,
+  or reach just because an issue is corroborated. Same thesis as revenue: visible axis,
+  not a thumb on the scale.
+- FUSED REACH — calibrate each issue by what its corroboration rests on. "public only":
+  score reach as a CEILING (complaint-site volume is not base rate; the paste did not
+  confirm it). "first-party only": score reach by how many distinct people/accounts
+  raise it in the paste, not by how loud it is online. "both": you may use both pools,
+  but do NOT double-count the same complaint; independent voices only. REACH BASIS
+  still flags amplified vs many-independent.
+- PREFER primary sources where customers speak directly — Trustpilot, G2, Capterra,
+  Reddit, the App Store / Google Play, BBB, news outlets. Avoid SEO/AI "review
+  roundup" aggregator sites unless nothing primary exists.
+- BALANCE public sources and correct for selection bias. Complaint venues are
+  SELF-SELECTED toward furious users. Do not let a complaint-heavy public mix inflate
+  severity or prevalence, especially on "public only" issues.
+- AUTHENTICITY — screen for FAKE, BOT-WRITTEN, ASTROTURFED public reviews AND
+  spam/templated paste entries. Weight by provenance (verified-install / verified-buyer
+  over anonymous). Collapse near-duplicate clusters. Set authenticity 1-5 per issue.
+- Paraphrase sentiment in your own words. Keep any quoted phrase short (<= 12 words).
+- Score severity, reach, and recency independently, each 1-5. "signal" is your
+  holistic rank; higher = more important.
+- "actions" are concrete next steps, each with the reasoning in "why".
+- Set "disposition": "fixable gap" or "intentional tradeoff". Route an intentional
+  tradeoff to Leadership/Legal as a strategy call, not a fix.
+- Set "signalType": "surface fix" or "capability signal". Prefer "surface fix" unless
+  it is a gap in the core thing the product is meant to be good at. Set "useCase":
+  a short phrase (<= 8 words) for what the customer was trying to DO.
+- REVENUE — weight the ISSUE, not the speaker. When sources (paste or web) carry
+  account/contract/seat context, set "revenueContext" aggregated across accounts;
+  "" when unknown. Never let one big account inflate severity or reach.
+- COVERAGE — "heard" = segments speaking in EITHER the paste or the public evidence;
+  "silent" = 1-3 plausible segments with no voice in either. Silence is a gap, not
+  satisfaction.
+- "owner" is a SINGLE primary team: Engineering, Product, Design, Billing, Customer
+  Support, Trust & Safety, Security, Legal, Marketing, Content, Leadership. Only
+  invent a different single label if none fits. "stakeholders": 0-3 OTHER canonical
+  teams (never the owner). Owner = who acts; stakeholders = who must be consulted.
+- If a reviewer's prior corrections are provided, treat them as ground truth.
+- If both the paste and the public web are genuinely thin, say so in "takeaway" and
+  set found=false.`;
 
 // Revise-in-place: apply a reviewer's corrections to an EXISTING triage, changing
 // only what the corrections require. No web search, no regeneration — this keeps
@@ -225,11 +324,11 @@ Apply the corrections as GROUND TRUTH and return the UPDATED triage in the SAME 
 
 Critical: change ONLY what the corrections require — and any re-ranking that logically follows from
 them. Every other issue, title, gist, severity, reach, recency, authenticity, disposition, signalType, useCase,
-revenueContext, reachBasis, coverage, owner, quote, source, url, "love", and "action" MUST stay BYTE-FOR-BYTE IDENTICAL to the input. Do not reword, re-score, re-search,
+revenueContext, reachBasis, corroboration, coverage, owner, quote, source, url, "love", and "action" MUST stay BYTE-FOR-BYTE IDENTICAL to the input. Do not reword, re-score, re-search,
 or invent anything. Do not add or drop issues. If a correction changes an issue's signal/severity, re-sort
 issues by signal so the list stays ranked. Return the full object, not a diff.
 If the input triage predates a field the output shape requires, carry a neutral value instead of
-inventing one: revenueContext "" · reachBasis "many independent voices" · coverage {"heard":[],"silent":[]}.`;
+inventing one: revenueContext "" · reachBasis "many independent voices" · coverage {"heard":[],"silent":[]} · corroboration "public only" if any evidence has a URL, otherwise "first-party only".`;
 
 // Structured-output contract. We hand this schema to the API (output_config.format)
 // so the model's final answer is GUARANTEED to be valid JSON in this exact shape —
@@ -284,9 +383,12 @@ const TRIAGE_SCHEMA = {
           // Stakeholders: other teams with a material stake (e.g. Legal owns the
           // lawsuit even when Leadership owns the decision). Empty when there are none.
           stakeholders: { type: "array", items: { type: "string" } },
+          // Corroboration: did this issue show up on the public web, in first-party
+          // paste, or both? Visible tag and a ranking tie-break — not a hidden multiplier.
+          corroboration: { type: "string", enum: ["both", "first-party only", "public only"] },
           evidence: { type: "array", items: ev },
         },
-        required: ["title", "gist", "severity", "reach", "recency", "authenticity", "prevalence", "disposition", "signalType", "useCase", "revenueContext", "reachBasis", "signal", "owner", "stakeholders", "evidence"],
+        required: ["title", "gist", "severity", "reach", "recency", "authenticity", "prevalence", "disposition", "signalType", "useCase", "revenueContext", "reachBasis", "signal", "owner", "stakeholders", "corroboration", "evidence"],
         additionalProperties: false,
       },
     },
@@ -346,16 +448,23 @@ async function callAnthropic(name, corrections, memory, feedback, current) {
   // Revise-in-place when we have a prior result + corrections: surgically apply the
   // reviewer's judgment to the existing triage (no web search, no rewrite).
   const revise = !!(current && Array.isArray(current.issues) && current.issues.length && corrections && corrections.length);
-  const internal = !revise && !!(feedback && feedback.trim());
+  const hasPaste = !!(feedback && feedback.trim());
+  const fused = !revise && hasPaste && !!name;
+  const internal = !revise && hasPaste && !name;
   let userMsg;
   if (revise) {
     userMsg = "CURRENT triage:\n" + JSON.stringify(current) +
       "\n\nReviewer corrections — apply as ground truth, change only what they require, keep everything else identical:\n" +
       corrections.map((c) => `- On "${c.title}": ${c.note}`).join("\n");
+  } else if (fused) {
+    userMsg = "Research and triage customer feedback for: " + name +
+      "\n\nAlso weigh this FIRST-PARTY pasted feedback against what you find on the public web. Cluster both into one ranked list. Do not invent quotes from the paste. Do not invent URLs for pasted text.\n\n\"\"\"\n" + feedback + "\n\"\"\"";
+  } else if (internal) {
+    userMsg = `Triage this pasted internal customer feedback:\n\n"""\n${feedback}\n"""`;
   } else {
-    userMsg = internal
-      ? `Triage this pasted internal customer feedback${name ? ` about ${name}` : ""}:\n\n"""\n${feedback}\n"""`
-      : "Research and triage customer feedback for: " + name;
+    userMsg = "Research and triage customer feedback for: " + name;
+  }
+  if (!revise) {
     if (corrections && corrections.length) {
       userMsg += "\n\nA reviewer corrected the previous pass. Honor these as ground truth and re-rank:\n" +
         corrections.map((c) => `- On "${c.title}": ${c.note}`).join("\n");
@@ -365,6 +474,8 @@ async function callAnthropic(name, corrections, memory, feedback, current) {
         memory.map((m) => `- On "${m.title}"${m.product ? ` (${m.product})` : ""}: ${m.note}`).join("\n");
     }
   }
+  const systemText = revise ? SYSTEM_REVISE : fused ? SYSTEM_FUSED : internal ? SYSTEM_INTERNAL : SYSTEM;
+  const useSearch = !revise && !internal; // web and fused search; paste-only does not
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -381,13 +492,13 @@ async function callAnthropic(name, corrections, memory, feedback, current) {
       system: [
         {
           type: "text",
-          text: revise ? SYSTEM_REVISE : internal ? SYSTEM_INTERNAL : SYSTEM,
+          text: systemText,
           cache_control: { type: "ephemeral" },
         },
       ],
       messages: [{ role: "user", content: userMsg }],
-      // Web search only for a fresh web triage — not for revise or pasted-feedback modes.
-      ...(revise || internal ? {} : { tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }] }),
+      // Web search for fresh web and fused triage — not for revise or paste-only.
+      ...(useSearch ? { tools: [{ type: "web_search_20250305", name: "web_search", max_uses: MAX_USES }] } : {}),
       output_config: { format: { type: "json_schema", schema: TRIAGE_SCHEMA } },
     }),
   });
@@ -433,16 +544,16 @@ export default async function handler(req, res) {
   const memory = Array.isArray(body && body.memory) ? body.memory.slice(0, 12) : [];
   const feedback = (body && body.feedback ? String(body.feedback) : "").trim().slice(0, 8000);
   const current = body && body.current && Array.isArray(body.current.issues) ? body.current : null;
-  const internal = !!feedback && !current;
-  if (!internal && !name) return res.status(400).json({ error: "give me a product or company name" });
-  if (internal && feedback.length < 40) return res.status(400).json({ error: "paste a bit more feedback to triage (a few lines at least)" });
+  const revising = !!(current && corrections.length);
+  if (!name && !feedback) return res.status(400).json({ error: "give me a product or company name" });
+  if (feedback && feedback.length < 40) return res.status(400).json({ error: "paste a bit more feedback to triage (a few lines at least)" });
 
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "anon";
   if (rateLimited(ip)) return res.status(429).json({ error: "easy there — give it a few seconds and try again." });
 
-  // Cache: only fresh web lookups (no corrections, no pasted feedback). Pasted
-  // feedback is one-off and corrections always re-run.
-  const cacheable = !corrections.length && !internal;
+  // Cache: only fresh web lookups (no corrections, no pasted feedback). Paste and
+  // fused are one-off; corrections always re-run.
+  const cacheable = !corrections.length && !feedback && !revising;
   const key = name.toLowerCase() + ":" + sig(memory);
   if (cacheable) {
     const hit = cache.get(key);
