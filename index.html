@@ -73,7 +73,7 @@
   .paste-hint{font-size:12px;color:var(--muted);}
 
   .sortbox{position:relative;background:var(--panel-deep);border:1.5px solid var(--line);border-radius:12px;
-    padding:24px;min-height:360px;box-shadow:6px 6px 0 var(--line);}
+    padding:24px;min-height:360px;box-shadow:6px 6px 0 var(--line);overflow:hidden;}
   .sortbox-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
   .sortbox-head .t{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);}
   .pile{position:relative;height:286px;}
@@ -107,7 +107,18 @@
   .applied-note.on{display:block;}
 
   .takeaway{background:var(--panel);border:1.5px solid var(--line);border-left:6px solid var(--cherry);border-radius:10px;
-    padding:22px 26px;margin-bottom:28px;font-size:21px;font-family:'Fraunces',serif;font-weight:500;line-height:1.38;}
+    padding:22px 26px;margin-bottom:18px;font-size:21px;font-family:'Fraunces',serif;font-weight:500;line-height:1.38;}
+  .takeaway-more{display:inline-block;margin-left:8px;background:none;border:0;border-bottom:1px solid var(--cherry);color:var(--cherry-deep);
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;vertical-align:2px;}
+
+  .decision-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;}
+  .decision-row .trend,.decision-row .teamdigest{margin:0;}
+  .method{border:1px solid var(--rule);border-radius:9px;background:rgba(255,255,255,.45);margin:0 0 28px;}
+  .method summary,.ranking-tools summary{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);cursor:pointer;padding:12px 15px;list-style-position:inside;}
+  .method summary:hover,.ranking-tools summary:hover{color:var(--ink);}
+  .method-body{padding:4px 15px 2px;border-top:1px solid var(--rule);}
+  .method-body>div{margin:10px 0 14px;}
 
   .lowconf{display:none;background:#FBF3E7;border:1px solid #E4C893;border-left:3px solid #C99A3A;border-radius:8px;
     padding:14px 18px;margin-bottom:20px;font-size:15px;line-height:1.5;color:#6B5320;}
@@ -145,11 +156,16 @@
   .weights label b{min-width:9px;color:var(--cherry);font-variant-numeric:tabular-nums;}
   .weights .wreset{color:var(--muted);cursor:pointer;border-bottom:1px solid var(--rule-strong);margin-left:auto;}
   .weights .wreset:hover{color:var(--cherry);}
+  .ranking-tools{border:1px solid var(--rule);border-radius:8px;background:var(--panel);margin-bottom:16px;}
+  .ranking-tools .personas{padding:2px 14px 0;}
+  .ranking-tools .pcap{padding:0 14px;}
+  .ranking-tools .weights{margin:0;border:0;border-top:1px solid var(--rule);border-radius:0;background:transparent;}
 
   .rissue{position:relative;background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:18px 20px;margin-bottom:16px;display:flex;gap:18px;transition:box-shadow .2s,opacity .2s;}
   .rissue.top{box-shadow:5px 5px 0 var(--cherry);}
   .rissue.confirmed{box-shadow:4px 4px 0 var(--stem);}
   .rissue.corrected{box-shadow:4px 4px 0 var(--cherry-deep);background:#fffdf6;}
+  .rissue.secondary:not(.revealed){display:none;}
   .rissue .rscore{text-align:center;min-width:58px;border-right:1.5px solid var(--rule);padding-right:16px;display:flex;flex-direction:column;align-items:center;}
   .rissue .rscore .nm{font-family:'Fraunces',serif;font-size:36px;font-weight:700;color:var(--cherry);line-height:0.9;}
   .rissue .rscore .lb{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;}
@@ -188,6 +204,8 @@
     background:none;border:1px solid var(--rule-strong);color:var(--muted);border-radius:999px;padding:6px 13px;cursor:pointer;transition:all .18s;}
   .fbtn.ok:hover,.fbtn.ok.active{background:var(--stem);border-color:var(--stem);color:#fff;}
   .fbtn.no:hover,.fbtn.no.active{background:var(--cherry);border-color:var(--cherry);color:#fff;}
+  .fbtn.primary{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .fbtn.primary:hover{background:var(--cherry);border-color:var(--cherry);}
   .fbstate{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;color:var(--stem);margin-left:4px;}
   .editor{display:none;gap:8px;margin-top:12px;}
   .editor.on{display:flex;}
@@ -203,6 +221,9 @@
   .corrbar .ct{flex:1;min-width:200px;}
   .corrbar .ct b{font-weight:600;}
   .corrbar .ct span{color:var(--muted);font-size:14px;}
+  .showmore{width:100%;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    background:none;border:1px solid var(--rule-strong);color:var(--muted);border-radius:6px;padding:10px 14px;cursor:pointer;margin:0 0 8px;}
+  .showmore:hover{border-color:var(--ink);color:var(--ink);}
 
   .sidecard{background:var(--panel);border:1.5px solid var(--line);border-radius:11px;padding:20px 22px;margin-bottom:20px;box-shadow:4px 4px 0 var(--panel-deep);}
   .sidecard h3{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin-bottom:14px;}
@@ -210,27 +231,6 @@
   .lovelist li{font-size:15px;color:#4a4036;padding:8px 0 8px 22px;position:relative;border-bottom:1px solid var(--rule);}
   .lovelist li:last-child{border-bottom:none;}
   .lovelist li::before{content:"";position:absolute;left:0;top:14px;width:9px;height:9px;border-radius:50%;background:var(--cherry);border:1.4px solid var(--line);}
-  /* synthesis-quality scorecard (the measured learning loop) */
-  .qcard:empty{display:none;}
-  .qcard .q-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;}
-  .qcard .q-head h3{margin-bottom:0;}
-  .qcard .q-by{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:var(--stem);padding:3px 7px;border-radius:3px;white-space:nowrap;}
-  .qcard .q-load{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.05em;color:var(--muted);padding:4px 0;}
-  .qcard .q-score{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;margin-bottom:15px;}
-  .qcard .q-num{font-family:'Fraunces',serif;font-size:46px;font-weight:700;line-height:0.85;color:var(--cherry);}
-  .qcard .q-of{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);}
-  .qcard .q-delta{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;padding:4px 9px;border-radius:5px;border:1.4px solid var(--line);margin-left:6px;}
-  .qcard .q-delta.up{color:#fff;background:var(--stem);}
-  .qcard .q-delta.down{color:#fff;background:var(--cherry);}
-  .qcard .q-delta.flat{color:var(--muted);background:#fff;}
-  .qcard .q-dims{display:flex;flex-direction:column;gap:8px;margin-bottom:13px;}
-  .qcard .q-dim{display:flex;align-items:center;gap:10px;}
-  .qcard .q-dim .dn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);width:88px;flex:none;}
-  .qcard .q-dim .dt{flex:1;height:7px;border-radius:999px;background:var(--panel-deep);overflow:hidden;}
-  .qcard .q-dim .dt i{display:block;height:100%;background:var(--cherry);}
-  .qcard .q-dim .dv{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink);width:26px;text-align:right;}
-  .qcard .q-improve{font-size:13px;color:#5a4f44;line-height:1.45;border-top:1px solid var(--rule);padding-top:11px;}
-  .qcard .q-improve b{color:var(--ink);}
   .actions{margin-top:8px;}
   .action{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--rule);}
   .action:last-child{border-bottom:none;}
@@ -269,13 +269,12 @@
   .pbtn.on{background:var(--ink);color:var(--ground);border-color:var(--ink);}
   .pcap{font-size:13px;color:#5a4f50;line-height:1.45;margin:0 0 14px;max-width:560px;}
 
-  /* Trend vs last check — new / recurring / resolved since your last run for this product. */
+  /* What changed since last run — one-line delta + optional Gone clause. */
   .trend{display:none;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:9px 14px;margin-bottom:14px;}
   .trend.on{display:flex;}
-  .trend .tr-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
-  .trend .tr-chip{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.03em;color:var(--ink);}
-  .trend .tr-chip b{color:var(--cherry);font-weight:600;margin-right:4px;}
+  .trend .tr-line{font-size:13.5px;color:var(--ink);line-height:1.4;}
   .trend .tr-gone{font-size:12px;color:var(--muted);margin-left:auto;}
+  .tg.worse{color:var(--cherry-deep);border-color:var(--cherry-deep);font-weight:700;}
 
   /* Active-learning review queue — the least-confident issues, flagged for human eyes first. */
   .revqueue{display:none;flex-direction:column;gap:6px;background:#FBF3E4;border:1px solid #E4C88A;border-left:3px solid #C99A3A;border-radius:8px;padding:11px 14px;margin-bottom:14px;}
@@ -308,8 +307,8 @@
   .tg.amp{color:var(--cherry-deep);border-color:var(--cherry-deep);border-style:dashed;font-weight:700;}
   /* Coverage strip: segments heard vs silent — silence ≠ satisfaction. */
   .srcmix .sm-chip.silent{border-style:dashed;color:#8A6712;border-color:#C99A3A;background:transparent;}
-  /* Data-terms selector (paste mode) + enforcement strip: permission lives in the
-     pipeline metadata, not the prompt — default-deny when terms are unspecified. */
+  /* Pasted-feedback browser retention control. This governs local persistence;
+     the intake copy separately states that processing still uses the backend + Claude. */
   .pastebar select{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.02em;color:var(--ink);
     background:#fff;border:1px solid var(--rule-strong);border-radius:6px;padding:8px 10px;max-width:100%;cursor:pointer;}
   .pastebar select:focus{outline:none;border-color:var(--cherry);}
@@ -426,18 +425,19 @@
         </div>
         <div class="examples">Try
           <a data-ex="Notion">Notion</a> · <a data-ex="Duolingo">Duolingo</a> ·
-          <a data-ex="Adobe">Adobe</a> · <a data-ex="Spotify">Spotify</a>
+          <a data-ex="Adobe">Adobe</a> · <a data-ex="Spotify">Spotify</a> ·
+          <a data-fixture="duolingo">preview a saved result</a>
         </div>
       </div>
       <div class="pastebox" id="pasteBox">
         <textarea id="feedbackInput" placeholder="Paste raw feedback — a Slack thread, support tickets, sales-call notes — and Cherry triages it directly (no web search). The signal lives inside your company too." aria-label="Paste customer feedback"></textarea>
         <div class="pastebar">
           <button class="btn btn-primary" id="runFeedback">Triage this feedback</button>
-          <select id="dataTerms" aria-label="Data terms for this feedback" title="Contract terms travel with the data as metadata — enforced by the pipeline, default-deny when unspecified.">
-            <option value="">Data terms: unspecified → zero retention (default-deny)</option>
-            <option value="unrestricted">Unrestricted — ok to remember &amp; learn from</option>
-            <option value="analytics-only">Analytics only — metrics, no learning</option>
-            <option value="zero-retention">Zero retention — store nothing</option>
+          <select id="dataTerms" aria-label="Browser retention for this feedback" title="Controls what Cherry keeps in this browser after the triage. Feedback is still sent to the backend and Claude to produce the result.">
+            <option value="">Browser retention: unspecified → keep nothing</option>
+            <option value="unrestricted">Remember corrections for this product</option>
+            <option value="analytics-only">Keep local metrics, not corrections</option>
+            <option value="zero-retention">Keep nothing in this browser</option>
           </select>
           <span class="paste-hint">Stays in your browser → backend → Claude.</span>
         </div>
@@ -471,36 +471,46 @@
       <button class="again" id="againBtn">↻ Try another</button>
     </div>
     <div class="applied-note" id="appliedNote"></div>
-    <div class="learnstrip" id="learnStrip"></div>
     <div class="lowconf" id="lowConf"></div>
     <div class="takeaway" id="takeaway"></div>
-    <div class="trend" id="trendStrip"></div>
-    <div class="teamdigest" id="teamDigest"></div>
-    <div class="capsig" id="capSig"></div>
-    <div class="srcmix" id="srcMix"></div>
-    <div class="srcmix" id="covStrip"></div>
-    <div class="srcmix" id="authWarn"></div>
-    <div class="srcmix" id="dataStrip"></div>
+    <div class="decision-row">
+      <div class="trend" id="trendStrip"></div>
+      <div class="teamdigest" id="teamDigest"></div>
+    </div>
+    <details class="method" id="methodology">
+      <summary>How Cherry reached this</summary>
+      <div class="method-body">
+        <div class="learnstrip" id="learnStrip"></div>
+        <div class="capsig" id="capSig"></div>
+        <div class="srcmix" id="srcMix"></div>
+        <div class="srcmix" id="covStrip"></div>
+        <div class="srcmix" id="authWarn"></div>
+        <div class="srcmix" id="dataStrip"></div>
+      </div>
+    </details>
     <div class="res-grid">
       <div>
-        <span class="col-label">Top issues, ranked by signal</span>
-        <div class="col-hint">Cherry proposes — you decide. Confirm a call, or tell Cherry what's off and re-rank.</div>
-        <div class="personas" id="personas">
-          <span class="plbl">View for</span>
-          <button class="pbtn on" data-persona="pm">Product</button>
-          <button class="pbtn" data-persona="gtm">GTM</button>
-          <button class="pbtn" data-persona="research">Research</button>
-          <button class="pbtn" data-persona="support">Support</button>
-        </div>
-        <div class="pcap" id="pcap"></div>
-        <div class="weights" id="weights">
-          <span class="wlbl">Signal =</span>
-          <label>severity<input type="range" min="0" max="5" step="1" value="5" data-w="sev"><b>5</b></label>
-          <label>reach<input type="range" min="0" max="5" step="1" value="3" data-w="reach"><b>3</b></label>
-          <label>recency<input type="range" min="0" max="5" step="1" value="2" data-w="rec"><b>2</b></label>
-          <a class="wreset" id="wReset">reset</a>
-        </div>
+        <span class="col-label">Decision queue</span>
+        <div class="col-hint">Review the uncertain call first, then confirm or correct the three issues that matter most.</div>
         <div class="revqueue" id="revQueue"></div>
+        <details class="ranking-tools">
+          <summary>Adjust this ranking</summary>
+          <div class="personas" id="personas">
+            <span class="plbl">View for</span>
+            <button class="pbtn on" data-persona="pm">Product</button>
+            <button class="pbtn" data-persona="gtm">GTM</button>
+            <button class="pbtn" data-persona="research">Research</button>
+            <button class="pbtn" data-persona="support">Support</button>
+          </div>
+          <div class="pcap" id="pcap"></div>
+          <div class="weights" id="weights">
+            <span class="wlbl">Signal =</span>
+            <label>severity<input type="range" min="0" max="5" step="1" value="5" data-w="sev"><b>5</b></label>
+            <label>reach<input type="range" min="0" max="5" step="1" value="3" data-w="reach"><b>3</b></label>
+            <label>recency<input type="range" min="0" max="5" step="1" value="2" data-w="rec"><b>2</b></label>
+            <a class="wreset" id="wReset">reset</a>
+          </div>
+        </details>
         <div id="issueList"></div>
         <div class="corrbar" id="corrbar">
           <div class="ct"><b id="corrCount">0 corrections</b> <span>— Cherry will re-rank with your judgment.</span></div>
@@ -508,9 +518,8 @@
         </div>
       </div>
       <div>
-        <div class="sidecard qcard" id="qualityCard"></div>
-        <div class="sidecard"><h3>What they love</h3><ul class="lovelist" id="loveList"></ul></div>
         <div class="sidecard"><h3>Recommended next steps</h3><div class="actions" id="actionList"></div></div>
+        <div class="sidecard"><h3>What they love</h3><ul class="lovelist" id="loveList"></ul></div>
       </div>
     </div>
   </div>
@@ -524,7 +533,7 @@
     <div class="steps">
       <div class="step rise"><span class="n">01 / Gather</span><h3>Reads the web</h3><p>Reviews, forums, Reddit, social, news — Cherry searches the open internet and keeps the source link for every issue.</p></div>
       <div class="step rise"><span class="n">02 / Read</span><h3>Tagged &amp; clustered</h3><p>It names each theme and groups the hundred ways people describe one problem into a single issue.</p></div>
-      <div class="step rise"><span class="n">03 / Rank</span><h3>By signal</h3><p>Severity and prevalence combine into one score, so the top of the list is genuinely the top.</p></div>
+      <div class="step rise"><span class="n">03 / Rank</span><h3>By signal</h3><p>Severity, reach, and recency become one transparent weighted score, so the ranking can be inspected and changed.</p></div>
       <div class="step rise"><span class="n">04 / Learn</span><h3>You correct, it adapts</h3><p>Disagree with a call? Tell Cherry, and it re-ranks with your judgment — sharper every pass.</p></div>
     </div>
     <p class="pipe-lead rise">Under the hood: the same journey in eight stages, ending where it starts.</p>
@@ -727,7 +736,7 @@
   <!-- loop health -->
   <line x1="8" y1="650" x2="672" y2="650" stroke="#000" stroke-width="1"/>
   <text x="8" y="672" class="smb">LOOP HEALTH — how you know it's alive:</text>
-  <text x="8" y="690" class="sm">time-to-triage (median and p90) · correction rate falling · roadmap citations at decision time · repeat submitters</text>
+  <text x="8" y="690" class="sm">time-to-triage (median and p90) · sampled reviewer agreement · roadmap citations at decision time · repeat submitters</text>
   <text x="8" y="716" class="sm">A funnel moves signal one way and goes quiet. A loop returns something at every edge — closure to users, priorities to builders,</text>
   <text x="8" y="730" class="sm">new signal to the top. If any return arrow goes dark, the loop is dying and the metrics above will say so before people do.</text>
 </svg>
@@ -785,7 +794,9 @@
   </div></div>
 </footer>
 
-<script>
+<script type="module">
+import { snapKey, buildSnap, diffRuns } from './trend.js';
+import { DEFAULT_SIGNAL_WEIGHTS, signalScore } from './signal.js';
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* landing sort demo */
@@ -818,15 +829,13 @@
   const appliedNote=document.getElementById('appliedNote');
   const corrbar=document.getElementById('corrbar'),corrCount=document.getElementById('corrCount');
 
-  let currentName="", corrections=[], currentFeedback="", lastQuality=null, currentResult=null;
+  let currentName="", corrections=[], currentFeedback="", currentResult=null, showAllIssues=false, fixtureMode=false;
 
   // Legible signal: the score is a transparent weighted blend of three 1-5 axes
   // the reviewer can re-weight live, not one opaque number. Default leans on
   // severity, then reach, then recency.
-  let weights={sev:5,reach:3,rec:2};
-  function scoreOf(it){const w=weights,den=(w.sev+w.reach+w.rec)||1;
-    const s=(w.sev*(+it.severity||0)+w.reach*(+it.reach||0)+w.rec*(+it.recency||0))/den;
-    return Math.round(s/5*100);}
+  let weights={...DEFAULT_SIGNAL_WEIGHTS};
+  function scoreOf(it){return signalScore(it,weights);}
   // Severity as tartness — the brand's sour/sweet read on how much an issue stings.
   function sour(sev){const s=+sev||0;
     if(s>=5)return{label:'extra sour',cls:'s5'};
@@ -849,13 +858,15 @@
     if(i>=0)memory[i]=e;else memory.push(e);
     memory=memory.slice(-60);jset(MEM_KEY,memory);
   }
-  function recentMemory(n){return memory.slice(-n).map(m=>({product:m.product,title:m.title,note:m.note}));}
+  function recentMemory(n,productName){
+    const key=String(productName||'').trim().toLowerCase();
+    return memory.filter(m=>String(m.product||'').trim().toLowerCase()===key)
+      .slice(-n).map(m=>({product:m.product,title:m.title,note:m.note}));
+  }
 
-  // ── Data permissions: contract terms travel WITH the data as pipeline metadata, and the
-  // harness enforces them — not the prompt, and not anyone re-reading an NDA at triage time.
-  // Default-deny: unspecified terms are treated as the most restrictive (zero retention).
-  // Web mode is public data → unrestricted. Enforcement: zero-retention persists nothing
-  // (no memory, no run metrics); analytics-only keeps metrics but never learns from it.
+  // Browser retention for pasted feedback. Internal runs are never cached by the server;
+  // this control additionally decides what this browser keeps after the result. It does not
+  // claim to alter the model provider's contractual retention policy.
   const dataTermsSel=document.getElementById('dataTerms');
   function dataLevel(){ if(!currentFeedback)return 'unrestricted';
     return (dataTermsSel&&dataTermsSel.value)||'zero-retention'; }
@@ -922,29 +933,20 @@
     el.classList.add('on');
   }
 
-  // ── Trend vs last check: snapshot each product's triage locally; on the next fresh run,
-  // flag what's NEW, RECURRING, or RESOLVED since. Honest — it diffs your real prior result,
-  // not synthetic data. (True velocity across a team/time needs the DB v2 would add.)
+  // ── What changed since last run: snap each product's triage locally; on the next fresh
+  // web run, diff via trend.js (greedy token match). Honest — your real prior, this browser.
   const SNAP_KEY='cherry.snap.v1';
   let snaps=(()=>{try{return JSON.parse(localStorage.getItem(SNAP_KEY))||{};}catch{return{};}})();
-  const normTitle=(t)=>String(t||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>3).sort().slice(0,5).join(' ');
-  function simTitle(a,b){if(!a||!b)return false;if(a===b)return true;const A=new Set(a.split(' '));return b.split(' ').filter(w=>A.has(w)).length>=2;}
-  function relTime(ts){const d=Math.floor((Date.now()-ts)/86400000);return d<=0?'earlier today':d===1?'yesterday':d+' days ago';}
   function computeTrend(issues,wasReranked){
-    const strip=document.getElementById('trendStrip'), empty={newSet:new Set()};
+    const strip=document.getElementById('trendStrip'), empty={newSet:new Set(),worseSet:new Set()};
     if(!strip)return empty;
-    if(wasReranked||currentFeedback){strip.classList.remove('on');strip.innerHTML='';return empty;}
-    const key=(currentName||'').toLowerCase(), prior=snaps[key];
-    const cur={at:Date.now(),issues:issues.map(it=>({t:it.title,n:normTitle(it.title)}))};
+    if(wasReranked||currentFeedback||fixtureMode){strip.classList.remove('on');strip.innerHTML='';return empty;}
+    const key=snapKey(currentName), prior=snaps[key];
+    const cur=buildSnap(issues);
     if(!prior||!(prior.issues||[]).length){snaps[key]=cur;jset(SNAP_KEY,snaps);strip.classList.remove('on');strip.innerHTML='';return empty;}
-    const priorNorms=prior.issues.map(p=>p.n), curNorms=cur.issues.map(c=>c.n);
-    const newSet=new Set(); issues.forEach((it,i)=>{if(!priorNorms.some(pn=>simTitle(pn,normTitle(it.title))))newSet.add(i);});
-    const resolved=prior.issues.filter(p=>!curNorms.some(cn=>simTitle(cn,p.n)));
-    const recurring=issues.length-newSet.size;
-    const parts=[`<span class="tr-chip"><b>${newSet.size}</b>new</span>`,`<span class="tr-chip"><b>${recurring}</b>recurring</span>`];
-    if(resolved.length)parts.push(`<span class="tr-chip"><b>${resolved.length}</b>resolved</span>`);
-    strip.innerHTML=`<span class="tr-lbl">Since your last check · ${relTime(prior.at)}</span>`+parts.join('')+(resolved.length?`<span class="tr-gone">Gone: ${esc(resolved.map(r=>r.t).slice(0,2).join('; '))}</span>`:'');
-    strip.classList.add('on'); snaps[key]=cur; jset(SNAP_KEY,snaps); return {newSet};
+    const {newSet,worseSet,resolved,summary}=diffRuns(issues,prior);
+    strip.innerHTML=`<span class="tr-line">${esc(summary)}</span>`+(resolved.length?`<span class="tr-gone">Gone: ${esc(resolved.map(r=>r.t).slice(0,2).join('; '))}</span>`:'');
+    strip.classList.add('on'); snaps[key]=cur; jset(SNAP_KEY,snaps); return {newSet,worseSet};
   }
   function renderLearning(){
     const el=document.getElementById('learnStrip');if(!el)return;
@@ -956,7 +958,7 @@
       const bars=rates.map(v=>`<i style="height:${Math.max(8,v)}%" title="${v}% corrected"></i>`).join('');
       spark=`<span class="lspark">${bars}</span><span class="lslab">${rates[0]}% \u2192 ${rates[rates.length-1]}% corrected</span>`;
     }
-    el.innerHTML=`<span class="ls-dot"></span><span class="lstext"><b>${n}</b> correction${n===1?'':'s'} remembered \u2014 Cherry applies them to new searches.</span>${spark}`;
+    el.innerHTML=`<span class="ls-dot"></span><span class="lstext"><b>${n}</b> correction${n===1?'':'s'} remembered \u2014 Cherry only reapplies one when you review the same product.</span>${spark}`;
     el.classList.add('on');
   }
 
@@ -974,11 +976,14 @@
   }
 
   async function callClaude(name,corr){
-    const body={name,corrections:corr||[],memory:recentMemory(12)};
+    const body={name,corrections:corr||[],memory:recentMemory(12,name||currentName),dataTerms:dataLevel()};
     // Re-rank = apply my corrections to the CURRENT result in place (clean, fast).
     if((corr||[]).length&&currentResult)body.current=currentResult;
     if(currentFeedback)body.feedback=currentFeedback;   // internal-intake mode
-    const resp=await fetch("/api/triage",{
+    // Dev-only: ?nocache=1 on the page forwards to /api/triage so same-name re-runs
+    // can produce a real delta instead of the 24h result cache echo.
+    const triageUrl=/(?:^|[?&])nocache=1(?:&|$)/.test(location.search)?"/api/triage?nocache=1":"/api/triage";
+    const resp=await fetch(triageUrl,{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify(body)
     });
@@ -1084,56 +1089,49 @@
     el.classList.add('on');
   }
 
-  // Data-terms surface: show what the pipeline is (and is not) allowed to keep from this
-  // triage — visible enforcement, so the default-deny isn't silent.
+  // Retention surface: say exactly what this demo keeps locally. Pasted feedback is still
+  // sent browser → backend → Claude to produce the result, as the intake UI states.
   function renderDataTerms(){
     const el=document.getElementById('dataStrip');if(!el)return;
     if(!currentFeedback){el.classList.remove('on');el.innerHTML='';return;}
     const lvl=dataLevel(), chose=(dataTermsSel&&dataTermsSel.value)||'';
     const msg=lvl==='unrestricted'
-      ?`<b>Data terms: unrestricted.</b> Corrections on this triage may be remembered in this browser and reused to sharpen future triages.`
+      ?`<b>Browser retention: corrections enabled.</b> Corrections may be remembered in this browser and reused when you review this product again.`
       :lvl==='analytics-only'
-      ?`<b>Data terms: analytics only.</b> Correction-rate metrics are kept; nothing from this feedback — including your corrections on it — is remembered or reused for learning.`
-      :`<b>Data terms: zero retention${chose?'':' (default-deny — no terms were specified, so Cherry assumes the most restrictive)'}.</b> Nothing from this triage persists: no learned corrections, no snapshots, not even the run counter. At enterprise scale these flags come from the contract via the CRM — enforced by the pipeline, not by someone re-reading an NDA.`;
+      ?`<b>Browser retention: local metrics only.</b> Correction-rate metrics are kept here; feedback and corrections are not remembered for future runs.`
+      :`<b>Browser retention: keep nothing${chose?'':' (the default when unspecified)'}.</b> After this result, Cherry stores no learned corrections, snapshots, or run metrics in this browser. The feedback still travels through the backend to Claude to produce the result.`;
     el.innerHTML=`<div class="sm-lock">${msg}</div>`;
     el.classList.add('on');
   }
 
-  // The measured learning loop: grade the triage's synthesis quality with an LLM
-  // judge, and when the reviewer corrects + re-ranks, show the score MOVE — proof
-  // that human feedback improves the AI, not just a claim.
-  async function scoreQuality(r,wasReranked){
-    const card=document.getElementById('qualityCard');
-    if(!r||!(r.issues||[]).length){card.innerHTML='';lastQuality=null;return;}
-    const prev=wasReranked?lastQuality:null;
-    card.innerHTML=`<div class="q-head"><h3>Synthesis quality</h3><span class="q-by">LLM-judged</span></div><div class="q-load">Grading this triage…</div>`;
-    try{
-      const resp=await fetch('/api/judge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result:r})});
-      const data=await resp.json();
-      if(!resp.ok||data.error)throw new Error(data.error||('error '+resp.status));
-      renderQuality(data,prev);lastQuality=data.overall;
-    }catch(e){card.innerHTML=`<div class="q-head"><h3>Synthesis quality</h3></div><div class="q-load">Couldn’t grade this one — ${esc(e.message||'try again')}.</div>`;}
+  function issueControls(it){
+    const stage=getStatus(it.title);
+    if(stage==='new')return `<button class="fbtn ok primary" data-act="ok">Confirm &amp; triage</button><button class="fbtn no" data-act="no">Not quite</button>`;
+    if(stage==='triaged')return `<button class="fbtn draft primary" data-act="ticket">Draft ticket</button><button class="fbtn no" data-act="no">Correct call</button>`;
+    if(stage==='routed')return `<button class="fbtn draft primary" data-act="reply">Draft reply</button><button class="fbtn no" data-act="no">Correct call</button>`;
+    return `<button class="fbtn draft primary" data-act="update">Draft customer update</button>`;
   }
-  function renderQuality(data,prev){
-    const card=document.getElementById('qualityCard');
-    const dims=[['grounding','Grounding'],['clustering','Clustering'],['ranking','Ranking'],['routing','Routing'],['actionability','Actionability']];
-    let delta='';
-    if(prev!=null){
-      const d=Math.round((data.overall-prev)*10)/10;
-      const cls=d>0?'up':d<0?'down':'flat',arrow=d>0?'▲':d<0?'▼':'—',sign=d>0?'+':'';
-      delta=`<span class="q-delta ${cls}">${arrow} ${sign}${d.toFixed(1)} after your correction</span>`;
+
+  function refreshCardControls(card,it){
+    const controls=card&&card.querySelector('[data-role=controls]');
+    if(controls)controls.innerHTML=issueControls(it)+`<span class="fbstate" data-role="state"></span>`;
+  }
+
+  function renderTakeaway(text,expanded=false){
+    const el=document.getElementById('takeaway'),full=String(text||''),limit=280;
+    if(expanded||full.length<=limit){
+      el.innerHTML=esc(full)+(full.length>limit?` <button class="takeaway-more" data-takeaway-more>Show less</button>`:'');
+      el.dataset.expanded=expanded?'true':'false';return;
     }
-    const rows=dims.map(([k,lab])=>`<div class="q-dim"><span class="dn">${lab}</span><span class="dt"><i style="width:${Math.round((data.scores[k]||0)/5*100)}%"></i></span><span class="dv">${data.scores[k]}/5</span></div>`).join('');
-    card.innerHTML=`<div class="q-head"><h3>Synthesis quality</h3><span class="q-by">LLM-judged</span></div>
-      <div class="q-score"><span class="q-num">${data.overall.toFixed(1)}</span><span class="q-of">/ 5</span>${delta}</div>
-      <div class="q-dims">${rows}</div>
-      <div class="q-improve"><b>Weakest: ${esc(data.weakest||'—')}.</b> ${esc(data.improve||'')}</div>`;
+    const clipped=full.slice(0,limit).replace(/\s+\S*$/,'').replace(/[\s,;:—-]+$/,'')+'…';
+    el.innerHTML=esc(clipped)+` <button class="takeaway-more" data-takeaway-more>Read full summary</button>`;
+    el.dataset.expanded='false';
   }
 
   function render(r,name,wasReranked){
     currentName=r.product||name;currentResult=r;
     document.getElementById('resFor').textContent=currentName;
-    document.getElementById('takeaway').textContent=r.takeaway||"";
+    renderTakeaway(r.takeaway||"");
 
     // Calibrated honesty surface: when Cherry can't ground the triage in enough
     // real feedback it sets found=false — say so plainly instead of dressing up a
@@ -1148,7 +1146,7 @@
     else{appliedNote.classList.remove('on');}
 
     // Fresh run resets to the Product persona; a correction/rerank keeps the view you're in.
-    if(!wasReranked){weights={sev:5,reach:3,rec:2};persona='pm';}
+    if(!wasReranked){weights={...DEFAULT_SIGNAL_WEIGHTS};persona='pm';showAllIssues=false;}
 
     const issues=(r.issues||[]).slice().sort((a,b)=>scoreOf(b)-scoreOf(a));
     window._cherryIssues=issues;
@@ -1157,17 +1155,17 @@
     renderCoverage(r.coverage);
     renderAuthenticity(issues);
     renderDataTerms();
-    if(allowMetrics()){
+    if(allowMetrics()&&!fixtureMode){
       thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
       runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);
     } else { thisRun=null; }   // zero retention: not even the run counter persists
     renderLearning();
     syncPersona();
-    const trend=computeTrend(issues,wasReranked), newSet=trend.newSet;
+    const trend=computeTrend(issues,wasReranked), newSet=trend.newSet, worseSet=trend.worseSet||new Set();
     renderReviewQueue(issues);
     renderCapSig(issues);
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`
-      <div class="rissue ${i===0?'top':''}" data-idx="${i}">
+      <div class="rissue ${i===0?'top':''} ${i>=3?'secondary':''}" data-idx="${i}">
         <div class="rscore"><div class="nm">${scoreOf(it)}</div><div class="lb">signal</div>
           <div class="meter">
             <b title="severity ${it.severity??'?'} of 5"><i style="height:${Math.round((+it.severity||0)/5*100)}%"></i></b>
@@ -1190,6 +1188,7 @@
             ${it.reachBasis==='few amplified voices'?`<span class="tg amp" title="reach traces back to one or a few high-visibility voices being echoed — a leading indicator worth verifying against first-party data, not proof of breadth">◉ amplified — verify reach</span>`:''}
             ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${esc(String(it.authenticity))}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
             ${newSet.has(i)?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
+            ${worseSet.has(i)?`<span class="tg worse" title="gotten worse since your last check — severity and overall signal axis sum both rose">▲ worse</span>`:''}
             ${confBand(it)==='low'?`<span class="tg rev" title="Cherry is least confident here — verify before trusting">◆ review first</span>`:''}
           </div>
           ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
@@ -1197,22 +1196,14 @@
             <span class="life-lbl">stage</span>
             ${STATUSES.map(s=>`<button class="lifepill ${getStatus(it.title)===s?'on':''}" data-status="${s}">${s}</button>`).join('')}
           </div>
-          <div class="fb">
-            <button class="fbtn ok" data-act="ok">Looks right</button>
-            <button class="fbtn no" data-act="no">Not quite</button>
-            <span class="fbsep"></span>
-            <button class="fbtn draft" data-act="ticket">Draft ticket</button>
-            <button class="fbtn draft" data-act="reply">Draft reply</button>
-            <button class="fbtn draft" data-act="update">Draft update</button>
-            <span class="fbstate" data-role="state"></span>
-          </div>
+          <div class="fb" data-role="controls">${issueControls(it)}<span class="fbstate" data-role="state"></span></div>
           <div class="editor" data-role="editor">
             <input type="text" placeholder="What's off? e.g. lower severity, owner is Billing, rank lower" />
             <button data-act="save">Save</button>
           </div>
           <div class="draftout" data-role="draftout"></div>
         </div>
-      </div>`).join("")||"<p style='color:var(--muted)'>No clear issues surfaced.</p>";
+      </div>`).join("")+(issues.length>3?`<button class="showmore" data-show-all>Show ${issues.length-3} more issue${issues.length-3===1?'':'s'}</button>`:'')||"<p style='color:var(--muted)'>No clear issues surfaced.</p>";
 
     document.getElementById('loveList').innerHTML=(r.love||[]).map(l=>`<li>${esc(l)}</li>`).join("")||"<li>Nothing stood out.</li>";
     document.getElementById('actionList').innerHTML=(r.actions||[]).map((a,i)=>`
@@ -1222,11 +1213,18 @@
 
     results.classList.add('on');
     results.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
-    scoreQuality(r,wasReranked);   // grade synthesis quality (async, fills in after render)
   }
 
   /* human-in-the-loop interactions (event delegation) */
+  document.getElementById('takeaway').addEventListener('click',e=>{
+    if(!e.target.closest('[data-takeaway-more]'))return;
+    const expanded=document.getElementById('takeaway').dataset.expanded==='true';
+    renderTakeaway((currentResult&&currentResult.takeaway)||'',!expanded);
+  });
   document.getElementById('issueList').addEventListener('click',e=>{
+    const showBtn=e.target.closest('[data-show-all]');
+    if(showBtn){showAllIssues=!showAllIssues;document.querySelectorAll('#issueList .rissue.secondary').forEach(c=>c.classList.toggle('revealed',showAllIssues));
+      showBtn.textContent=showAllIssues?'Show only top 3':`Show ${document.querySelectorAll('#issueList .rissue.secondary').length} more issues`;return;}
     const copyBtn=e.target.closest('[data-copy]');
     if(copyBtn){const pre=copyBtn.closest('.draftout').querySelector('.draft-text');
       if(pre&&navigator.clipboard){navigator.clipboard.writeText(pre.textContent);copyBtn.textContent='Copied \u2713';setTimeout(()=>copyBtn.textContent='Copy',1400);}return;}
@@ -1234,7 +1232,7 @@
     const pill=e.target.closest('.lifepill');
     if(pill){const card=e.target.closest('.rissue');const issue=(window._cherryIssues||[])[+card.dataset.idx]||{};
       setStatus(issue.title,pill.dataset.status);
-      card.querySelectorAll('.lifepill').forEach(p=>p.classList.toggle('on',p===pill));return;}
+      card.querySelectorAll('.lifepill').forEach(p=>p.classList.toggle('on',p===pill));refreshCardControls(card,issue);return;}
     // Routing: send the drafted ticket to Slack via /api/route.
     const routeBtn=e.target.closest('[data-route]');
     if(routeBtn){sendToSlack(routeBtn);return;}
@@ -1244,9 +1242,9 @@
     const state=card.querySelector('[data-role=state]');const editor=card.querySelector('[data-role=editor]');
     if(act==="ok"){
       card.classList.add('confirmed');card.classList.remove('corrected');editor.classList.remove('on');
-      card.querySelector('.fbtn.ok').classList.add('active');card.querySelector('.fbtn.no').classList.remove('active');
-      state.textContent="confirmed";state.style.color="var(--stem)";
+      setStatus(issue.title,'triaged');card.querySelectorAll('.lifepill').forEach(p=>p.classList.toggle('on',p.dataset.status==='triaged'));
       removeCorrection(issue.title);
+      refreshCardControls(card,issue);
     } else if(act==="no"){
       editor.classList.toggle('on');
       card.querySelector('.fbtn.no').classList.add('active');card.querySelector('.fbtn.ok').classList.remove('active');
@@ -1313,6 +1311,8 @@
         setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},2800);return;
       }
       btn.textContent='Sent to Slack \u2713';
+      const card=btn.closest('.rissue'),issue=card&&(window._cherryIssues||[])[+card.dataset.idx];
+      if(card&&issue){setStatus(issue.title,'routed');card.querySelectorAll('.lifepill').forEach(p=>p.classList.toggle('on',p.dataset.status==='routed'));refreshCardControls(card,issue);}
     }catch(e){btn.textContent='Failed';btn.title=e.message||'';setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},2200);}
   }
   function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
@@ -1326,7 +1326,8 @@
     cards.forEach(c=>{const it=(window._cherryIssues||[])[+c.dataset.idx]||{};const sc=scoreOf(it);
       c.dataset.score=sc;const nm=c.querySelector('.rscore .nm');if(nm)nm.textContent=sc;});
     cards.sort((a,b)=>(+b.dataset.score)-(+a.dataset.score));
-    cards.forEach((c,i)=>{c.classList.toggle('top',i===0);list.appendChild(c);});
+    cards.forEach((c,i)=>{c.classList.toggle('top',i===0);c.classList.toggle('secondary',i>=3);c.classList.toggle('revealed',i>=3&&showAllIssues);list.appendChild(c);});
+    const showBtn=list.querySelector('[data-show-all]');if(showBtn)list.appendChild(showBtn);
   }
   weightsEl.addEventListener('input',e=>{
     const w=e.target.closest('input[type=range]');if(!w)return;
@@ -1347,10 +1348,20 @@
     if(!reduce){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
   });
 
-  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];refreshCorrbar();runCherry(n,[]);}
+  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}fixtureMode=false;currentFeedback="";corrections=[];refreshCorrbar();runCherry(n,[]);}
   runBtn.addEventListener('click',go);
   product.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
   document.querySelectorAll('.examples a[data-ex]').forEach(a=>a.addEventListener('click',()=>{product.value=a.dataset.ex;go();}));
+  async function loadFixture(name='duolingo'){
+    fixtureMode=true;currentFeedback="";corrections=[];refreshCorrbar();
+    errbox.classList.remove('on');results.classList.remove('on');loading.classList.add('on');cycleLoad();
+    try{
+      const file=name==='duolingo'?'/evals/golden-duolingo.json':'/evals/golden.json';
+      const resp=await fetch(file);if(!resp.ok)throw new Error('fixture '+resp.status);
+      const result=await resp.json();stopLoad();render(result,result.product||'Saved result',false);
+    }catch(e){stopLoad();errbox.textContent="Couldn’t load the saved result — "+(e.message||'try again');errbox.classList.add('on');}
+  }
+  document.querySelectorAll('[data-fixture]').forEach(a=>a.addEventListener('click',()=>loadFixture(a.dataset.fixture)));
 
   // Two intake modes: search the web, or paste raw internal feedback.
   const pasteBox=document.getElementById('pasteBox'),feedbackInput=document.getElementById('feedbackInput');
@@ -1365,7 +1376,7 @@
   function goFeedback(){
     const t=(feedbackInput.value||"").trim();
     if(t.length<40){feedbackInput.focus();return;}
-    currentFeedback=t;corrections=[];refreshCorrbar();runCherry("",[]);
+    fixtureMode=false;currentFeedback=t;corrections=[];refreshCorrbar();runCherry("",[]);
   }
   document.getElementById('runFeedback').addEventListener('click',goFeedback);
   document.getElementById('againBtn').addEventListener('click',()=>{
@@ -1377,6 +1388,8 @@
     document.querySelectorAll('.rise').forEach(el=>io.observe(el));}
   else document.querySelectorAll('.rise').forEach(el=>el.classList.add('in'));
   renderLearning();
+  const fixtureParam=new URLSearchParams(location.search).get('fixture');
+  if(fixtureParam)loadFixture(fixtureParam);
 </script>
 </body>
 </html>

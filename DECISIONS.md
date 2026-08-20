@@ -5,6 +5,48 @@ A short record of the product decisions behind Cherry — the *why*, not just th
 
 ---
 
+## 2026-08-11 · What changed since last run — identity, worse, and a tested matcher
+
+**Context.** Trend vs last check already stored a per-product title snap and labeled
+new / recurring / resolved. Titles get reworded between model runs, so exact-string
+identity is the wrong key — and without scores on the snap, "gotten worse" was
+impossible. Putting the matcher inline in `index.html` also left deterministic logic
+untested in CI.
+
+**Decisions.**
+
+1. **Identity = significant-token overlap + greedy 1:1 + host tie-break.** Normalize
+   titles (words >3 chars, sorted, top 5). Pair when exact norm match or ≥2 shared
+   tokens; assign greedily so two near-duplicate current titles can't both claim one
+   prior. On score ties, prefer overlapping evidence hostnames. No embeddings, no second
+   Claude call — dependency-free and honest for a top-5 list.
+
+2. **"Worse" is conjunction, not disjunction.** Flag only when severity rises by ≥1
+   **and** `(severity + reach + recency)` rises by ≥2. A lone severity +1 on a 1–5 scale
+   is within run-to-run model noise; requiring the composite bump filters phantom
+   regressions. The tradeoff: a real single-axis regression (severity up, reach/recency
+   flat) will not badge as worse. Title-only legacy snaps never flag worse.
+
+3. **`savedAt` + prose summary; badges only for change.** Snapshots carry run-level
+   `savedAt` (legacy `at` still read). Copy reads `2 new issues, 1 worsened, 1 resolved
+   since Aug 4`, or `since last run` when no timestamp. Only `▲ new` and `▲ worse`
+   badges — absence means same. Resolved titles appear in the Gone clause, not as cards.
+
+4. **Harder snap keys + dev `?nocache=1`.** Product snap keys trim and collapse
+   whitespace before lowercasing. The 24h server result cache would otherwise echo the
+   same JSON on a same-name re-run; a non-production `?nocache=1` query (forwarded from
+   the page URL) skips cache read and write so local diffs are real. Ignored in production.
+
+5. **Matcher extracted to `trend.js` and gated in CI.** Pure functions live in
+   `trend.js`; `evals/trend-check.mjs` covers competitor titles, reword matches,
+   title-only snaps, and the worse boundary — wired into `npm run eval` alongside
+   `check.mjs`. Single-file purity wasn't worth an untested algorithm.
+
+**The honest tradeoff.** Still a single-browser prior, not team velocity. Stricter
+"worse" prefers fewer false alarms over catching every soft regression.
+
+---
+
 ## 2026-07-08 · Three cuts deeper — persona views, a review queue, and trend
 
 **Context.** Cherry already intakes, scores, routes, and closes the loop. The gaps left
