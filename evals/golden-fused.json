@@ -1,0 +1,150 @@
+{
+  "product": "Notion",
+  "found": true,
+  "takeaway": "Public reviews and internal tickets agree that large workspaces grind to a halt — the one issue both sides name. Offline remains a loud public complaint with no ticket trail; SSO is the inverse, a quiet enterprise blocker the open web never sees.",
+  "issues": [
+    {
+      "title": "Large workspaces get slow",
+      "gist": "Load lag and laggy typing once a workspace passes a few thousand pages.",
+      "signalType": "capability signal",
+      "useCase": "managing a large workspace",
+      "severity": 4,
+      "reach": 5,
+      "recency": 5,
+      "prevalence": "many reports",
+      "signal": 42,
+      "owner": "Engineering",
+      "evidence": [
+        {
+          "source": "Reddit r/Notion",
+          "url": "https://www.reddit.com/r/Notion/",
+          "quote": "painfully slow to load and even typing lags"
+        },
+        {
+          "source": "Ticket #4418 · Acme workspace",
+          "quote": "DB with 8k rows takes 12s to open"
+        }
+      ],
+      "disposition": "fixable gap",
+      "stakeholders": ["Product"],
+      "authenticity": 5,
+      "revenueContext": "~$400K renewal + 2 mid-market accounts",
+      "reachBasis": "many independent voices",
+      "corroboration": "both"
+    },
+    {
+      "title": "SSO is a renewal blocker",
+      "gist": "Security teams will not renew without SAML; three accounts named it this quarter.",
+      "signalType": "surface fix",
+      "useCase": "enterprise admin login",
+      "severity": 5,
+      "reach": 3,
+      "recency": 5,
+      "prevalence": "a few accounts, high dollar",
+      "signal": 35,
+      "owner": "Engineering",
+      "evidence": [
+        {
+          "source": "Sales call · Acme Corp",
+          "quote": "no SSO/SAML is now a hard compliance blocker"
+        },
+        {
+          "source": "CS note · two mid-market accounts",
+          "quote": "asked for SSO this quarter, same driver"
+        }
+      ],
+      "disposition": "fixable gap",
+      "stakeholders": ["Leadership", "Security"],
+      "authenticity": 5,
+      "revenueContext": "$400K renewal + 2 mid-market accounts",
+      "reachBasis": "many independent voices",
+      "corroboration": "first-party only"
+    },
+    {
+      "title": "Offline mode is unreliable",
+      "gist": "Edits lost without a connection; the top public reason power users leave.",
+      "signalType": "capability signal",
+      "useCase": "offline editing while traveling",
+      "severity": 4,
+      "reach": 3,
+      "recency": 4,
+      "prevalence": "many public reports, none in this paste",
+      "signal": 24,
+      "owner": "Engineering",
+      "evidence": [
+        {
+          "source": "Trustpilot",
+          "url": "https://www.trustpilot.com/review/notion.so",
+          "quote": "lost edits on a flight"
+        },
+        {
+          "source": "Hacker News",
+          "url": "https://news.ycombinator.com/",
+          "quote": "still no real offline support"
+        }
+      ],
+      "disposition": "fixable gap",
+      "stakeholders": [],
+      "authenticity": 5,
+      "revenueContext": "",
+      "reachBasis": "many independent voices",
+      "corroboration": "public only"
+    },
+    {
+      "title": "AI add-on feels like nickel-and-diming",
+      "gist": "Paid users resent a second per-seat charge for AI when rivals bundle it.",
+      "signalType": "surface fix",
+      "useCase": "AI-assisted writing",
+      "severity": 3,
+      "reach": 3,
+      "recency": 3,
+      "prevalence": "a recurring theme",
+      "signal": 18,
+      "owner": "Leadership",
+      "evidence": [
+        {
+          "source": "Capterra",
+          "url": "https://www.capterra.com/p/notion/reviews/",
+          "quote": "felt nickel-and-dimed"
+        }
+      ],
+      "disposition": "intentional tradeoff",
+      "stakeholders": ["Billing", "Product"],
+      "authenticity": 5,
+      "revenueContext": "",
+      "reachBasis": "few amplified voices",
+      "corroboration": "public only"
+    }
+  ],
+  "coverage": {
+    "heard": ["power users", "enterprise admins", "individual writers"],
+    "silent": ["mobile-only users", "education accounts"]
+  },
+  "love": [
+    "Flexibility — one tool for notes, wikis, and databases",
+    "Templates and the community ecosystem around them",
+    "Clean, calm writing experience for everyday docs"
+  ],
+  "actions": [
+    {
+      "action": "Set a per-page load-time budget and ship incremental rendering for large databases",
+      "why": "The only issue both public reviews and internal tickets name — a retention risk on the accounts that pay.",
+      "owner": "Engineering"
+    },
+    {
+      "action": "Ship SAML/SSO on the enterprise plan this quarter",
+      "why": "Quiet in public, loud in the paste: a $400K renewal is blocked. First-party-only is the signal the open web missed.",
+      "owner": "Engineering"
+    },
+    {
+      "action": "Treat offline as a public-only ceiling until tickets confirm it",
+      "why": "Loud on Trustpilot, absent from this paste — verify against first-party data before staffing it as a P0.",
+      "owner": "Product"
+    },
+    {
+      "action": "Weigh bundling a baseline AI allowance into paid tiers",
+      "why": "Intentional tradeoff owned by Leadership; public-only, so prevalence is a ceiling.",
+      "owner": "Leadership"
+    }
+  ]
+}

@@ -8,14 +8,16 @@ Studio Felix · built on the Anthropic API.
 [![eval](https://github.com/stephiesworld/cherry/actions/workflows/eval.yml/badge.svg)](https://github.com/stephiesworld/cherry/actions/workflows/eval.yml)
 
 A live, AI-native customer-feedback triage tool — a working v1 of an operating
-system for voice-of-the-customer. It **intakes** signal two ways (search the open
-web, *or* paste raw internal feedback — a Slack thread, support tickets, sales-call
-notes), **synthesizes** the noise into ranked, source-grounded issues, **routes**
-each to the team that owns it, and **closes the loop** with drafts and status —
-with a human in the loop at every step and evals measuring quality.
+system for voice-of-the-customer. It **intakes** signal three ways (search the open
+web, paste raw internal feedback, or **weigh both in one pass**), **synthesizes**
+the noise into ranked, source-grounded issues, **routes** each to the team that
+owns it, and **closes the loop** with drafts and status — with a human in the
+loop at every step and evals measuring quality.
 
-- **Intake, two ways** — search the public web, or paste internal feedback and
-  Cherry triages it directly (no web search). The signal lives inside your company too.
+- **Intake, three ways** — search the public web, paste internal feedback (no web
+  search), or **Web + yours**: one triage that tags each issue as corroborated,
+  first-party only, or public only. Corroboration is a visible tie-break, not a
+  hidden score. Paste-only stays for data that must not hit search.
 - **Legible signal** — each issue scores severity, reach, and recency as separate
   1-5 axes; a live `Signal = severity·reach·recency` control lets you re-weight what
   "high-signal" means and the ranking re-sorts in place. No opaque number.
@@ -125,10 +127,10 @@ illustrative recorded result; pipe a live one in with `curl … | node evals/che
 | Path | What |
 |---|---|
 | `index.html` | The front end (Studio Felix design; calls its own backend). |
-| `api/triage.js` | Triage backend: web-search **or** pasted-feedback intake, structured-output JSON, memory, guards. |
+| `api/triage.js` | Triage backend: web, paste, or fused (web + yours) intake, structured-output JSON, memory, guards. |
 | `api/draft.js` | Drafts a ticket (framed for the owning team), customer reply, or "you said, we did" update. |
 | `api/route.js` | Routes a drafted ticket to Slack (`CHERRY_SLACK_WEBHOOK`). |
-| `evals/check.mjs` + `golden.json` | Structural quality gate (CI). |
+| `evals/check.mjs` + `golden.json` / `golden-duolingo.json` / `golden-fused.json` | Structural quality gate (CI). |
 | `evals/judge.mjs` | LLM-as-judge synthesis-quality eval. |
 | `DESIGN.md` | The brand system. |
 

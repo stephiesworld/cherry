@@ -45,10 +45,29 @@ issues.forEach((it, i) => {
   if (it.reachBasis !== undefined)
     ok(["many independent voices", "few amplified voices"].includes(it.reachBasis), `${where}: reachBasis must be "many independent voices" or "few amplified voices" (got ${JSON.stringify(it.reachBasis)})`);
   ok(Array.isArray(it.stakeholders) && it.stakeholders.every((s) => typeof s === "string") && !it.stakeholders.includes(it.owner), `${where}: stakeholders must be an array of team names not repeating the owner`);
-  // The grounding contract: at least one real source URL per issue.
   ok(Array.isArray(it.evidence) && it.evidence.length >= 1, `${where}: NO EVIDENCE (must cite a source)`);
-  (it.evidence || []).forEach((ev, j) =>
-    ok(isUrl(ev.url) && ev.source, `${where}: evidence[${j}] missing source/url`));
+  const evs = it.evidence || [];
+  evs.forEach((ev, j) =>
+    ok(ev && ev.source && ev.quote, `${where}: evidence[${j}] missing source/quote`));
+
+  // Corroboration (when present): fused intake's visible tag. Goldens recorded
+  // before the field existed stay honest — we do not hand-edit them to carry it.
+  const CORR = ["both", "first-party only", "public only"];
+  if (it.corroboration !== undefined) {
+    ok(CORR.includes(it.corroboration), `${where}: corroboration must be "both", "first-party only", or "public only" (got ${JSON.stringify(it.corroboration)})`);
+    const hasUrl = evs.some((e) => isUrl(e && e.url));
+    const hasFp = evs.some((e) => e && e.source && e.quote && !isUrl(e.url));
+    if (it.corroboration === "both")
+      ok(hasUrl && hasFp, `${where}: corroboration "both" needs a public URL and a first-party quote (no url)`);
+    else if (it.corroboration === "public only")
+      ok(hasUrl, `${where}: corroboration "public only" needs at least one https URL`);
+    else if (it.corroboration === "first-party only")
+      ok(hasFp || evs.some((e) => e && e.source && e.quote), `${where}: corroboration "first-party only" needs a verbatim quote`);
+  } else {
+    // Legacy web contract: every evidence item carries a real source URL.
+    evs.forEach((ev, j) =>
+      ok(isUrl(ev.url) && ev.source, `${where}: evidence[${j}] missing source/url`));
+  }
 });
 
 // Ranking must be monotonic by signal (top of the list is genuinely the top).
@@ -67,7 +86,11 @@ if (r.coverage !== undefined) {
   ok(a.action && a.why, `action[${i}]: missing action or why`));
 
 const total = issues.length;
-const grounded = issues.filter((it) => (it.evidence || []).some((e) => isUrl(e.url))).length;
+const grounded = issues.filter((it) => {
+  if (it.corroboration === "first-party only")
+    return (it.evidence || []).some((e) => e && e.source && e.quote);
+  return (it.evidence || []).some((e) => isUrl(e.url));
+}).length;
 
 if (fails.length) {
   console.error(`\n  ✗ Cherry quality gate FAILED (${fails.length})`);

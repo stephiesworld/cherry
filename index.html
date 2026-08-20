@@ -41,10 +41,11 @@
   .hero .lede{font-size:19px;color:#4a4036;max-width:30em;margin-bottom:24px;line-height:1.5;}
   .hero .lede b{font-weight:700;color:var(--ink);}
 
-  .modes{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;padding:3px;margin-bottom:14px;background:#fff;}
+  .modes{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:8px;padding:3px;margin-bottom:14px;background:#fff;}
   .modes .mode{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;
     padding:8px 13px;border-radius:5px;color:var(--ink);background:none;border:none;cursor:pointer;transition:all .15s;}
   .modes .mode.on{background:var(--ink);color:var(--ground);}
+  @media(max-width:540px){.modes{display:flex;width:100%;}.modes .mode{flex:1;padding:8px 8px;font-size:9px;}}
   .runbar{display:flex;gap:0;max-width:500px;border:1.5px solid var(--line);border-radius:8px;box-shadow:4px 4px 0 var(--line);overflow:hidden;background:#fff;}
   @media(max-width:540px){.runbar{flex-direction:column;box-shadow:3px 3px 0 var(--line);}}
   .runbar input{flex:1;background:#fff;border:none;color:var(--ink);
@@ -58,6 +59,8 @@
   .btn-primary:disabled{opacity:0.55;cursor:default;transform:none;}
   .runbar .btn-primary{border:none;border-left:1.5px solid var(--line);border-radius:0;box-shadow:none;}
   .runbar .btn-primary:hover{transform:none;box-shadow:none;}
+  .runbar.input-only .btn-primary{display:none;}
+  .runbar.input-only{border-radius:8px;}
   .examples{margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.03em;text-transform:uppercase;color:var(--muted);}
   .examples a{color:var(--cherry-deep);text-decoration:none;border-bottom:1.5px solid var(--sour);cursor:pointer;margin:0 2px;}
   .examples a:hover{border-color:var(--cherry);}
@@ -181,6 +184,13 @@
   .evi{font-size:12.5px;color:#5a4f50;line-height:1.4;}
   .evi a{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cherry);text-decoration:none;border-bottom:1px solid rgba(176,35,60,0.3);margin-right:2px;}
   .evi a:hover{border-color:var(--cherry);}
+  .evi .evsrc{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--stem);margin-right:2px;}
+  .tg.corr-both{color:var(--stem);border-color:var(--stem);font-weight:700;}
+  .tg.corr-first{color:var(--muted);border-color:var(--rule-strong);}
+  .tg.corr-public{color:#8A6712;border-color:#C99A3A;}
+  .srcmix .sm-chip.fp{border-color:var(--stem);color:var(--stem);}
+  .srcmix .sm-digest{margin-top:9px;font-size:13px;color:#5a4f50;}
+  .srcmix .sm-digest b{color:var(--ink);}
 
   /* human-in-the-loop controls */
   .fb{display:flex;gap:8px;margin-top:14px;align-items:center;}
@@ -414,10 +424,11 @@
     <div class="hero-copy">
       <div class="label">Sweet praise · sour truths</div>
       <h1>From the pile,<br>the <em>point</em>.</h1>
-      <p class="lede">Name a product, or paste your own feedback. Cherry <b>bites through the noise</b> — ranks what stings, routes who owns it, and tells you what to do.</p>
+      <p class="lede">Name a product, paste your own feedback, or weigh both. Cherry <b>bites through the noise</b> — ranks what stings, routes who owns it, and tells you what to do.</p>
       <div class="modes">
-        <button class="mode on" id="modeWeb">Search the web</button>
-        <button class="mode" id="modePaste">Paste feedback</button>
+        <button class="mode on" id="modeWeb" type="button">Search the web</button>
+        <button class="mode" id="modePaste" type="button">Paste feedback</button>
+        <button class="mode" id="modeFused" type="button">Web + yours</button>
       </div>
       <div id="webIntake">
         <div class="runbar">
@@ -522,7 +533,7 @@
   <div class="wrap">
     <div class="sec-head rise"><h2>How Cherry works</h2><span class="label">Pile to point</span></div>
     <div class="steps">
-      <div class="step rise"><span class="n">01 / Gather</span><h3>Reads the web</h3><p>Reviews, forums, Reddit, social, news — Cherry searches the open internet and keeps the source link for every issue.</p></div>
+      <div class="step rise"><span class="n">01 / Gather</span><h3>Reads the pile</h3><p>The public web, your pasted tickets, or both at once — every issue keeps a source, and when you weigh both, Cherry tags what the two sides share.</p></div>
       <div class="step rise"><span class="n">02 / Read</span><h3>Tagged &amp; clustered</h3><p>It names each theme and groups the hundred ways people describe one problem into a single issue.</p></div>
       <div class="step rise"><span class="n">03 / Rank</span><h3>By signal</h3><p>Severity and prevalence combine into one score, so the top of the list is genuinely the top.</p></div>
       <div class="step rise"><span class="n">04 / Learn</span><h3>You correct, it adapts</h3><p>Disagree with a call? Tell Cherry, and it re-ranks with your judgment — sharper every pass.</p></div>
@@ -819,6 +830,7 @@
   const corrbar=document.getElementById('corrbar'),corrCount=document.getElementById('corrCount');
 
   let currentName="", corrections=[], currentFeedback="", lastQuality=null, currentResult=null;
+  let intakeMode="web";
 
   // Legible signal: the score is a transparent weighted blend of three 1-5 axes
   // the reviewer can re-weight live, not one opaque number. Default leans on
@@ -962,8 +974,13 @@
 
   const loadLinesWeb=["Searching reviews and forums…","Reading what people wrote…","Clustering the themes…","Ranking by signal…","Picking the ones that matter…"];
   const loadLinesPaste=["Reading your feedback…","Clustering the themes…","Scoring severity and reach…","Routing to owners…","Picking the ones that matter…"];
+  const loadLinesFused=["Searching reviews and your feedback…","Reading both sides…","Corroborating the themes…","Ranking by signal…","Picking the ones that matter…"];
   let loadTimer=null;
-  function cycleLoad(){const lines=currentFeedback?loadLinesPaste:loadLinesWeb;let i=0;loadMsg.textContent=lines[0];loadTimer=setInterval(()=>{i=(i+1)%lines.length;loadMsg.textContent=lines[i];},2600);}
+  function cycleLoad(){
+    const lines=intakeMode==="fused"?loadLinesFused:currentFeedback?loadLinesPaste:loadLinesWeb;
+    let i=0;loadMsg.textContent=lines[0];
+    loadTimer=setInterval(()=>{i=(i+1)%lines.length;loadMsg.textContent=lines[i];},2600);
+  }
   function stopLoad(){clearInterval(loadTimer);loading.classList.remove('on');}
 
   function extractJSON(txt){
@@ -977,7 +994,7 @@
     const body={name,corrections:corr||[],memory:recentMemory(12)};
     // Re-rank = apply my corrections to the CURRENT result in place (clean, fast).
     if((corr||[]).length&&currentResult)body.current=currentResult;
-    if(currentFeedback)body.feedback=currentFeedback;   // internal-intake mode
+    if(currentFeedback)body.feedback=currentFeedback;   // paste-only or fused
     const resp=await fetch("/api/triage",{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify(body)
@@ -990,12 +1007,13 @@
   async function runCherry(name,corr){
     errbox.classList.remove('on');results.classList.remove('on');
     loading.classList.add('on');cycleLoad();runBtn.disabled=true;
+    const runFb=document.getElementById('runFeedback');if(runFb)runFb.disabled=true;
     let r=null,lastErr=null;
     for(let attempt=0;attempt<2&&!r;attempt++){
       try{ r=await callClaude(name,corr); }
       catch(e){ lastErr=e; console.error("Cherry attempt",attempt+1,"failed:",e); }
     }
-    stopLoad();runBtn.disabled=false;
+    stopLoad();runBtn.disabled=false;if(runFb)runFb.disabled=false;
     if(!r){
       errbox.textContent="Cherry couldn't finish that one — "+(lastErr&&lastErr.message?("("+lastErr.message+") "):"")
         +"the response didn't come back cleanly. Give it another go, or try a more widely-reviewed product.";
@@ -1034,23 +1052,51 @@
     for(const [re,label,complaint] of map) if(re.test(s)) return {label,complaint};
     return {label:'News / other',complaint:false};
   }
-  function renderSourceMix(issues,internal){
-    const el=document.getElementById('srcMix');
-    if(internal){ // first-party pasted feedback — the representative kind
-      el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span><span class="sm-chip">your pasted feedback</span></div><div class="sm-good">First-party data — the most representative source there is, not the self-selected public web.</div>`;
-      el.classList.add('on');return;
+  function isWebUrl(u){return typeof u==="string"&&/^https?:\/\/.+/.test(u);}
+  function evLine(ev){
+    const src=esc(ev.source||"source");
+    const q=ev.quote?` &mdash; “${esc(ev.quote)}”`:"";
+    if(isWebUrl(ev.url))
+      return `<span class="evi"><a href="${esc(ev.url)}" target="_blank" rel="noopener">${src}</a>${q}</span>`;
+    return `<span class="evi"><span class="evsrc">${src}</span>${q}</span>`;
+  }
+  function corrChip(it){
+    if(intakeMode!=="fused")return "";
+    const c=it.corroboration;
+    if(c==="both")return `<span class="tg corr-both" title="in your pasted feedback and on the public web — a tie-break when axes are similar, not a hidden score bump">both — corroborated</span>`;
+    if(c==="first-party only")return `<span class="tg corr-first" title="in your pasted feedback, quiet on the public web — often the real product issue">first-party only</span>`;
+    if(c==="public only")return `<span class="tg corr-public" title="loud online, absent from your paste — treat reach as a ceiling and verify">public only</span>`;
+    return "";
+  }
+  function renderSourceMix(issues){
+    const el=document.getElementById("srcMix");
+    if(intakeMode==="paste"){
+      el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span><span class="sm-chip fp">your pasted feedback</span></div><div class="sm-good">First-party data — the most representative source there is, not the self-selected public web.</div>`;
+      el.classList.add("on");return;
     }
-    const counts={};let total=0,comp=0;
+    const counts={};let webTotal=0,comp=0,fpCount=0;
     (issues||[]).forEach(it=>(it.evidence||[]).forEach(ev=>{
-      if(!ev||!(ev.source||ev.url))return;const c=classifySource(ev);total++;if(c.complaint)comp++;
-      counts[c.label]=(counts[c.label]||0)+1;}));
-    if(!total){el.classList.remove('on');el.innerHTML='';return;}
+      if(!ev||!(ev.source||ev.url))return;
+      if(!isWebUrl(ev.url)){fpCount++;return;}
+      const c=classifySource(ev);webTotal++;if(c.complaint)comp++;
+      counts[c.label]=(counts[c.label]||0)+1;
+    }));
     const chips=Object.entries(counts).sort((a,b)=>b[1]-a[1])
-      .map(([l,n])=>`<span class="sm-chip ${classifySource({source:l}).complaint?'cmp':''}"><b>${n}</b>${esc(l)}</span>`).join('');
-    const pct=Math.round(comp/total*100),skewed=comp/total>=0.5;
-    el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span>${chips}</div>`+
-      (skewed?`<div class="sm-warn"><b>Reads more negative than reality.</b> ${pct}% of this evidence comes from complaint sites, where people mostly show up to vent — so treat the <em>severity</em> as real, but the <em>prevalence</em> as a ceiling, not an average. For a truer picture, triage your own support tickets or survey data (“Paste feedback”).</div>`:'');
-    el.classList.add('on');
+      .map(([l,n])=>`<span class="sm-chip ${classifySource({source:l}).complaint?"cmp":""}"><b>${n}</b>${esc(l)}</span>`).join("");
+    const fused=intakeMode==="fused";
+    const fpChip=(fused&&fpCount)?`<span class="sm-chip fp"><b>${fpCount}</b>your pasted feedback</span>`:"";
+    if(!webTotal&&!fpCount){el.classList.remove("on");el.innerHTML="";return;}
+    let digest="";
+    if(fused){
+      const nBoth=(issues||[]).filter(it=>it.corroboration==="both").length;
+      const nFp=(issues||[]).filter(it=>it.corroboration==="first-party only").length;
+      const nPub=(issues||[]).filter(it=>it.corroboration==="public only").length;
+      digest=`<div class="sm-digest"><b>${nBoth}</b> corroborated · <b>${nFp}</b> first-party only · <b>${nPub}</b> public only — corroboration is a visible tag and a tie-break, not a hidden score.</div>`;
+    }
+    const pct=webTotal?Math.round(comp/webTotal*100):0,skewed=webTotal&&comp/webTotal>=0.5;
+    const skew=skewed?`<div class="sm-warn"><b>Reads more negative than reality.</b> ${pct}% of the public evidence comes from complaint sites, where people mostly show up to vent — so treat the <em>severity</em> as real, but the <em>prevalence</em> as a ceiling, not an average.${fused?" Your pasted feedback is a separate slice — it does not make the public mix representative.":' For a truer picture, triage your own support tickets or survey data (“Paste feedback” or “Web + yours”).'}</div>`:"";
+    el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span>${chips}${fpChip}</div>`+digest+skew;
+    el.classList.add("on");
   }
 
   // Authenticity surface: feedback scraped from the open web (or pasted in bulk) can be
@@ -1153,7 +1199,7 @@
     const issues=(r.issues||[]).slice().sort((a,b)=>scoreOf(b)-scoreOf(a));
     window._cherryIssues=issues;
     renderDigest(issues);
-    renderSourceMix(issues,!!currentFeedback);
+    renderSourceMix(issues);
     renderCoverage(r.coverage);
     renderAuthenticity(issues);
     renderDataTerms();
@@ -1184,6 +1230,7 @@
             <span class="tg sour ${sour(it.severity).cls}" title="how much it stings — severity ${it.severity??'?'}/5">${sour(it.severity).label}</span>
             <span class="tg own" title="owns the fix or the decision">${esc(it.owner||'')}</span>
             ${(it.stakeholders||[]).slice(0,3).map(s=>`<span class="tg stake" title="stakeholder — must be looped in">+ ${esc(s)}</span>`).join('')}
+            ${corrChip(it)}
             ${it.disposition?`<span class="tg disp ${it.disposition==='intentional tradeoff'?'trade':'fix'}" title="${it.disposition==='intentional tradeoff'?'a deliberate business choice — weigh it, do not just fix it':'a gap the team would want to close'}">${esc(it.disposition)}</span>`:''}
             ${it.signalType==='capability signal'?`<span class="tg cap" title="a systemic capability gap — feeds roadmap & (for AI) model-training priorities, not just a ticket">◈ capability signal</span>`:''}
             ${it.revenueContext?`<span class="tg money" title="revenue at stake — aggregated across the accounts raising this issue; its own visible axis, never a hidden thumb on the scale">$ ${esc(it.revenueContext)}</span>`:''}
@@ -1192,7 +1239,7 @@
             ${newSet.has(i)?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
             ${confBand(it)==='low'?`<span class="tg rev" title="Cherry is least confident here — verify before trusting">◆ review first</span>`:''}
           </div>
-          ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
+          ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(evLine).join('')+`</div>`:''}
           <div class="life" data-role="life">
             <span class="life-lbl">stage</span>
             ${STATUSES.map(s=>`<button class="lifepill ${getStatus(it.title)===s?'on':''}" data-status="${s}">${s}</button>`).join('')}
@@ -1347,29 +1394,59 @@
     if(!reduce){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
   });
 
-  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];refreshCorrbar();runCherry(n,[]);}
+  function go(){
+    if(intakeMode==="fused")return goFused();
+    if(intakeMode==="paste")return goFeedback();
+    const n=(product.value||"").trim();if(!n){product.focus();return;}
+    currentFeedback="";corrections=[];refreshCorrbar();runCherry(n,[]);
+  }
   runBtn.addEventListener('click',go);
   product.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
-  document.querySelectorAll('.examples a[data-ex]').forEach(a=>a.addEventListener('click',()=>{product.value=a.dataset.ex;go();}));
+  document.querySelectorAll('.examples a[data-ex]').forEach(a=>a.addEventListener('click',()=>{
+    product.value=a.dataset.ex;
+    if(intakeMode==="fused"){product.focus();return;}
+    go();
+  }));
 
-  // Two intake modes: search the web, or paste raw internal feedback.
+  // Three intake modes: web, paste-only (no search), or web + yours (fused).
   const pasteBox=document.getElementById('pasteBox'),feedbackInput=document.getElementById('feedbackInput');
   const webIntake=document.getElementById('webIntake'),modeWeb=document.getElementById('modeWeb'),modePaste=document.getElementById('modePaste');
-  function setMode(paste){
-    pasteBox.classList.toggle('on',paste);webIntake.style.display=paste?'none':'';
-    modePaste.classList.toggle('on',paste);modeWeb.classList.toggle('on',!paste);
-    if(paste)feedbackInput.focus();else product.focus();
+  const modeFused=document.getElementById('modeFused'),runFeedback=document.getElementById('runFeedback');
+  const pastePh={
+    paste:"Paste raw feedback — a Slack thread, support tickets, sales-call notes — and Cherry triages it directly (no web search). The signal lives inside your company too.",
+    fused:"Paste tickets, a Slack thread, or call notes. Cherry will weigh this against the public web — corroborated issues tie-break; public-only reach is a ceiling."
+  };
+  function setMode(mode){
+    intakeMode=mode;
+    const paste=mode==="paste", fused=mode==="fused";
+    pasteBox.classList.toggle("on",paste||fused);
+    webIntake.style.display=paste?"none":"";
+    document.querySelector(".runbar").classList.toggle("input-only",fused);
+    modeWeb.classList.toggle("on",mode==="web");
+    modePaste.classList.toggle("on",paste);
+    modeFused.classList.toggle("on",fused);
+    runFeedback.textContent=fused?"Pick the signal":"Triage this feedback";
+    feedbackInput.placeholder=fused?pastePh.fused:pastePh.paste;
+    if(paste||fused)feedbackInput.focus();else product.focus();
   }
-  modeWeb.addEventListener('click',()=>setMode(false));
-  modePaste.addEventListener('click',()=>setMode(true));
+  modeWeb.addEventListener('click',()=>setMode("web"));
+  modePaste.addEventListener('click',()=>setMode("paste"));
+  modeFused.addEventListener('click',()=>setMode("fused"));
   function goFeedback(){
     const t=(feedbackInput.value||"").trim();
     if(t.length<40){feedbackInput.focus();return;}
     currentFeedback=t;corrections=[];refreshCorrbar();runCherry("",[]);
   }
-  document.getElementById('runFeedback').addEventListener('click',goFeedback);
+  function goFused(){
+    const n=(product.value||"").trim();
+    const t=(feedbackInput.value||"").trim();
+    if(!n){product.focus();return;}
+    if(t.length<40){feedbackInput.focus();return;}
+    currentFeedback=t;corrections=[];refreshCorrbar();runCherry(n,[]);
+  }
+  runFeedback.addEventListener('click',()=>{if(intakeMode==="fused")goFused();else goFeedback();});
   document.getElementById('againBtn').addEventListener('click',()=>{
-    results.classList.remove('on');product.value="";currentFeedback="";feedbackInput.value="";setMode(false);
+    results.classList.remove('on');product.value="";currentFeedback="";feedbackInput.value="";setMode("web");
     corrections=[];refreshCorrbar();product.focus();
     document.getElementById('top').scrollIntoView({behavior:reduce?'auto':'smooth'});});
 
