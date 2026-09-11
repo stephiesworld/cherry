@@ -953,6 +953,10 @@
   }
   async function runImpactCheck(issue,card,button){
     const record=impactFor(issue);if(!record)return;
+    // The chosen cadence is part of this run: persist it before the request so
+    // the due date and the re-rendered dropdown agree, even after a retry.
+    const interval=Number((card.querySelector('[data-impact-days]')||{}).value)||record.interval||14;
+    record.interval=interval;saveImpacts();
     const original=button.textContent;button.disabled=true;button.textContent='Checking fresh feedback…';
     try{
       const resp=await fetch('/api/impact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:currentName,issue:record.issue,baseline:record.baseline})});
