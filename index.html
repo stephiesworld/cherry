@@ -841,7 +841,7 @@
   const appliedNote=document.getElementById('appliedNote');
   const corrbar=document.getElementById('corrbar'),corrCount=document.getElementById('corrCount');
 
-  let currentName="", corrections=[], currentFeedback="", lastQuality=null, currentResult=null, openLedgerTitle="";
+  let currentName="", corrections=[], currentFeedback="", lastQuality=null, currentResult=null, openLedgerTitle="", newIssueTitles=new Set();
 
   // Legible signal: the score is a transparent weighted blend of three 1-5 axes
   // the reviewer can re-weight live, not one opaque number. Default leans on
@@ -890,9 +890,12 @@
   // every source has an explicit, inspectable disposition and history.
   const LEDGER_KEY='cherry.evidence-ledger.v1';
   let evidenceLedgers=(()=>{try{return JSON.parse(localStorage.getItem(LEDGER_KEY))||{};}catch{return{};}})();
+  let sessionEvidenceLedgers={}; // zero-retention reviews stay isolated to this current session
   const ledgerScope=(it)=>((currentName||'')+'::'+(it.title||'')).toLowerCase();
   const evidenceKey=(ev)=>[ev.source||'',ev.url||'',ev.quote||''].join('|').toLowerCase();
-  const ledgerFor=(it)=>evidenceLedgers[ledgerScope(it)]||(evidenceLedgers[ledgerScope(it)]={sources:{},audit:[]});
+  const activeEvidenceLedgers=()=>allowLearn()?evidenceLedgers:sessionEvidenceLedgers;
+  const ledgerFor=(it)=>{const ledgers=activeEvidenceLedgers(),scope=ledgerScope(it);
+    return ledgers[scope]||(ledgers[scope]={sources:{},audit:[]});};
   const evidenceReview=(it,ev)=>ledgerFor(it).sources[evidenceKey(ev)]||{};
   const reviewStatuses=['supports','irrelevant','outdated','needs verification'];
   const reviewLabel=(status)=>status==='needs verification'?'needs verification':status||'unreviewed';
@@ -1288,7 +1291,10 @@
     } else if(!opts.ledger) { thisRun=null; }   // zero retention: not even the run counter persists
     renderLearning();
     syncPersona();
-    const trend=opts.ledger?{newSet:new Set()}:computeTrend(issues,wasReranked), newSet=trend.newSet;
+    if(!opts.ledger){
+      const trend=computeTrend(issues,wasReranked);
+      newIssueTitles=new Set([...trend.newSet].map(i=>normTitle(issues[i]&&issues[i].title)));
+    }
     renderReviewQueue(issues);
     renderCapSig(issues);
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`
@@ -1314,7 +1320,7 @@
             ${it.revenueContext?`<span class="tg money" title="revenue at stake — aggregated across the accounts raising this issue; its own visible axis, never a hidden thumb on the scale">$ ${esc(it.revenueContext)}</span>`:''}
             ${it.reachBasis==='few amplified voices'?`<span class="tg amp" title="reach traces back to one or a few high-visibility voices being echoed — a leading indicator worth verifying against first-party data, not proof of breadth">◉ amplified — verify reach</span>`:''}
             ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${esc(String(it.authenticity))}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
-            ${newSet.has(i)?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
+            ${newIssueTitles.has(normTitle(it.title))?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
             ${confBand(it)==='low'?`<span class="tg rev" title="Cherry is least confident here — verify before trusting">◆ review first</span>`:''}
           </div>
           ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>{const review=evidenceReview(it,ev);return `<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${review.status?`<span class="evstatus ${reviewClass(review.status)}">${esc(reviewLabel(review.status))}</span>`:''}${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`;}).join('')+`</div>`:''}
@@ -1418,7 +1424,7 @@
 
   async function draftIssue(idx,kind,card){
     const issue=(window._cherryIssues||[])[idx]||{};
-    const issueWithReview={...issue,reviewedEvidence:reviewedEvidenceForDraft(issue)};
+    const issueWithReview=kind==='ticket'?{...issue,reviewedEvidence:reviewedEvidenceForDraft(issue)}:issue;
     const out=card.querySelector('[data-role=draftout]');
     out.style.display='block';
     const noun=kind==='ticket'?'ticket':kind==='update'?'customer update':'reply';
@@ -1481,7 +1487,7 @@
     if(!reduce){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
   });
 
-  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];openLedgerTitle="";refreshCorrbar();runCherry(n,[]);}
+  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];sessionEvidenceLedgers={};openLedgerTitle="";refreshCorrbar();runCherry(n,[]);}
   runBtn.addEventListener('click',go);
   product.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
   document.querySelectorAll('.examples a[data-ex]').forEach(a=>a.addEventListener('click',()=>{product.value=a.dataset.ex;go();}));
@@ -1499,12 +1505,12 @@
   function goFeedback(){
     const t=(feedbackInput.value||"").trim();
     if(t.length<40){feedbackInput.focus();return;}
-    currentFeedback=t;corrections=[];openLedgerTitle="";refreshCorrbar();runCherry("",[]);
+    currentFeedback=t;corrections=[];sessionEvidenceLedgers={};openLedgerTitle="";refreshCorrbar();runCherry("",[]);
   }
   document.getElementById('runFeedback').addEventListener('click',goFeedback);
   document.getElementById('againBtn').addEventListener('click',()=>{
     results.classList.remove('on');product.value="";currentFeedback="";feedbackInput.value="";setMode(false);
-    corrections=[];refreshCorrbar();product.focus();
+    corrections=[];sessionEvidenceLedgers={};openLedgerTitle="";refreshCorrbar();product.focus();
     document.getElementById('top').scrollIntoView({behavior:reduce?'auto':'smooth'});});
 
   if(!reduce){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:0.16});
