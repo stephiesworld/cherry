@@ -57,6 +57,12 @@ so the response is always valid JSON in the triage shape — no parsing free tex
 Each issue must carry a real source URL or it's dropped, and an automated **eval
 gates every change in CI** (`evals/check.mjs`).
 
+Silent-segment campaigns use that same browser-local ledger: Cherry drafts the
+outreach and keeps the campaign/segment tags with responses pasted into the
+campaign workbench. The generated template is meant for the team's approved
+survey, CRM, or interview channel; shared collection needs a persistent intake
+store rather than pretending a serverless demo has one.
+
 ## Run it locally
 
 ```bash
