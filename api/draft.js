@@ -1,6 +1,6 @@
 // POST /api/draft  — turn a confirmed issue into the next artifact.
 //
-// Body: { product, issue, kind: "ticket" | "reply" | "update" }
+// Body: { product, issue, kind: "ticket" | "reply" | "update", impact? }
 // Returns: { text }  — a paste-ready work ticket (framed for the owning team), or a customer reply.
 //
 // This is the "acts" step: Cherry doesn't just say what's wrong, it drafts the
@@ -52,15 +52,19 @@ raised it. Acknowledge the specific problem, show you understand its impact, say
 it WITHOUT overpromising or inventing dates, and invite them to follow up. Plain text, no markdown.
 Sign off as "The <product> team". No preamble before the reply itself.`;
 
-// Closing the loop: a "you said, we did" update sent once an issue is resolved.
+// Closing the loop: a "you said, we did" update is available only when a fresh,
+// evidence-grounded impact check supports it — shipped status alone proves work
+// completed, not that the customer problem improved.
 const SYSTEM_UPDATE = `You write a short "you said, we did" customer update for a product/CS team —
-the message sent once an issue customers raised has been addressed. Given a product and one triaged
-feedback issue (now resolved), write 90-140 words that: name what customers told us, what we changed
-in response, and the benefit they'll feel — closing the loop so they know their feedback mattered.
-Honest and specific; do NOT invent metrics, dates, or details beyond the issue. Plain text, no markdown.
+the message sent only when fresh customer evidence supports an improvement. Given a product, a triaged
+issue, and a cited impact check, write 90-140 words that: name what customers told us, the supported
+change in their current signal, and what we are continuing to watch. Do NOT claim implementation details,
+causality, metrics, dates, or customer benefit not in the supplied evidence. If the check does not say
+why the signal changed, do not say "because we changed"; use careful wording such as "recent feedback
+suggests." Plain text, no markdown.
 Sign off as "The <product> team". No preamble before the update itself.`;
 
-function userContent(product, issue) {
+function userContent(product, issue, impact) {
   const lines = [`Product: ${product}`, `Issue: ${issue.title || ""}`];
   if (issue.gist) lines.push(`Detail: ${issue.gist}`);
   if (issue.severity != null) lines.push(`Severity: ${issue.severity}/5`);
@@ -69,6 +73,12 @@ function userContent(product, issue) {
     lines.push(`Stakeholders to loop in: ${issue.stakeholders.join(", ")}`);
   (issue.evidence || []).slice(0, 3).forEach((ev) =>
     lines.push(`Source: ${ev.source || ""} ${ev.url || ""}${ev.quote ? ` — "${ev.quote}"` : ""}`));
+  if (impact) {
+    lines.push(`Impact outcome: ${impact.outcome || ""}`);
+    lines.push(`Impact summary: ${impact.summary || ""}`);
+    (impact.evidence || []).slice(0, 3).forEach((ev) =>
+      lines.push(`Fresh source: ${ev.source || ""} ${ev.url || ""}${ev.quote ? ` — "${ev.quote}"` : ""}`));
+  }
   return lines.join("\n");
 }
 
@@ -86,7 +96,12 @@ export default async function handler(req, res) {
   const SYS = { ticket: SYSTEM_TICKET, reply: SYSTEM_REPLY, update: SYSTEM_UPDATE };
   const kind = body && SYS[body.kind] ? body.kind : "ticket";
   const issue = (body && body.issue) || {};
+  const impact = body && body.impact && typeof body.impact === "object" ? body.impact : null;
   if (!product || !issue.title) return res.status(400).json({ error: "missing product or issue" });
+  const groundedImpact = impact && impact.outcome === "improving" && impact.grounded &&
+    Array.isArray(impact.evidence) && impact.evidence.filter((ev) => /^https?:\/\/.+/.test(ev && ev.url || "")).length >= 2;
+  if (kind === "update" && !groundedImpact)
+    return res.status(400).json({ error: "a grounded improving impact check is required before drafting a customer update" });
 
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "anon";
   if (rateLimited(ip)) return res.status(429).json({ error: "easy there — give it a few seconds." });
@@ -104,7 +119,7 @@ export default async function handler(req, res) {
         model: MODEL,
         max_tokens: 1024,
         system: SYS[kind],
-        messages: [{ role: "user", content: userContent(product, issue) }],
+        messages: [{ role: "user", content: userContent(product, issue, kind === "update" ? impact : null) }],
       }),
     });
     const data = await resp.json();
