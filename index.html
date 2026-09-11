@@ -318,7 +318,7 @@
   .campaigns.on{display:block;}
   .campaigns h3{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:5px;}
   .campaigns .campaign-lede{font-size:14px;color:#5a4f50;line-height:1.5;margin-bottom:15px;max-width:62em;}
-  .campaign-form{display:grid;grid-template-columns:minmax(160px,.8fr) minmax(220px,1.6fr) auto;gap:9px;align-items:end;}
+  .campaign-form{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(190px,1.5fr) minmax(160px,.9fr) auto;gap:9px;align-items:end;}
   .campaign-form label,.response-form label{display:flex;flex-direction:column;gap:4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
   .campaign-form select,.campaign-form input,.response-form input,.response-form textarea,.response-form select{font:inherit;letter-spacing:normal;text-transform:none;color:var(--ink);background:#fff;border:1px solid var(--rule-strong);border-radius:5px;padding:9px 10px;}
   .campaign-form input{min-width:0;}
@@ -914,7 +914,14 @@
   // channel and log/paste the resulting distinct voices here for re-triage.
   const CAMPAIGN_KEY='cherry.campaigns.v1', VOICES_NEEDED=3;
   let campaigns=Array.isArray(jget(CAMPAIGN_KEY))?jget(CAMPAIGN_KEY):[], activeCampaignId='';
-  function saveCampaigns(){campaigns=campaigns.slice(-30);jset(CAMPAIGN_KEY,campaigns);}
+  function campaignTerms(c){return c.terms||'zero-retention';}
+  function saveCampaigns(){
+    campaigns=campaigns.slice(-30);
+    // Campaign assets are safe to remember, but response text follows the same
+    // default-deny terms model as Paste feedback. Non-unrestricted responses
+    // remain usable for this session yet never reach localStorage.
+    jset(CAMPAIGN_KEY,campaigns.map(c=>campaignTerms(c)==='unrestricted'?c:{...c,responses:[]}));
+  }
   function campaignId(){return 'cmp-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);}
   function campaignsForProduct(){const n=(currentName||'').toLowerCase();return campaigns.filter(c=>(c.product||'').toLowerCase()===n);}
   function activeCampaign(){return campaigns.find(c=>c.id===activeCampaignId)||campaignsForProduct()[0]||null;}
@@ -1169,13 +1176,14 @@
           <label>Response<textarea name="text" maxlength="4000" required placeholder="Paste an interview answer or survey response"></textarea></label>
           <button class="btn btn-primary" type="submit">Add tagged response</button>
         </form>
-        <p class="campaign-local">Responses are tagged <b>${esc(active.id)}</b> · <b>${esc(active.segment)}</b> and stored only in this browser, like Cherry’s existing v1 memory. Send the template through your approved survey or CRM; for shared collection, connect a persistent intake store.</p>
+        <p class="campaign-local">Responses are tagged <b>${esc(active.id)}</b> · <b>${esc(active.segment)}</b>. ${campaignTerms(active)==='unrestricted'?'They persist in this browser under the selected terms.':'They remain in this session only under the selected terms.'} Send the template through your approved survey or CRM; for shared collection, connect a persistent intake store.</p>
       </div>`;
     }
     el.innerHTML=`<h3>Close the coverage gap</h3><p class="campaign-lede">Ask one silent segment a neutral question before treating its absence as a finding. Cherry drafts the outreach and a small interview guide, then counts distinct tagged voices — not raw replies.</p>
       <form class="campaign-form" data-campaign-create>
         <label>Silent segment<select name="segment">${options}</select></label>
         <label>Decision to inform<input name="decision" maxlength="300" required placeholder="e.g. Should we prioritize enterprise admin controls?"></label>
+        <label>Response terms<select name="terms"><option value="zero-retention">Zero retention · session only</option><option value="unrestricted">Unrestricted · remember in browser</option><option value="analytics-only">Analytics only · session only</option></select></label>
         <button class="btn btn-primary" type="submit">Create campaign</button>
       </form>${history}${work}`;
     el.classList.add('on');
@@ -1324,6 +1332,7 @@
 
   async function createCampaign(form){
     const data=new FormData(form), segment=String(data.get('segment')||'').trim(), decision=String(data.get('decision')||'').trim();
+    const terms=['unrestricted','analytics-only','zero-retention'].includes(String(data.get('terms')||''))?String(data.get('terms')):'zero-retention';
     if(!currentName||!segment||!decision)return;
     const btn=form.querySelector('button[type=submit]'), original=btn.textContent;
     btn.disabled=true;btn.textContent='Drafting campaign…';
@@ -1332,7 +1341,7 @@
         body:JSON.stringify({product:currentName,segment,decision})});
       const draft=await resp.json();
       if(!resp.ok||draft.error)throw new Error(draft.error||('error '+resp.status));
-      const c={id:campaignId(),product:currentName,segment,decision,outreach:draft.outreach,questions:draft.questions,responses:[],createdAt:Date.now()};
+      const c={id:campaignId(),product:currentName,segment,decision,terms,outreach:draft.outreach,questions:draft.questions,responses:[],createdAt:Date.now()};
       campaigns.push(c);saveCampaigns();activeCampaignId=c.id;
       const silent=((currentResult&&currentResult.coverage&&currentResult.coverage.silent)||[]).filter(Boolean);
       renderCampaignPanel(silent);
