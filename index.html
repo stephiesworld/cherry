@@ -928,11 +928,25 @@
   function campaignTemplate(c){
     return `Cherry feedback campaign\nCampaign: ${c.id}\nProduct: ${c.product}\nSegment: ${c.segment}\nDecision: ${c.decision}\n\n${c.outreach}\n\nQuestions:\n${(c.questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nPlease keep the campaign ID and segment with every response.`;
   }
-  function existingEvidenceForCampaign(){
+  function stripCampaignEvidence(text,id){
+    const start=`[Cherry campaign ${id} — start]`, end=`[Cherry campaign ${id} — end]`;
+    let next=String(text||''), from=next.indexOf(start);
+    while(from>=0){
+      const to=next.indexOf(end,from+start.length);
+      if(to<0)break;
+      next=next.slice(0,from)+next.slice(to+end.length);
+      from=next.indexOf(start);
+    }
+    return next.replace(/\n{3,}/g,'\n\n').trim();
+  }
+  function campaignEvidenceBlock(c,rows){
+    return `[Cherry campaign ${c.id} — start]\nCampaign evidence for ${currentName}\nDecision: ${c.decision}\n\n${rows}\n[Cherry campaign ${c.id} — end]`;
+  }
+  function existingEvidenceForCampaign(c){
     // Pasted feedback is already the richest record. A web run has no raw input
     // in the browser, so carry its cited evidence forward explicitly instead of
     // replacing it with the new campaign sample.
-    if(currentFeedback)return currentFeedback;
+    if(currentFeedback)return stripCampaignEvidence(currentFeedback,c.id);
     const prior=(currentResult&&currentResult.issues)||[];
     const evidence=prior.flatMap(it=>(it.evidence||[]).map(ev=>
       `[Earlier issue: ${it.title||'Untitled'}]\n[Source: ${ev.source||'source'}]${ev.url?` ${ev.url}`:''}\n${ev.quote||it.gist||''}`));
@@ -1383,8 +1397,10 @@
   function rerunCampaign(){
     const c=activeCampaign();if(!c||voiceCount(c)<VOICES_NEEDED)return;
     const rows=(c.responses||[]).map(r=>`[Campaign ${c.id}] [Segment ${c.segment}] [Voice ${r.voice}] [Response read: ${r.kind}]\n${r.text}`).join('\n\n');
-    const earlier=existingEvidenceForCampaign();
-    const nextFeedback=`${earlier?earlier+'\n\n':''}Campaign evidence for ${currentName}\nDecision: ${c.decision}\n\n${rows}`;
+    // Replace this campaign's prior block before serializing it again. That keeps
+    // the baseline and other campaigns intact while every response appears once.
+    const earlier=existingEvidenceForCampaign(c);
+    const nextFeedback=`${earlier?earlier+'\n\n':''}${campaignEvidenceBlock(c,rows)}`;
     if(nextFeedback.length>MAX_RERUN_CHARS){
       errbox.textContent=`Campaign evidence is ${nextFeedback.length.toLocaleString()} characters. Cherry can re-triage up to ${MAX_RERUN_CHARS.toLocaleString()} at once without dropping voices — shorten or split responses, then try again.`;
       errbox.classList.add('on');errbox.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});return;
