@@ -908,9 +908,7 @@
   function setStatus(title,s){statusMap[skey(title)]=s;try{localStorage.setItem(STATUS_KEY,JSON.stringify(statusMap));}catch{}}
 
   // ── Silent-segment campaigns: a coverage gap becomes a focused first-party
-  // research loop. The ledger deliberately follows v1's localStorage posture:
-  // it is useful and persistent in this browser, but not represented as a shared
-  // collection system. Teams send the generated template through their approved
+  // research loop. Teams send the generated template through their approved
   // channel and log/paste the resulting distinct voices here for re-triage.
   const CAMPAIGN_KEY='cherry.campaigns.v1', VOICES_NEEDED=3;
   let campaigns=Array.isArray(jget(CAMPAIGN_KEY))?jget(CAMPAIGN_KEY):[], activeCampaignId='';
@@ -923,14 +921,13 @@
     jset(CAMPAIGN_KEY,campaigns.map(c=>campaignTerms(c)==='unrestricted'?c:{...c,responses:[]}));
   }
   function campaignId(){return 'cmp-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);}
-  function campaignsForProduct(){const n=(currentName||'').toLowerCase();return campaigns.filter(c=>(c.product||'').toLowerCase()===n);}
-  function activeCampaign(){return campaigns.find(c=>c.id===activeCampaignId)||campaignsForProduct()[0]||null;}
+  function campaignsForProduct(){const n=(currentName||'').toLowerCase();return campaigns.filter(c=>c&&(c.product||'').toLowerCase()===n);}
+  function activeCampaign(){const sameProduct=campaignsForProduct();return sameProduct.find(c=>c.id===activeCampaignId)||sameProduct[0]||null;}
   function voiceCount(c){return new Set((c.responses||[]).map(r=>(r.voice||'').trim().toLowerCase()).filter(Boolean)).size;}
   function painCount(c){return (c.responses||[]).filter(r=>r.kind==='pain').length;}
   function campaignTemplate(c){
     return `Cherry feedback campaign\nCampaign: ${c.id}\nProduct: ${c.product}\nSegment: ${c.segment}\nDecision: ${c.decision}\n\n${c.outreach}\n\nQuestions:\n${(c.questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nPlease keep the campaign ID and segment with every response.`;
   }
-  function campaignLink(c){return `${location.origin}${location.pathname}#campaign-${encodeURIComponent(c.id)}`;}
 
   // ── Persona views: one triage, four cuts. Each audience acts on the SAME issues,
   // re-weighted for what they own — reusing the transparent signal weights, not a new score.
@@ -1167,7 +1164,7 @@
       work=`<div class="campaign-work" id="campaign-${esc(active.id)}">
         <div class="campaign-meta">${esc(active.segment)} · decision: ${esc(active.decision)}</div>
         <h4>Neutral outreach</h4><div class="campaign-text">${esc(active.outreach)}</div>
-        <div class="campaign-copy"><button class="copybtn" data-campaign-copy="outreach" type="button">Copy outreach</button><button class="copybtn" data-campaign-copy="template" type="button">Copy tagged intake template</button><button class="copybtn" data-campaign-copy="link" type="button">Copy workbench link</button></div>
+        <div class="campaign-copy"><button class="copybtn" data-campaign-copy="outreach" type="button">Copy outreach</button><button class="copybtn" data-campaign-copy="template" type="button">Copy tagged intake template</button></div>
         <h4>Questions to ask</h4><ol class="campaign-questions">${(active.questions||[]).map(q=>`<li>${esc(q)}</li>`).join('')}</ol>
         <div class="campaign-status ${status.cls}"><span class="cs-count">${voices}/${VOICES_NEEDED}</span><span class="cs-note"><b>${status.title}.</b> ${status.note}</span>${enough?`<button class="copybtn" data-campaign-act="rerun" type="button">Re-run triage</button>`:''}</div>
         <form class="response-form" data-campaign-response>
@@ -1236,7 +1233,9 @@
   }
 
   function render(r,name,wasReranked){
-    currentName=r.product||name;currentResult=r;
+    const nextName=r.product||name;
+    if(currentName.toLowerCase()!==nextName.toLowerCase())activeCampaignId='';
+    currentName=nextName;currentResult=r;
     document.getElementById('resFor').textContent=currentName;
     document.getElementById('takeaway').textContent=r.takeaway||"";
 
@@ -1362,7 +1361,7 @@
   }
   async function copyCampaign(kind,btn){
     const c=activeCampaign();if(!c)return;
-    const text=kind==='outreach'?c.outreach:kind==='link'?campaignLink(c):campaignTemplate(c);
+    const text=kind==='outreach'?c.outreach:campaignTemplate(c);
     try{
       if(!navigator.clipboard)throw new Error('clipboard unavailable');
       await navigator.clipboard.writeText(text);
