@@ -910,7 +910,7 @@
   // ── Silent-segment campaigns: a coverage gap becomes a focused first-party
   // research loop. Teams send the generated template through their approved
   // channel and log/paste the resulting distinct voices here for re-triage.
-  const CAMPAIGN_KEY='cherry.campaigns.v1', VOICES_NEEDED=3;
+  const CAMPAIGN_KEY='cherry.campaigns.v1', VOICES_NEEDED=3, MAX_RERUN_CHARS=24000;
   let campaigns=Array.isArray(jget(CAMPAIGN_KEY))?jget(CAMPAIGN_KEY):[], activeCampaignId='';
   function campaignTerms(c){return c.terms||'zero-retention';}
   function saveCampaigns(){
@@ -927,6 +927,18 @@
   function painCount(c){return (c.responses||[]).filter(r=>r.kind==='pain').length;}
   function campaignTemplate(c){
     return `Cherry feedback campaign\nCampaign: ${c.id}\nProduct: ${c.product}\nSegment: ${c.segment}\nDecision: ${c.decision}\n\n${c.outreach}\n\nQuestions:\n${(c.questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nPlease keep the campaign ID and segment with every response.`;
+  }
+  function existingEvidenceForCampaign(){
+    // Pasted feedback is already the richest record. A web run has no raw input
+    // in the browser, so carry its cited evidence forward explicitly instead of
+    // replacing it with the new campaign sample.
+    if(currentFeedback)return currentFeedback;
+    const prior=(currentResult&&currentResult.issues)||[];
+    const evidence=prior.flatMap(it=>(it.evidence||[]).map(ev=>
+      `[Earlier issue: ${it.title||'Untitled'}]\n[Source: ${ev.source||'source'}]${ev.url?` ${ev.url}`:''}\n${ev.quote||it.gist||''}`));
+    return evidence.length
+      ? `Earlier Cherry evidence for ${currentName} — retain this alongside the new campaign responses:\n\n${evidence.join('\n\n')}`
+      : '';
   }
 
   // ── Persona views: one triage, four cuts. Each audience acts on the SAME issues,
@@ -1371,7 +1383,16 @@
   function rerunCampaign(){
     const c=activeCampaign();if(!c||voiceCount(c)<VOICES_NEEDED)return;
     const rows=(c.responses||[]).map(r=>`[Campaign ${c.id}] [Segment ${c.segment}] [Voice ${r.voice}] [Response read: ${r.kind}]\n${r.text}`).join('\n\n');
-    currentFeedback=`Campaign evidence for ${currentName}\nDecision: ${c.decision}\n\n${rows}`;
+    const earlier=existingEvidenceForCampaign();
+    const nextFeedback=`${earlier?earlier+'\n\n':''}Campaign evidence for ${currentName}\nDecision: ${c.decision}\n\n${rows}`;
+    if(nextFeedback.length>MAX_RERUN_CHARS){
+      errbox.textContent=`Campaign evidence is ${nextFeedback.length.toLocaleString()} characters. Cherry can re-triage up to ${MAX_RERUN_CHARS.toLocaleString()} at once without dropping voices — shorten or split responses, then try again.`;
+      errbox.classList.add('on');errbox.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});return;
+    }
+    // The re-run is first-party intake, so its metrics and learning controls must
+    // follow this campaign's selected terms rather than a stale paste-mode choice.
+    if(dataTermsSel)dataTermsSel.value=campaignTerms(c);
+    currentFeedback=nextFeedback;
     feedbackInput.value=currentFeedback;
     corrections=[];refreshCorrbar();setMode(true);runCherry(currentName,[]);
   }
