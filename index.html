@@ -308,6 +308,41 @@
   .tg.amp{color:var(--cherry-deep);border-color:var(--cherry-deep);border-style:dashed;font-weight:700;}
   /* Coverage strip: segments heard vs silent — silence ≠ satisfaction. */
   .srcmix .sm-chip.silent{border-style:dashed;color:#8A6712;border-color:#C99A3A;background:transparent;}
+  .srcmix button.sm-chip{cursor:pointer;font:inherit;}
+  .srcmix button.sm-chip.silent:hover,.srcmix button.sm-chip.silent:focus-visible{color:var(--cherry);border-color:var(--cherry);background:#fff;}
+  /* Silent-segment campaign: turn a named coverage gap into a neutral, tagged
+     first-party feedback loop. Like the rest of v1, the campaign ledger is local
+     to this browser — it does not pretend to be a shared research repository. */
+  .campaigns{display:none;background:var(--panel);border:1.5px solid var(--line);border-left:6px solid var(--cherry);
+    border-radius:10px;padding:20px 22px;margin:-8px 0 28px;box-shadow:4px 4px 0 var(--panel-deep);}
+  .campaigns.on{display:block;}
+  .campaigns h3{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:5px;}
+  .campaigns .campaign-lede{font-size:14px;color:#5a4f50;line-height:1.5;margin-bottom:15px;max-width:62em;}
+  .campaign-form{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(190px,1.5fr) minmax(160px,.9fr) auto;gap:9px;align-items:end;}
+  .campaign-form label,.response-form label{display:flex;flex-direction:column;gap:4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .campaign-form select,.campaign-form input,.response-form input,.response-form textarea,.response-form select{font:inherit;letter-spacing:normal;text-transform:none;color:var(--ink);background:#fff;border:1px solid var(--rule-strong);border-radius:5px;padding:9px 10px;}
+  .campaign-form input{min-width:0;}
+  .campaigns .btn{padding:11px 14px;font-size:10px;white-space:nowrap;}
+  .campaigns .campaign-history{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;}
+  .campaigns .campaign-history button{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.04em;padding:4px 9px;border-radius:5px;border:1.3px solid var(--rule-strong);background:#fff;color:var(--ink);cursor:pointer;}
+  .campaigns .campaign-history button.on{color:#fff;background:var(--ink);border-color:var(--ink);}
+  .campaign-work{border-top:1px solid var(--rule);margin-top:17px;padding-top:17px;}
+  .campaign-work .campaign-meta{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--stem);margin-bottom:10px;}
+  .campaign-work h4{font-size:16px;margin:14px 0 7px;}
+  .campaign-copy{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0;}
+  .campaign-copy .copybtn{background:#fff;}
+  .campaign-text{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:12px 14px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;color:#4a4036;}
+  .campaign-questions{margin:6px 0 13px 22px;color:#4a4036;font-size:14px;}
+  .campaign-questions li{padding:3px 0;}
+  .campaign-status{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--rule);border-radius:7px;padding:10px 12px;margin:14px 0;}
+  .campaign-status .cs-count{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--cherry);line-height:1;}
+  .campaign-status .cs-note{font-size:13px;color:#5a4f50;}
+  .campaign-status.ready{border-left:4px solid var(--stem);}
+  .campaign-status.absent{border-left:4px solid var(--stem);}
+  .response-form{display:grid;grid-template-columns:150px 155px 1fr auto;gap:9px;align-items:end;margin-top:12px;}
+  .response-form textarea{resize:vertical;min-height:42px;}
+  .campaign-local{font-size:12px;color:var(--muted);margin-top:13px;line-height:1.45;}
+  @media(max-width:760px){.campaign-form,.response-form{grid-template-columns:1fr;}.campaigns .btn{justify-self:start;}}
   /* Data-terms selector (paste mode) + enforcement strip: permission lives in the
      pipeline metadata, not the prompt — default-deny when terms are unspecified. */
   .pastebar select{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.02em;color:var(--ink);
@@ -479,6 +514,7 @@
     <div class="capsig" id="capSig"></div>
     <div class="srcmix" id="srcMix"></div>
     <div class="srcmix" id="covStrip"></div>
+    <section class="campaigns" id="campaignPanel" aria-live="polite"></section>
     <div class="srcmix" id="authWarn"></div>
     <div class="srcmix" id="dataStrip"></div>
     <div class="res-grid">
@@ -871,6 +907,54 @@
   function getStatus(title){return statusMap[skey(title)]||'new';}
   function setStatus(title,s){statusMap[skey(title)]=s;try{localStorage.setItem(STATUS_KEY,JSON.stringify(statusMap));}catch{}}
 
+  // ── Silent-segment campaigns: a coverage gap becomes a focused first-party
+  // research loop. Teams send the generated template through their approved
+  // channel and log/paste the resulting distinct voices here for re-triage.
+  const CAMPAIGN_KEY='cherry.campaigns.v1', VOICES_NEEDED=3, MAX_RERUN_CHARS=24000;
+  let campaigns=Array.isArray(jget(CAMPAIGN_KEY))?jget(CAMPAIGN_KEY):[], activeCampaignId='';
+  function campaignTerms(c){return c.terms||'zero-retention';}
+  function saveCampaigns(){
+    campaigns=campaigns.slice(-30);
+    // Campaign assets are safe to remember, but response text follows the same
+    // default-deny terms model as Paste feedback. Non-unrestricted responses
+    // remain usable for this session yet never reach localStorage.
+    jset(CAMPAIGN_KEY,campaigns.map(c=>campaignTerms(c)==='unrestricted'?c:{...c,responses:[]}));
+  }
+  function campaignId(){return 'cmp-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);}
+  function campaignsForProduct(){const n=(currentName||'').toLowerCase();return campaigns.filter(c=>c&&(c.product||'').toLowerCase()===n);}
+  function activeCampaign(){const sameProduct=campaignsForProduct();return sameProduct.find(c=>c.id===activeCampaignId)||sameProduct[0]||null;}
+  function voiceCount(c){return new Set((c.responses||[]).map(r=>(r.voice||'').trim().toLowerCase()).filter(Boolean)).size;}
+  function painCount(c){return (c.responses||[]).filter(r=>r.kind==='pain').length;}
+  function campaignTemplate(c){
+    return `Cherry feedback campaign\nCampaign: ${c.id}\nProduct: ${c.product}\nSegment: ${c.segment}\nDecision: ${c.decision}\n\n${c.outreach}\n\nQuestions:\n${(c.questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nPlease keep the campaign ID and segment with every response.`;
+  }
+  function stripCampaignEvidence(text,id){
+    const start=`[Cherry campaign ${id} — start]`, end=`[Cherry campaign ${id} — end]`;
+    let next=String(text||''), from=next.indexOf(start);
+    while(from>=0){
+      const to=next.indexOf(end,from+start.length);
+      if(to<0)break;
+      next=next.slice(0,from)+next.slice(to+end.length);
+      from=next.indexOf(start);
+    }
+    return next.replace(/\n{3,}/g,'\n\n').trim();
+  }
+  function campaignEvidenceBlock(c,rows){
+    return `[Cherry campaign ${c.id} — start]\nCampaign evidence for ${currentName}\nDecision: ${c.decision}\n\n${rows}\n[Cherry campaign ${c.id} — end]`;
+  }
+  function existingEvidenceForCampaign(c){
+    // Pasted feedback is already the richest record. A web run has no raw input
+    // in the browser, so carry its cited evidence forward explicitly instead of
+    // replacing it with the new campaign sample.
+    if(currentFeedback)return stripCampaignEvidence(currentFeedback,c.id);
+    const prior=(currentResult&&currentResult.issues)||[];
+    const evidence=prior.flatMap(it=>(it.evidence||[]).map(ev=>
+      `[Earlier issue: ${it.title||'Untitled'}]\n[Source: ${ev.source||'source'}]${ev.url?` ${ev.url}`:''}\n${ev.quote||it.gist||''}`));
+    return evidence.length
+      ? `Earlier Cherry evidence for ${currentName} — retain this alongside the new campaign responses:\n\n${evidence.join('\n\n')}`
+      : '';
+  }
+
   // ── Persona views: one triage, four cuts. Each audience acts on the SAME issues,
   // re-weighted for what they own — reusing the transparent signal weights, not a new score.
   const PERSONAS={
@@ -1075,12 +1159,56 @@
   function renderCoverage(cov){
     const el=document.getElementById('covStrip');if(!el)return;
     const heard=((cov&&cov.heard)||[]).filter(Boolean), silent=((cov&&cov.silent)||[]).filter(Boolean);
-    if(!heard.length&&!silent.length){el.classList.remove('on');el.innerHTML='';return;}
+    if(!heard.length&&!silent.length){el.classList.remove('on');el.innerHTML='';renderCampaignPanel([]);return;}
     const hChips=heard.map(s=>`<span class="sm-chip">${esc(s)}</span>`).join('');
-    const sChips=silent.map(s=>`<span class="sm-chip silent">${esc(s)}</span>`).join('');
+    const sChips=silent.map(s=>`<button class="sm-chip silent" type="button" data-campaign-segment="${esc(s)}" title="Create a focused feedback campaign for ${esc(s)}">${esc(s)}</button>`).join('');
     el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Heard from</span>${hChips||'<span class="sm-chip">—</span>'}`+
       (silent.length?`<span class="sm-lbl" style="margin-left:12px">Silent</span>${sChips}`:'')+`</div>`+
-      (silent.length?`<div class="sm-good" style="color:#8A6712">Silence &ne; satisfaction — a segment with no voice in this evidence is a gap in the coverage, not proof they're happy.</div>`:'');
+      (silent.length?`<div class="sm-good" style="color:#8A6712">Silence &ne; satisfaction — a segment with no voice in this evidence is a gap in the coverage, not proof they're happy. Select a silent segment to ask.</div>`:'');
+    el.classList.add('on');
+    renderCampaignPanel(silent);
+  }
+
+  function renderCampaignPanel(silent){
+    const el=document.getElementById('campaignPanel');if(!el)return;
+    if(!silent.length){el.classList.remove('on');el.innerHTML='';return;}
+    const productCampaigns=campaignsForProduct();
+    if(!activeCampaignId&&productCampaigns.length)activeCampaignId=productCampaigns[0].id;
+    const active=activeCampaign();
+    const options=silent.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    const history=productCampaigns.length?`<div class="campaign-history"><span class="sm-lbl">Campaigns</span>${productCampaigns.map(c=>`<button type="button" data-campaign-act="open" data-campaign-id="${esc(c.id)}" class="${active&&c.id===active.id?'on':''}">${esc(c.segment)} · ${voiceCount(c)} voice${voiceCount(c)===1?'':'s'}</button>`).join('')}</div>`:'';
+    let work='';
+    if(active){
+      const voices=voiceCount(active), pain=painCount(active), responses=active.responses||[], enough=voices>=VOICES_NEEDED;
+      const status=!enough
+        ? {cls:'',title:'Not enough responses',note:`${voices} distinct voice${voices===1?'':'s'} logged. Add ${VOICES_NEEDED-voices} more before treating this segment as represented.`}
+        :pain>0
+        ? {cls:'ready',title:'Ready to re-run triage',note:`${voices} distinct voices include ${pain} pain report${pain===1?'':'s'} — this is now representative enough to add to the evidence.`}
+        :responses.every(r=>r.kind==='no-pain')
+        ? {cls:'absent',title:'No pain reported in this campaign',note:`${voices} distinct voices responded and none reported pain. This is an observed absence in this focused sample, not a blanket claim about the segment.`}
+        :{cls:'',title:'Enough responses — read the context',note:`${voices} distinct voices replied, but none were clearly classified as pain or no-pain. Review the tagged responses before drawing a conclusion.`};
+      work=`<div class="campaign-work" id="campaign-${esc(active.id)}">
+        <div class="campaign-meta">${esc(active.segment)} · decision: ${esc(active.decision)}</div>
+        <h4>Neutral outreach</h4><div class="campaign-text">${esc(active.outreach)}</div>
+        <div class="campaign-copy"><button class="copybtn" data-campaign-copy="outreach" type="button">Copy outreach</button><button class="copybtn" data-campaign-copy="template" type="button">Copy tagged intake template</button></div>
+        <h4>Questions to ask</h4><ol class="campaign-questions">${(active.questions||[]).map(q=>`<li>${esc(q)}</li>`).join('')}</ol>
+        <div class="campaign-status ${status.cls}"><span class="cs-count">${voices}/${VOICES_NEEDED}</span><span class="cs-note"><b>${status.title}.</b> ${status.note}</span>${enough?`<button class="copybtn" data-campaign-act="rerun" type="button">Re-run triage</button>`:''}</div>
+        <form class="response-form" data-campaign-response>
+          <label>Voice ID / alias<input name="voice" maxlength="80" required placeholder="e.g. Acme admin"></label>
+          <label>Response read<select name="kind"><option value="pain">Pain / friction</option><option value="no-pain">No pain reported</option><option value="other">Other / context</option></select></label>
+          <label>Response<textarea name="text" maxlength="4000" required placeholder="Paste an interview answer or survey response"></textarea></label>
+          <button class="btn btn-primary" type="submit">Add tagged response</button>
+        </form>
+        <p class="campaign-local">Responses are tagged <b>${esc(active.id)}</b> · <b>${esc(active.segment)}</b>. ${campaignTerms(active)==='unrestricted'?'They persist in this browser under the selected terms.':'They remain in this session only under the selected terms.'} Send the template through your approved survey or CRM; for shared collection, connect a persistent intake store.</p>
+      </div>`;
+    }
+    el.innerHTML=`<h3>Close the coverage gap</h3><p class="campaign-lede">Ask one silent segment a neutral question before treating its absence as a finding. Cherry drafts the outreach and a small interview guide, then counts distinct tagged voices — not raw replies.</p>
+      <form class="campaign-form" data-campaign-create>
+        <label>Silent segment<select name="segment">${options}</select></label>
+        <label>Decision to inform<input name="decision" maxlength="300" required placeholder="e.g. Should we prioritize enterprise admin controls?"></label>
+        <label>Response terms<select name="terms"><option value="zero-retention">Zero retention · session only</option><option value="unrestricted">Unrestricted · remember in browser</option><option value="analytics-only">Analytics only · session only</option></select></label>
+        <button class="btn btn-primary" type="submit">Create campaign</button>
+      </form>${history}${work}`;
     el.classList.add('on');
   }
 
@@ -1131,7 +1259,9 @@
   }
 
   function render(r,name,wasReranked){
-    currentName=r.product||name;currentResult=r;
+    const nextName=r.product||name;
+    if(currentName.toLowerCase()!==nextName.toLowerCase())activeCampaignId='';
+    currentName=nextName;currentResult=r;
     document.getElementById('resFor').textContent=currentName;
     document.getElementById('takeaway').textContent=r.takeaway||"";
 
@@ -1223,6 +1353,64 @@
     results.classList.add('on');
     results.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
     scoreQuality(r,wasReranked);   // grade synthesis quality (async, fills in after render)
+  }
+
+  async function createCampaign(form){
+    const data=new FormData(form), segment=String(data.get('segment')||'').trim(), decision=String(data.get('decision')||'').trim();
+    const terms=['unrestricted','analytics-only','zero-retention'].includes(String(data.get('terms')||''))?String(data.get('terms')):'zero-retention';
+    if(!currentName||!segment||!decision)return;
+    const btn=form.querySelector('button[type=submit]'), original=btn.textContent;
+    btn.disabled=true;btn.textContent='Drafting campaign…';
+    try{
+      const resp=await fetch('/api/campaign',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({product:currentName,segment,decision})});
+      const draft=await resp.json();
+      if(!resp.ok||draft.error)throw new Error(draft.error||('error '+resp.status));
+      const c={id:campaignId(),product:currentName,segment,decision,terms,outreach:draft.outreach,questions:draft.questions,responses:[],createdAt:Date.now()};
+      campaigns.push(c);saveCampaigns();activeCampaignId=c.id;
+      const silent=((currentResult&&currentResult.coverage&&currentResult.coverage.silent)||[]).filter(Boolean);
+      renderCampaignPanel(silent);
+    }catch(e){
+      btn.disabled=false;btn.textContent='Couldn’t create — retry';btn.title=e.message||'';
+      setTimeout(()=>{btn.textContent=original;btn.title='';},2600);
+    }
+  }
+  function addCampaignResponse(form){
+    const c=activeCampaign();if(!c)return;
+    const data=new FormData(form), voice=String(data.get('voice')||'').trim(), text=String(data.get('text')||'').trim();
+    if(!voice||!text){(voice?form.querySelector('[name=text]'):form.querySelector('[name=voice]')).focus();return;}
+    c.responses=c.responses||[];
+    c.responses.push({id:'rsp-'+Date.now().toString(36),voice,text,kind:String(data.get('kind')||'other'),campaignId:c.id,segment:c.segment,at:Date.now()});
+    saveCampaigns();
+    const silent=((currentResult&&currentResult.coverage&&currentResult.coverage.silent)||[]).filter(Boolean);
+    renderCampaignPanel(silent);
+  }
+  async function copyCampaign(kind,btn){
+    const c=activeCampaign();if(!c)return;
+    const text=kind==='outreach'?c.outreach:campaignTemplate(c);
+    try{
+      if(!navigator.clipboard)throw new Error('clipboard unavailable');
+      await navigator.clipboard.writeText(text);
+      const original=btn.textContent;btn.textContent='Copied ✓';setTimeout(()=>btn.textContent=original,1500);
+    }catch(e){btn.title='Select and copy the campaign text manually.';}
+  }
+  function rerunCampaign(){
+    const c=activeCampaign();if(!c||voiceCount(c)<VOICES_NEEDED)return;
+    const rows=(c.responses||[]).map(r=>`[Campaign ${c.id}] [Segment ${c.segment}] [Voice ${r.voice}] [Response read: ${r.kind}]\n${r.text}`).join('\n\n');
+    // Replace this campaign's prior block before serializing it again. That keeps
+    // the baseline and other campaigns intact while every response appears once.
+    const earlier=existingEvidenceForCampaign(c);
+    const nextFeedback=`${earlier?earlier+'\n\n':''}${campaignEvidenceBlock(c,rows)}`;
+    if(nextFeedback.length>MAX_RERUN_CHARS){
+      errbox.textContent=`Campaign evidence is ${nextFeedback.length.toLocaleString()} characters. Cherry can re-triage up to ${MAX_RERUN_CHARS.toLocaleString()} at once without dropping voices — shorten or split responses, then try again.`;
+      errbox.classList.add('on');errbox.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});return;
+    }
+    // The re-run is first-party intake, so its metrics and learning controls must
+    // follow this campaign's selected terms rather than a stale paste-mode choice.
+    if(dataTermsSel)dataTermsSel.value=campaignTerms(c);
+    currentFeedback=nextFeedback;
+    feedbackInput.value=currentFeedback;
+    corrections=[];refreshCorrbar();setMode(true);runCherry(currentName,[]);
   }
 
   /* human-in-the-loop interactions (event delegation) */
@@ -1345,6 +1533,29 @@
     const card=document.querySelector('.rissue[data-idx="'+c.dataset.idx+'"]');if(!card)return;
     card.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});
     if(!reduce){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
+  });
+  // A silent coverage chip is an action, not just a disclaimer: open a campaign
+  // preselected to that exact segment.
+  document.getElementById('covStrip').addEventListener('click',e=>{
+    const chip=e.target.closest('[data-campaign-segment]');if(!chip)return;
+    const panel=document.getElementById('campaignPanel');
+    const select=panel.querySelector('[name=segment]');if(select)select.value=chip.dataset.campaignSegment;
+    panel.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});
+    const decision=panel.querySelector('[name=decision]');if(decision)decision.focus();
+  });
+  document.getElementById('campaignPanel').addEventListener('submit',e=>{
+    if(e.target.matches('[data-campaign-create]')){e.preventDefault();createCampaign(e.target);}
+    if(e.target.matches('[data-campaign-response]')){e.preventDefault();addCampaignResponse(e.target);}
+  });
+  document.getElementById('campaignPanel').addEventListener('click',e=>{
+    const copy=e.target.closest('[data-campaign-copy]');
+    if(copy){copyCampaign(copy.dataset.campaignCopy,copy);return;}
+    const btn=e.target.closest('[data-campaign-act]');if(!btn)return;
+    if(btn.dataset.campaignAct==='open'){
+      activeCampaignId=btn.dataset.campaignId;
+      const silent=((currentResult&&currentResult.coverage&&currentResult.coverage.silent)||[]).filter(Boolean);
+      renderCampaignPanel(silent);
+    }else if(btn.dataset.campaignAct==='rerun')rerunCampaign();
   });
 
   function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];refreshCorrbar();runCherry(n,[]);}

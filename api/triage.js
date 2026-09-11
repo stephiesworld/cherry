@@ -19,6 +19,7 @@ const MAX_USES = Number(process.env.CHERRY_MAX_SEARCHES || 3); // 3 keeps comfor
 const DAILY_CAP = Number(process.env.CHERRY_DAILY_CAP || 200);
 const PER_IP_PER_MIN = Number(process.env.CHERRY_PER_IP_PER_MIN || 6);
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const MAX_FEEDBACK_CHARS = 24_000;
 
 const SYSTEM = `You are Cherry, a customer-feedback intelligence engine.
 Given a product or company, use web search to find REAL, recent, public customer
@@ -431,11 +432,13 @@ export default async function handler(req, res) {
   const name = (body && body.name ? String(body.name) : "").trim().slice(0, 80);
   const corrections = Array.isArray(body && body.corrections) ? body.corrections.slice(0, 8) : [];
   const memory = Array.isArray(body && body.memory) ? body.memory.slice(0, 12) : [];
-  const feedback = (body && body.feedback ? String(body.feedback) : "").trim().slice(0, 8000);
+  const feedback = (body && body.feedback ? String(body.feedback) : "").trim();
   const current = body && body.current && Array.isArray(body.current.issues) ? body.current : null;
   const internal = !!feedback && !current;
   if (!internal && !name) return res.status(400).json({ error: "give me a product or company name" });
   if (internal && feedback.length < 40) return res.status(400).json({ error: "paste a bit more feedback to triage (a few lines at least)" });
+  if (feedback.length > MAX_FEEDBACK_CHARS)
+    return res.status(400).json({ error: `feedback is too long (${feedback.length} characters); Cherry accepts up to ${MAX_FEEDBACK_CHARS}` });
 
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "anon";
   if (rateLimited(ip)) return res.status(429).json({ error: "easy there — give it a few seconds and try again." });
