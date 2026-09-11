@@ -30,9 +30,11 @@ with a human in the loop at every step and evals measuring quality.
 - **Routes the work** — a one-line digest (`3 Engineering · 1 Billing · 1 Legal`)
   reframes the list into who owns what; each issue's ticket is framed for that team,
   and tickets can be **sent straight to Slack**.
-- **Closes the loop** — every issue has a lifecycle (`new → triaged → routed → shipped`)
-  and **Draft ticket / reply / "you said, we did" update**, so Cherry does the
-  first-pass writing and you can trace signal to outcome.
+- **Checks the shipped impact** — moving an issue to `shipped` saves its cited baseline
+  and schedules a 14- or 30-day local re-check. Cherry searches fresh feedback, compares
+  volume, severity, recency, and source mix, then calls the result improving, unchanged,
+  worsening, or inconclusive. A grounded improvement — never shipped status alone —
+  unlocks a **"you said, we did"** draft.
 
 ## How it's wired
 
@@ -84,6 +86,8 @@ Every push to the repo auto-redeploys.
 | `CHERRY_MODEL` | `claude-sonnet-4-6` | Fits the free-tier 60s limit. Set `claude-opus-4-8` on Vercel Pro. |
 | `CHERRY_MAX_SEARCHES` | `3` | Web searches per query (the main cost/time lever). `3` keeps comfortable headroom under the free-tier 60s limit; raise on Vercel Pro. |
 | `CHERRY_DAILY_CAP` | `200` | Hard ceiling on triage queries/day (abuse guard). |
+| `CHERRY_IMPACT_MAX_SEARCHES` | `3` | Fresh web searches per shipped-impact re-check. |
+| `CHERRY_IMPACT_DAILY_CAP` | `100` | Hard ceiling on shipped-impact checks/day. |
 | `CHERRY_DRAFT_DAILY_CAP` | `300` | Hard ceiling on draft requests/day. |
 | `CHERRY_PER_IP_PER_MIN` | `6` | Per-visitor rate limit. |
 | `CHERRY_ALLOW_ORIGIN` | `*` | Lock CORS to your site in production. |
@@ -126,7 +130,8 @@ illustrative recorded result; pipe a live one in with `curl … | node evals/che
 |---|---|
 | `index.html` | The front end (Studio Felix design; calls its own backend). |
 | `api/triage.js` | Triage backend: web-search **or** pasted-feedback intake, structured-output JSON, memory, guards. |
-| `api/draft.js` | Drafts a ticket (framed for the owning team), customer reply, or "you said, we did" update. |
+| `api/impact.js` | Searches fresh public feedback for a shipped issue and returns an evidence-grounded impact comparison. |
+| `api/draft.js` | Drafts a ticket or reply; customer updates require a grounded improving impact check. |
 | `api/route.js` | Routes a drafted ticket to Slack (`CHERRY_SLACK_WEBHOOK`). |
 | `evals/check.mjs` + `golden.json` | Structural quality gate (CI). |
 | `evals/judge.mjs` | LLM-as-judge synthesis-quality eval. |

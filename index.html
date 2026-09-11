@@ -392,6 +392,35 @@
   .draft-acts{display:flex;gap:8px;}
   .draft-acts [data-route]:hover{border-color:var(--stem);color:var(--stem);}
   .draft-text{background:var(--ground);border:1px solid var(--rule);border-radius:6px;padding:13px 15px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.55;color:var(--ink);white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto;}
+  .fbtn:disabled{opacity:.46;cursor:not-allowed;}
+  .fbtn:disabled:hover{background:none;border-color:var(--rule-strong);color:var(--muted);}
+
+  /* Shipped-impact check: a saved baseline is compared against new, cited feedback.
+     A scheduled date is a local reminder, intentionally not a claim of background monitoring. */
+  .impact{margin-top:14px;background:var(--panel);border:1.4px solid var(--rule-strong);border-left:4px solid var(--stem);border-radius:8px;padding:13px 15px;}
+  .impact.impact-improving{border-left-color:var(--stem);background:#F1F4E4;}
+  .impact.impact-worsening{border-left-color:var(--cherry);background:#FBECEF;}
+  .impact.impact-inconclusive{border-left-color:#C99A3A;background:#FBF3E4;}
+  .impact-head{display:flex;align-items:baseline;justify-content:space-between;gap:9px;flex-wrap:wrap;}
+  .impact-title{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);}
+  .impact-state{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--stem);}
+  .impact-improving .impact-state{color:var(--stem);}
+  .impact-worsening .impact-state{color:var(--cherry-deep);}
+  .impact-inconclusive .impact-state{color:#8A6712;}
+  .impact-copy{font-size:13.5px;color:#5a4f50;line-height:1.45;margin:7px 0 10px;}
+  .impact-baseline{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.02em;color:var(--muted);margin:7px 0 10px;}
+  .impact-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .impact-controls select{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.03em;color:var(--ink);background:#fff;border:1px solid var(--rule-strong);border-radius:4px;padding:6px 8px;cursor:pointer;}
+  .impact-btn{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;background:var(--ink);color:#fff;border:1px solid var(--ink);border-radius:4px;padding:7px 10px;cursor:pointer;}
+  .impact-btn:hover{background:var(--cherry);border-color:var(--cherry);}
+  .impact-btn:disabled{opacity:.55;cursor:wait;}
+  .impact-metrics{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;}
+  .impact-metric{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:3px 7px;border:1px solid var(--rule-strong);border-radius:4px;background:#fff;color:var(--ink);}
+  .impact-metric b{color:var(--cherry);font-weight:700;}
+  .impact-evidence{display:flex;flex-direction:column;gap:4px;margin-top:9px;}
+  .impact-evidence a{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--cherry);text-decoration:none;border-bottom:1px solid rgba(176,35,60,.3);width:max-content;max-width:100%;}
+  .impact-evidence span{font-size:12px;color:#5a4f50;}
+  .impact-note{font-size:12px;color:var(--muted);margin-top:8px;}
 </style>
 </head>
 <body>
@@ -871,6 +900,77 @@
   function getStatus(title){return statusMap[skey(title)]||'new';}
   function setStatus(title,s){statusMap[skey(title)]=s;try{localStorage.setItem(STATUS_KEY,JSON.stringify(statusMap));}catch{}}
 
+  // A shipped issue earns an accountable follow-up: save its cited evidence and
+  // legible scores before checking fresh feedback later. This is browser-local
+  // like Cherry's existing lifecycle/trend memory; zero-retention intake never
+  // stores the cited baseline.
+  const IMPACT_KEY='cherry.impact.v1';
+  let impacts=(()=>{try{return JSON.parse(localStorage.getItem(IMPACT_KEY))||{};}catch{return{};}})();
+  const impactKey=(title)=>skey(title);
+  const canStoreImpact=()=>!currentFeedback||dataLevel()==='unrestricted';
+  function saveImpacts(){try{localStorage.setItem(IMPACT_KEY,JSON.stringify(impacts));}catch{}}
+  function sourceMixOf(evidence){
+    const counts={};
+    (evidence||[]).forEach(ev=>{const label=classifySource(ev||{}).label;counts[label]=(counts[label]||0)+1;});
+    return counts;
+  }
+  function formatDate(ts){return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
+  function captureImpact(issue,days=14){
+    if(!canStoreImpact())return null;
+    const capturedAt=Date.now(), evidence=(issue.evidence||[]).slice(0,3).map(ev=>({
+      source:ev.source||'',url:ev.url||'',quote:ev.quote||''
+    }));
+    const record={
+      capturedAt,dueAt:capturedAt+days*86400000,interval:days,
+      issue:{title:issue.title||'',gist:issue.gist||''},
+      baseline:{capturedAt,scores:{volume:+issue.reach||0,severity:+issue.severity||0,recency:+issue.recency||0},sourceMix:sourceMixOf(evidence),evidence},
+      result:null
+    };
+    impacts[impactKey(issue.title)]=record;saveImpacts();return record;
+  }
+  function impactFor(issue){return impacts[impactKey(issue.title)]||null;}
+  function impactSupportsUpdate(issue){
+    const result=(impactFor(issue)||{}).result;
+    return !!(result&&result.outcome==='improving'&&result.grounded&&(result.evidence||[]).filter(ev=>/^https?:\/\//.test(ev.url||'')).length>=2);
+  }
+  function impactUpdateButton(issue){
+    return impactSupportsUpdate(issue)
+      ?'<button class="fbtn draft" data-act="update">Draft update</button>'
+      :'<button class="fbtn draft" disabled title="Available only after a grounded impact check supports a customer-facing update.">Draft update</button>';
+  }
+  function impactMarkup(issue){
+    if(getStatus(issue.title)!=='shipped')return '';
+    if(!canStoreImpact())return `<div class="impact impact-inconclusive"><div class="impact-head"><span class="impact-title">Shipped impact check</span><span class="impact-state">not saved</span></div><p class="impact-copy">This intake has restricted data terms, so Cherry will not retain its cited baseline or schedule a re-check.</p></div>`;
+    const record=impactFor(issue);
+    if(!record)return `<div class="impact"><div class="impact-head"><span class="impact-title">Shipped impact check</span><span class="impact-state">baseline needed</span></div><p class="impact-copy">Save today's cited signal, then come back for a fresh evidence check.</p><div class="impact-controls"><select data-impact-days aria-label="Re-check interval"><option value="14">Re-check in 14 days</option><option value="30">Re-check in 30 days</option></select><button class="impact-btn" data-impact="capture">Save baseline</button></div></div>`;
+    const base=record.baseline||{}, scores=base.scores||{}, result=record.result;
+    const baseline=`Baseline saved ${formatDate(record.capturedAt)} · ${(base.evidence||[]).length} cited source${(base.evidence||[]).length===1?'':'s'} · volume ${scores.volume||'?'} · severity ${scores.severity||'?'} · recency ${scores.recency||'?'}`;
+    if(!result)return `<div class="impact"><div class="impact-head"><span class="impact-title">Shipped impact check</span><span class="impact-state">scheduled ${formatDate(record.dueAt)}</span></div><p class="impact-copy">Cherry saved the signal from when this shipped. Re-checking searches fresh customer feedback and compares it with this baseline.</p><div class="impact-baseline">${baseline}</div><div class="impact-controls"><select data-impact-days aria-label="Re-check interval"><option value="14" ${record.interval===14?'selected':''}>Re-check in 14 days</option><option value="30" ${record.interval===30?'selected':''}>Re-check in 30 days</option></select><button class="impact-btn" data-impact="reschedule">Save schedule</button><button class="impact-btn" data-impact="check">${Date.now()>=record.dueAt?'Run re-check':'Run early'}</button></div><p class="impact-note">Scheduled locally in this browser — Cherry checks when you return; it does not claim background monitoring.</p></div>`;
+    const c=result.comparison||{}, metrics=[['Volume',c.volume],['Severity',c.severity],['Recency',c.recency],['Source mix',c.sourceMix]]
+      .map(([label,value])=>`<span class="impact-metric"><b>${esc(label)}</b> ${esc(value||'unclear')}</span>`).join('');
+    const evidence=(result.evidence||[]).slice(0,3).map(ev=>`<div><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` <span>— “${esc(ev.quote)}”</span>`:''}</div>`).join('');
+    return `<div class="impact impact-${esc(result.outcome||'inconclusive')}"><div class="impact-head"><span class="impact-title">Shipped impact check</span><span class="impact-state">${esc(result.outcome||'inconclusive')} · ${result.grounded?'grounded':'not enough evidence'}</span></div><p class="impact-copy">${esc(result.summary||'')}</p><div class="impact-baseline">${baseline} · checked ${formatDate(record.checkedAt||Date.now())}</div><div class="impact-metrics">${metrics}</div>${evidence?`<div class="impact-evidence">${evidence}</div>`:''}${impactSupportsUpdate(issue)?'<p class="impact-note">Grounded improvement unlocks a customer update draft.</p>':'<p class="impact-note">A customer update stays locked until fresh evidence supports an improvement.</p>'}</div>`;
+  }
+  async function runImpactCheck(issue,card,button){
+    const record=impactFor(issue);if(!record)return;
+    const original=button.textContent;button.disabled=true;button.textContent='Checking fresh feedback…';
+    try{
+      const resp=await fetch('/api/impact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:currentName,issue:record.issue,baseline:record.baseline})});
+      const data=await resp.json();if(!resp.ok||data.error)throw new Error(data.error||('error '+resp.status));
+      record.result=data;record.checkedAt=Date.now();saveImpacts();
+      card.querySelector('[data-role=impact]').innerHTML=impactMarkup(issue);
+      card.querySelector('[data-role=update-btn]').innerHTML=impactUpdateButton(issue);
+    }catch(error){
+      button.disabled=false;button.textContent=original;button.title=error.message||'Couldn’t check this issue';
+    }
+  }
+  function updateImpactSchedule(issue,card,days){
+    const record=impactFor(issue)||captureImpact(issue,days);if(!record)return;
+    record.interval=days;record.dueAt=Date.now()+days*86400000;record.result=null;saveImpacts();
+    card.querySelector('[data-role=impact]').innerHTML=impactMarkup(issue);
+    card.querySelector('[data-role=update-btn]').innerHTML=impactUpdateButton(issue);
+  }
+
   // ── Persona views: one triage, four cuts. Each audience acts on the SAME issues,
   // re-weighted for what they own — reusing the transparent signal weights, not a new score.
   const PERSONAS={
@@ -1203,9 +1303,10 @@
             <span class="fbsep"></span>
             <button class="fbtn draft" data-act="ticket">Draft ticket</button>
             <button class="fbtn draft" data-act="reply">Draft reply</button>
-            <button class="fbtn draft" data-act="update">Draft update</button>
+            <span data-role="update-btn">${impactUpdateButton(it)}</span>
             <span class="fbstate" data-role="state"></span>
           </div>
+          <div data-role="impact">${impactMarkup(it)}</div>
           <div class="editor" data-role="editor">
             <input type="text" placeholder="What's off? e.g. lower severity, owner is Billing, rank lower" />
             <button data-act="save">Save</button>
@@ -1234,7 +1335,18 @@
     const pill=e.target.closest('.lifepill');
     if(pill){const card=e.target.closest('.rissue');const issue=(window._cherryIssues||[])[+card.dataset.idx]||{};
       setStatus(issue.title,pill.dataset.status);
-      card.querySelectorAll('.lifepill').forEach(p=>p.classList.toggle('on',p===pill));return;}
+      card.querySelectorAll('.lifepill').forEach(p=>p.classList.toggle('on',p===pill));
+      if(pill.dataset.status==='shipped'&&!impactFor(issue)&&canStoreImpact())captureImpact(issue,14);
+      card.querySelector('[data-role=impact]').innerHTML=impactMarkup(issue);
+      card.querySelector('[data-role=update-btn]').innerHTML=impactUpdateButton(issue);
+      return;}
+    // Shipped impact check: save/reschedule its baseline, or search fresh feedback.
+    const impactBtn=e.target.closest('[data-impact]');
+    if(impactBtn){const card=e.target.closest('.rissue');const issue=(window._cherryIssues||[])[+card.dataset.idx]||{};
+      const days=Number((card.querySelector('[data-impact-days]')||{}).value)||14;
+      if(impactBtn.dataset.impact==='check')runImpactCheck(issue,card,impactBtn);
+      else updateImpactSchedule(issue,card,days);
+      return;}
     // Routing: send the drafted ticket to Slack via /api/route.
     const routeBtn=e.target.closest('[data-route]');
     if(routeBtn){sendToSlack(routeBtn);return;}
@@ -1285,13 +1397,15 @@
 
   async function draftIssue(idx,kind,card){
     const issue=(window._cherryIssues||[])[idx]||{};
+    const impact=kind==='update'?(impactFor(issue)||{}).result:null;
+    if(kind==='update'&&!impactSupportsUpdate(issue))return;
     const out=card.querySelector('[data-role=draftout]');
     out.style.display='block';
     const noun=kind==='ticket'?'ticket':kind==='update'?'customer update':'reply';
     out.innerHTML=`<div class="draft-load">Drafting the ${noun}\u2026</div>`;
     try{
       const resp=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({product:currentName,issue,kind})});
+        body:JSON.stringify({product:currentName,issue,kind,impact})});
       let data;try{data=await resp.json();}catch{throw new Error("the response didn't come back cleanly");}
       if(!resp.ok||data.error)throw new Error(data.error||("error "+resp.status));
       const lbl=kind==='ticket'?((issue.owner?esc(issue.owner)+' ':'')+'ticket'):kind==='update'?'Customer update':'Customer reply';
