@@ -25,6 +25,12 @@ function overDailyCap() {
   if (today !== day) { day = today; dayCount = 0; }
   dayCount += 1; return dayCount > DAILY_CAP;
 }
+function extractJSON(text) {
+  let json = String(text).replace(/```json/gi, "").replace(/```/g, "").trim();
+  const first = json.indexOf("{"), last = json.lastIndexOf("}");
+  if (first >= 0 && last > first) json = json.slice(first, last + 1);
+  return JSON.parse(json);
+}
 
 const SYSTEM = `You are Cherry's shipped-impact analyst. Compare a saved baseline
 for one customer issue against FRESH public customer feedback found with web
@@ -158,9 +164,12 @@ export default async function handler(req, res) {
       .map((content) => content.error_code || content.type)
       .filter((code) => code !== "max_uses_exceeded");
     const text = (data.content || []).filter((block) => block.type === "text").map((block) => block.text).join("\n").trim();
-    if (searchErrors.length) throw new Error("web_search error: " + searchErrors.join(", "));
+    // One failed search does not erase a usable, schema-conformant comparison
+    // from successful searches. Treat it as fatal only if the model has no
+    // answer at all, matching Cherry's primary triage endpoint.
+    if (!text && searchErrors.length) throw new Error("web_search error: " + searchErrors.join(", "));
     if (!text) throw new Error("empty response");
-    const result = JSON.parse(text);
+    const result = extractJSON(text);
     const hasGrounding = result.grounded && Array.isArray(result.evidence) &&
       result.evidence.filter((ev) => /^https?:\/\/.+/.test(ev.url || "")).length >= 2;
     if (result.outcome === "improving" && !hasGrounding) {

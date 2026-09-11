@@ -949,7 +949,7 @@
     const c=result.comparison||{}, metrics=[['Volume',c.volume],['Severity',c.severity],['Recency',c.recency],['Source mix',c.sourceMix]]
       .map(([label,value])=>`<span class="impact-metric"><b>${esc(label)}</b> ${esc(value||'unclear')}</span>`).join('');
     const evidence=(result.evidence||[]).slice(0,3).map(ev=>`<div><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` <span>— “${esc(ev.quote)}”</span>`:''}</div>`).join('');
-    return `<div class="impact impact-${esc(result.outcome||'inconclusive')}"><div class="impact-head"><span class="impact-title">Shipped impact check</span><span class="impact-state">${esc(result.outcome||'inconclusive')} · ${result.grounded?'grounded':'not enough evidence'}</span></div><p class="impact-copy">${esc(result.summary||'')}</p><div class="impact-baseline">${baseline} · checked ${formatDate(record.checkedAt||Date.now())}</div><div class="impact-metrics">${metrics}</div>${evidence?`<div class="impact-evidence">${evidence}</div>`:''}${impactSupportsUpdate(issue)?'<p class="impact-note">Grounded improvement unlocks a customer update draft.</p>':'<p class="impact-note">A customer update stays locked until fresh evidence supports an improvement.</p>'}</div>`;
+    return `<div class="impact impact-${esc(result.outcome||'inconclusive')}"><div class="impact-head"><span class="impact-title">Shipped impact check</span><span class="impact-state">${esc(result.outcome||'inconclusive')} · ${result.grounded?'grounded':'not enough evidence'}</span></div><p class="impact-copy">${esc(result.summary||'')}</p><div class="impact-baseline">${baseline} · checked ${formatDate(record.checkedAt||Date.now())}</div><div class="impact-metrics">${metrics}</div>${evidence?`<div class="impact-evidence">${evidence}</div>`:''}<div class="impact-controls"><select data-impact-days aria-label="Next re-check interval"><option value="14" ${record.interval===14?'selected':''}>Next check in 14 days</option><option value="30" ${record.interval===30?'selected':''}>Next check in 30 days</option></select><button class="impact-btn" data-impact="reschedule">Save schedule</button><button class="impact-btn" data-impact="check">Run another re-check</button></div>${impactSupportsUpdate(issue)?'<p class="impact-note">Grounded improvement unlocks a customer update draft.</p>':'<p class="impact-note">A customer update stays locked until fresh evidence supports an improvement.</p>'}</div>`;
   }
   async function runImpactCheck(issue,card,button){
     const record=impactFor(issue);if(!record)return;
@@ -957,7 +957,7 @@
     try{
       const resp=await fetch('/api/impact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:currentName,issue:record.issue,baseline:record.baseline})});
       const data=await resp.json();if(!resp.ok||data.error)throw new Error(data.error||('error '+resp.status));
-      record.result=data;record.checkedAt=Date.now();saveImpacts();
+      record.result=data;record.checkedAt=Date.now();record.dueAt=record.checkedAt+(record.interval||14)*86400000;saveImpacts();
       card.querySelector('[data-role=impact]').innerHTML=impactMarkup(issue);
       card.querySelector('[data-role=update-btn]').innerHTML=impactUpdateButton(issue);
     }catch(error){
@@ -966,7 +966,7 @@
   }
   function updateImpactSchedule(issue,card,days){
     const record=impactFor(issue)||captureImpact(issue,days);if(!record)return;
-    record.interval=days;record.dueAt=Date.now()+days*86400000;record.result=null;saveImpacts();
+    record.interval=days;record.dueAt=Date.now()+days*86400000;saveImpacts();
     card.querySelector('[data-role=impact]').innerHTML=impactMarkup(issue);
     card.querySelector('[data-role=update-btn]').innerHTML=impactUpdateButton(issue);
   }
