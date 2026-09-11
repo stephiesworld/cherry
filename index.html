@@ -1149,12 +1149,14 @@
     const history=productCampaigns.length?`<div class="campaign-history"><span class="sm-lbl">Campaigns</span>${productCampaigns.map(c=>`<button type="button" data-campaign-act="open" data-campaign-id="${esc(c.id)}" class="${active&&c.id===active.id?'on':''}">${esc(c.segment)} · ${voiceCount(c)} voice${voiceCount(c)===1?'':'s'}</button>`).join('')}</div>`:'';
     let work='';
     if(active){
-      const voices=voiceCount(active), pain=painCount(active), enough=voices>=VOICES_NEEDED;
+      const voices=voiceCount(active), pain=painCount(active), responses=active.responses||[], enough=voices>=VOICES_NEEDED;
       const status=!enough
         ? {cls:'',title:'Not enough responses',note:`${voices} distinct voice${voices===1?'':'s'} logged. Add ${VOICES_NEEDED-voices} more before treating this segment as represented.`}
         :pain>0
         ? {cls:'ready',title:'Ready to re-run triage',note:`${voices} distinct voices include ${pain} pain report${pain===1?'':'s'} — this is now representative enough to add to the evidence.`}
-        :{cls:'absent',title:'No pain reported in this campaign',note:`${voices} distinct voices responded and none reported pain. This is an observed absence in this focused sample, not a blanket claim about the segment.`};
+        :responses.every(r=>r.kind==='no-pain')
+        ? {cls:'absent',title:'No pain reported in this campaign',note:`${voices} distinct voices responded and none reported pain. This is an observed absence in this focused sample, not a blanket claim about the segment.`}
+        :{cls:'',title:'Enough responses — read the context',note:`${voices} distinct voices replied, but none were clearly classified as pain or no-pain. Review the tagged responses before drawing a conclusion.`};
       work=`<div class="campaign-work" id="campaign-${esc(active.id)}">
         <div class="campaign-meta">${esc(active.segment)} · decision: ${esc(active.decision)}</div>
         <h4>Neutral outreach</h4><div class="campaign-text">${esc(active.outreach)}</div>
