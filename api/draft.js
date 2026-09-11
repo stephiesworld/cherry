@@ -37,14 +37,17 @@ Given a product and one triaged customer-feedback issue, output a ready-to-file 
 Title:
 Problem:
 Evidence:
+Reviewed evidence:
 Severity:
 Proposed owner:
 Acceptance criteria:
 Suggested approach:
 
 Rules: Problem is 1-3 sentences in neutral PM voice. Evidence bullets the sources/links you were given
-(keep the links). Severity restates the given level and why. Acceptance criteria are 3-5 checkable bullets.
-Suggested approach is 1-3 sentences. No preamble, no sign-off, no markdown headers.`;
+(keep the links). Reviewed evidence is a compact audit summary of the reviewer's source decisions; do
+NOT cite a source marked irrelevant or outdated, and include replacement links/internal records when given.
+Severity restates the given level and why. Acceptance criteria are 3-5 checkable bullets. Suggested approach
+is 1-3 sentences. No preamble, no sign-off, no markdown headers.`;
 
 const SYSTEM_REPLY = `You write warm, honest customer-support replies for a product/CS team.
 Given a product and one triaged feedback issue, write a short reply (120-160 words) to a customer who
@@ -67,7 +70,19 @@ function userContent(product, issue) {
   if (issue.owner) lines.push(`Suggested owner (owns the fix/decision): ${issue.owner}`);
   if (Array.isArray(issue.stakeholders) && issue.stakeholders.length)
     lines.push(`Stakeholders to loop in: ${issue.stakeholders.join(", ")}`);
-  (issue.evidence || []).slice(0, 3).forEach((ev) =>
+  const reviewed = issue.reviewedEvidence;
+  if (reviewed && reviewed.summary) {
+    lines.push(`Reviewed evidence summary: ${reviewed.summary}`);
+    (reviewed.entries || []).forEach((ev) => {
+      const rationale = ev.rationale ? ` — reviewer: ${ev.rationale}` : "";
+      const replacement = ev.replacement ? ` — replacement/internal record: ${ev.replacement}` : "";
+      lines.push(`Evidence review: ${ev.status || "unreviewed"} · ${ev.source || ""}${rationale}${replacement}`);
+    });
+  }
+  const evidence = reviewed && Array.isArray(reviewed.entries)
+    ? reviewed.entries.filter((ev) => !["irrelevant", "outdated"].includes(ev.status))
+    : (issue.evidence || []);
+  evidence.slice(0, 3).forEach((ev) =>
     lines.push(`Source: ${ev.source || ""} ${ev.url || ""}${ev.quote ? ` — "${ev.quote}"` : ""}`));
   return lines.join("\n");
 }
