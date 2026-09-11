@@ -63,15 +63,15 @@ in response, and the benefit they'll feel — closing the loop so they know thei
 Honest and specific; do NOT invent metrics, dates, or details beyond the issue. Plain text, no markdown.
 Sign off as "The <product> team". No preamble before the update itself.`;
 
-function userContent(product, issue, includeReviewedEvidence = false) {
+function userContent(product, issue, includeReviewedEvidenceDetails = false) {
   const lines = [`Product: ${product}`, `Issue: ${issue.title || ""}`];
   if (issue.gist) lines.push(`Detail: ${issue.gist}`);
   if (issue.severity != null) lines.push(`Severity: ${issue.severity}/5`);
   if (issue.owner) lines.push(`Suggested owner (owns the fix/decision): ${issue.owner}`);
   if (Array.isArray(issue.stakeholders) && issue.stakeholders.length)
     lines.push(`Stakeholders to loop in: ${issue.stakeholders.join(", ")}`);
-  const reviewed = includeReviewedEvidence ? issue.reviewedEvidence : null;
-  if (reviewed && reviewed.summary) {
+  const reviewed = issue.reviewedEvidence;
+  if (includeReviewedEvidenceDetails && reviewed && reviewed.summary) {
     lines.push(`Reviewed evidence summary: ${reviewed.summary}`);
     (reviewed.entries || []).forEach((ev) => {
       const rationale = ev.rationale ? ` — reviewer: ${ev.rationale}` : "";

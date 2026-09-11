@@ -922,15 +922,15 @@
     if(!s.reviewed)return `Not reviewed · ${s.total} source${s.total===1?'':'s'}`;
     return parts.join(' · ')||`All ${s.total} excluded`;
   }
-  function reviewedEvidenceForDraft(it){
+  function reviewedEvidenceForDraft(it,includeDetails=true){
     const ledger=ledgerFor(it), entries=(it.evidence||[]).map(ev=>{
       const review=evidenceReview(it,ev);
       return {source:ev.source||'source',url:ev.url||'',quote:ev.quote||'',status:review.status||'unreviewed',
-        rationale:review.rationale||'',replacement:review.replacement||''};
+        rationale:includeDetails?review.rationale||'':'',replacement:includeDetails?review.replacement||'':''};
     });
     const stats=evidenceStats(it);
     return {summary:reviewedEvidenceSummary(it),reviewed:stats.reviewed,supports:stats.supports,
-      needsVerification:stats.verification,excluded:stats.excluded,entries,audit:ledger.audit||[]};
+      needsVerification:stats.verification,excluded:stats.excluded,entries,audit:includeDetails?ledger.audit||[]:[]};
   }
   function ledgerStatusOptions(status){
     return `<option value="">choose a decision</option>`+reviewStatuses.map(s=>
@@ -1424,7 +1424,9 @@
 
   async function draftIssue(idx,kind,card){
     const issue=(window._cherryIssues||[])[idx]||{};
-    const issueWithReview=kind==='ticket'?{...issue,reviewedEvidence:reviewedEvidenceForDraft(issue)}:issue;
+    // All drafts honor excluded sources. Only routed tickets receive a reviewer's
+    // rationale and replacement records; replies and updates get safe source context.
+    const issueWithReview={...issue,reviewedEvidence:reviewedEvidenceForDraft(issue,kind==='ticket')};
     const out=card.querySelector('[data-role=draftout]');
     out.style.display='block';
     const noun=kind==='ticket'?'ticket':kind==='update'?'customer update':'reply';
