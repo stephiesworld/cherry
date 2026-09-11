@@ -33,6 +33,11 @@ with a human in the loop at every step and evals measuring quality.
 - **Closes the loop** — every issue has a lifecycle (`new → triaged → routed → shipped`)
   and **Draft ticket / reply / "you said, we did" update**, so Cherry does the
   first-pass writing and you can trace signal to outcome.
+- **Closes coverage gaps** — each **Silent** segment can become a focused campaign:
+  Cherry drafts neutral outreach and 3–5 non-leading questions, tags collected
+  first-party responses to the campaign and segment, and only offers re-triage
+  after three distinct voices. It separately shows a small, no-pain sample rather
+  than confusing it with missing evidence.
 
 ## How it's wired
 
@@ -85,6 +90,7 @@ Every push to the repo auto-redeploys.
 | `CHERRY_MAX_SEARCHES` | `3` | Web searches per query (the main cost/time lever). `3` keeps comfortable headroom under the free-tier 60s limit; raise on Vercel Pro. |
 | `CHERRY_DAILY_CAP` | `200` | Hard ceiling on triage queries/day (abuse guard). |
 | `CHERRY_DRAFT_DAILY_CAP` | `300` | Hard ceiling on draft requests/day. |
+| `CHERRY_CAMPAIGN_DAILY_CAP` | `100` | Hard ceiling on silent-segment campaign drafts/day. |
 | `CHERRY_PER_IP_PER_MIN` | `6` | Per-visitor rate limit. |
 | `CHERRY_ALLOW_ORIGIN` | `*` | Lock CORS to your site in production. |
 | `CHERRY_SLACK_WEBHOOK` | — | Slack Incoming Webhook URL; enables "Send to Slack" routing. |
@@ -127,6 +133,7 @@ illustrative recorded result; pipe a live one in with `curl … | node evals/che
 | `index.html` | The front end (Studio Felix design; calls its own backend). |
 | `api/triage.js` | Triage backend: web-search **or** pasted-feedback intake, structured-output JSON, memory, guards. |
 | `api/draft.js` | Drafts a ticket (framed for the owning team), customer reply, or "you said, we did" update. |
+| `api/campaign.js` | Drafts neutral silent-segment outreach plus a focused interview/survey guide. |
 | `api/route.js` | Routes a drafted ticket to Slack (`CHERRY_SLACK_WEBHOOK`). |
 | `evals/check.mjs` + `golden.json` | Structural quality gate (CI). |
 | `evals/judge.mjs` | LLM-as-judge synthesis-quality eval. |
