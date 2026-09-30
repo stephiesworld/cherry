@@ -259,9 +259,12 @@
   .errbox.on{display:block;}
 
   section.mkt{padding:70px 0;}
-  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:42px;border-bottom:1px solid var(--rule);padding-bottom:16px;}
-  .sec-head h2{font-family:'Fraunces',serif;font-size:clamp(26px,3.6vw,36px);font-weight:600;letter-spacing:-0.015em;}
-  .sec-head .label{margin-left:auto;}
+  /* Section headers: a folder tab sitting on an ink rule, matching the hero console tabs. */
+  .sec-head{position:relative;display:flex;margin-bottom:34px;border-bottom:1.5px solid var(--line);}
+  .sec-head h2{display:inline-flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(20px,2.6vw,26px);font-weight:700;letter-spacing:-0.02em;line-height:1.1;
+    background:var(--panel);border:1.5px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;padding:12px 20px 11px;margin-bottom:-1.5px;}
+  .sec-head h2::before{content:"";flex:none;width:11px;height:11px;border-radius:50%;background:var(--cherry);border:1.5px solid var(--line);}
+  @media(max-width:540px){.sec-head h2{padding:10px 14px 9px;gap:10px;}}
   .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;}
   @media(max-width:880px){.steps{grid-template-columns:1fr 1fr;gap:28px;}}
   @media(max-width:520px){.steps{grid-template-columns:1fr;}}
@@ -530,7 +533,7 @@
 
 <section class="mkt" id="how">
   <div class="wrap">
-    <div class="sec-head rise"><h2>How Cherry works</h2><span class="label">Pile to point</span></div>
+    <div class="sec-head rise"><h2>How Cherry works</h2></div>
     <div class="steps">
       <div class="step rise"><span class="n">01 / Gather</span><h3>Reads the web</h3><p>Reviews, forums, Reddit, social, news — Cherry searches the open internet and keeps the source link for every issue.</p></div>
       <div class="step rise"><span class="n">02 / Read</span><h3>Tagged &amp; clustered</h3><p>It names each theme and groups the hundred ways people describe one problem into a single issue.</p></div>
@@ -589,7 +592,7 @@
 
 <section class="connects" id="connects">
   <div class="wrap">
-    <div class="sec-head rise"><h2>Where Cherry connects</h2><span class="label">Architecture</span></div>
+    <div class="sec-head rise"><h2>Where Cherry connects</h2></div>
     <p class="cx-lead">Cherry is the synthesis layer — it pulls signal from where customers already speak, and pushes work to where teams already act. It connects to systems of record; it doesn't try to replace them.</p>
     <div class="cx-flow rise">
       <div class="cx-group">
@@ -624,7 +627,7 @@
 
 <section class="mkt" id="theory">
   <div class="wrap">
-    <div class="sec-head rise"><h2>The operating theory</h2><span class="label">One triage, five readers</span></div>
+    <div class="sec-head rise"><h2>The operating theory</h2></div>
     <p class="cx-lead">Feedback systems obsess over intake, but the question that decides whether one is useful sits on the exit side: who reads the mail, and what does each reader need? Cherry's answer, drawn — five sources with their biases, three jobs in the middle, five different cuts on the way out, and the return arrows that make it a loop instead of a funnel.</p>
     <div class="theory-card rise">
 <svg viewBox="0 0 700 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Feedback flows from five sources into a triage core that screens, classifies, and weighs it, then out to five teams, each with its own goal and presentation; users feed the sources and receive closure; capability signals cross a permission gate into model development, whose improvements change the product and generate new signal." style="width:100%;height:auto;display:block;margin:2rem 0;">
@@ -743,7 +746,7 @@
 </svg>
     </div>
     <p class="cx-foot">Internal tools have product-market fit when teams can't make a decision without them. Cherry's bet is that feedback earns that seat by being cut per reader — "high-signal" is a property of the audience. <a class="theory-link" href="https://stephiedelpaggio.vercel.app/writing/who-is-feedback-for">Read the full essay &rarr;</a></p>
-    <div class="sec-head rise" style="margin-top:52px"><h2>Why a human stays in the loop</h2><span class="label">Propose &middot; correct &middot; measure</span></div>
+    <div class="sec-head rise" style="margin-top:52px"><h2>Why a human stays in the loop</h2></div>
     <p class="cx-lead">Cherry drafts every ticket and never sends one on its own. That's the design: the model does the repetitive first pass, a person makes the calls that need context the model was never given, and the system measures whether each correction genuinely helped — so tomorrow starts ahead of today.</p>
     <div class="theory-card rise">
 <svg viewBox="0 0 680 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Without correction: feedback to model to output, a straight line. With correction: the model proposes, a human edits, the edit is measured, and the improvement feeds back into the model's future behavior." style="width:100%;height:auto;display:block;margin:2rem 0;">

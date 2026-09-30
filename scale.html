@@ -34,9 +34,12 @@
   .hero .lede{font-size:18.5px;color:#4a4036;max-width:38em;line-height:1.55;}
   .hero .lede b{color:var(--ink);}
   section{padding:34px 0 8px;}
-  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:26px;border-bottom:1px solid var(--rule);padding-bottom:14px;}
-  .sec-head h2{font-family:'Fraunces',serif;font-size:clamp(24px,3.2vw,32px);font-weight:600;letter-spacing:-0.015em;}
-  .sec-head .label{margin-left:auto;}
+  /* Section headers: a folder tab sitting on an ink rule, matching the hero console tabs. */
+  .sec-head{position:relative;display:flex;margin-bottom:24px;border-bottom:1.5px solid var(--line);}
+  .sec-head h2{display:inline-flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(19px,2.4vw,24px);font-weight:700;letter-spacing:-0.02em;line-height:1.1;
+    background:var(--panel);border:1.5px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;padding:12px 20px 11px;margin-bottom:-1.5px;}
+  .sec-head h2::before{content:"";flex:none;width:11px;height:11px;border-radius:50%;background:var(--cherry);border:1.5px solid var(--line);}
+  @media(max-width:540px){.sec-head h2{padding:10px 14px 9px;gap:10px;}}
   .brk{background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:22px 24px;margin-bottom:18px;box-shadow:4px 4px 0 var(--panel-deep);}
   .brk h3{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin-bottom:10px;}
   .brk h3 .n{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--cherry);margin-right:10px;vertical-align:2px;}
@@ -87,7 +90,7 @@
   </div>
 
   <section>
-    <div class="sec-head"><h2>The breaks, and the fixes</h2><span class="label">v1 → v2</span></div>
+    <div class="sec-head"><h2>The breaks, and the fixes</h2></div>
 
     <div class="brk">
       <h3><span class="n">01</span>Ground truth lives in one person's browser</h3>
@@ -151,7 +154,7 @@
   </section>
 
   <section>
-    <div class="sec-head"><h2>The order of operations</h2><span class="label">Scale × autonomy</span></div>
+    <div class="sec-head"><h2>The order of operations</h2></div>
     <div class="callout"><b>Never increase scale and autonomy in the same step.</b> If both change at once, the first bad outcome is unattributable — was it the new users' novel inputs, or the removed human gate? — and the only safe response is rolling everything back. One axis at a time makes every regression attributable and every rollback surgical.</div>
     <ol class="ladder">
       <li><b>Shadow.</b> The system runs, humans decide, outputs are only compared. Zero blast radius; this is where trust data comes from.</li>
