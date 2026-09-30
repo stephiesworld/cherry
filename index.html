@@ -32,23 +32,24 @@
   nav a:hover{color:var(--ink);}
   @media(max-width:640px){nav{display:none;}}
 
-  .hero{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;padding:64px 0 64px;}
-  @media(max-width:880px){.hero{grid-template-columns:1fr;gap:40px;padding:44px 0 44px;}}
-  .hero h1{font-family:'Fraunces',serif;font-size:clamp(46px,6.6vw,80px);line-height:0.95;
-    font-weight:600;letter-spacing:-0.022em;margin:20px 0 22px;}
-  .hero h1 em{font-style:italic;color:var(--cherry);position:relative;white-space:nowrap;}
-  .hero h1 em::after{content:"";position:absolute;left:-2px;right:-2px;bottom:0.08em;height:0.14em;background:var(--sour);z-index:-1;opacity:0.9;}
-  .hero .lede{font-size:19px;color:#4a4036;max-width:30em;margin-bottom:24px;line-height:1.5;}
-  .hero .lede b{font-weight:700;color:var(--ink);}
-
-  .modes{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;padding:3px;margin-bottom:14px;background:#fff;}
-  .modes .mode{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;
-    padding:8px 13px;border-radius:5px;color:var(--ink);background:none;border:none;cursor:pointer;transition:all .15s;}
-  .modes .mode.on{background:var(--ink);color:var(--ground);}
-  .runbar{display:flex;gap:0;max-width:500px;border:1.5px solid var(--line);border-radius:8px;box-shadow:4px 4px 0 var(--line);overflow:hidden;background:#fff;}
-  @media(max-width:540px){.runbar{flex-direction:column;box-shadow:3px 3px 0 var(--line);}}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+  /* Hero: the tool is the headline. Console (intake) on top, the sort demo beneath it. */
+  .hero{display:flex;flex-direction:column;gap:26px;padding:56px 0 64px;}
+  @media(max-width:880px){.hero{padding:36px 0 44px;gap:22px;}}
+  .console{position:relative;padding-top:38px;}
+  .console-body{background:#fff;border:1.5px solid var(--line);border-radius:0 12px 12px 12px;box-shadow:6px 6px 0 var(--line);padding:22px;}
+  @media(max-width:540px){.console-body{padding:14px;box-shadow:4px 4px 0 var(--line);}}
+  .modes{position:absolute;top:0;left:0;display:flex;gap:4px;}
+  .modes .mode{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
+    height:40px;padding:0 16px;border:1.5px solid var(--line);border-bottom:none;border-radius:9px 9px 0 0;
+    color:var(--muted);background:var(--panel);cursor:pointer;transition:color .15s,background .15s;}
+  .modes .mode:hover{color:var(--ink);}
+  .modes .mode.on{background:#fff;color:var(--ink);position:relative;z-index:1;}
+  .modes .mode.on::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:3px;background:#fff;}
+  .runbar{display:flex;gap:0;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;}
+  @media(max-width:540px){.runbar{flex-direction:column;}}
   .runbar input{flex:1;background:#fff;border:none;color:var(--ink);
-    font-family:'Bricolage Grotesque',sans-serif;font-size:16px;padding:15px 18px;outline:none;}
+    font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(18px,2.2vw,22px);padding:18px 20px;outline:none;min-width:0;}
   .runbar input::placeholder{color:#b1a48c;}
   .btn{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
     cursor:pointer;border:1.5px solid var(--line);border-radius:7px;padding:15px 22px;text-decoration:none;display:inline-block;
@@ -58,12 +59,12 @@
   .btn-primary:disabled{opacity:0.55;cursor:default;transform:none;}
   .runbar .btn-primary{border:none;border-left:1.5px solid var(--line);border-radius:0;box-shadow:none;}
   .runbar .btn-primary:hover{transform:none;box-shadow:none;}
-  .examples{margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.03em;text-transform:uppercase;color:var(--muted);}
+  .examples{margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.03em;text-transform:uppercase;color:var(--muted);}
   .examples a{color:var(--cherry-deep);text-decoration:none;border-bottom:1.5px solid var(--sour);cursor:pointer;margin:0 2px;}
   .examples a:hover{border-color:var(--cherry);}
   .examples .ex-or{margin:0 6px;color:var(--muted);}
   .ex-paste{font-weight:500;}
-  .pastebox{display:none;max-width:560px;margin-top:16px;}
+  .pastebox{display:none;}
   .pastebox.on{display:block;}
   .pastebox textarea{width:100%;min-height:130px;resize:vertical;background:#fff;border:1px solid var(--rule-strong);
     color:var(--ink);border-radius:10px;padding:14px 16px;font-family:inherit;font-size:15px;line-height:1.5;box-sizing:border-box;}
@@ -73,15 +74,22 @@
   .paste-hint{font-size:12px;color:var(--muted);}
 
   .sortbox{position:relative;background:var(--panel-deep);border:1.5px solid var(--line);border-radius:12px;
-    padding:24px;min-height:360px;box-shadow:6px 6px 0 var(--line);}
+    padding:22px 24px;box-shadow:6px 6px 0 var(--line);}
+  @media(max-width:540px){.sortbox{padding:16px;box-shadow:4px 4px 0 var(--line);}}
   .sortbox-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
   .sortbox-head .t{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);}
-  .pile{position:relative;height:286px;}
-  .raw{position:absolute;background:#fff;border:1.4px solid var(--line);border-radius:6px;padding:6px 10px;
-    font-size:12px;color:#4a4036;white-space:nowrap;
-    transition:opacity .7s ease,transform .7s ease;}
-  .picked{position:absolute;inset:0;display:flex;flex-direction:column;gap:11px;opacity:0;transition:opacity .7s ease;pointer-events:none;}
-  .picked.show{opacity:1;pointer-events:auto;}
+  .sortstage{display:grid;grid-template-columns:minmax(0,1fr) 48px minmax(0,1.15fr);align-items:center;gap:8px;}
+  @media(max-width:880px){.sortstage{grid-template-columns:1fr;gap:14px;}.sortarrow{transform:rotate(90deg);}}
+  .pile{display:flex;flex-wrap:wrap;gap:8px 7px;align-content:center;}
+  .raw{background:#fff;border:1.4px solid var(--line);border-radius:6px;padding:5px 10px;
+    font-size:12px;color:#4a4036;white-space:nowrap;transform:rotate(var(--tilt,0deg));
+    transition:opacity .6s ease,transform .6s ease,border-color .6s ease;}
+  @media(max-width:540px){.pile{gap:6px 5px;}.raw{font-size:11px;padding:4px 8px;}.runbar input{font-size:17px;padding:15px 16px;}}
+  .raw.dim{opacity:.32;transform:rotate(0deg) scale(.96);border-color:var(--rule-strong);}
+  .raw.hit{border-color:var(--cherry);color:var(--cherry-deep);opacity:1;}
+  .sortarrow{display:flex;justify-content:center;color:var(--cherry);}
+  .picked{display:flex;flex-direction:column;gap:11px;opacity:0;transition:opacity .6s ease;}
+  .picked.show{opacity:1;}
   .issue{position:relative;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:13px 15px;display:flex;align-items:center;gap:13px;
     transform:translateY(10px);transition:transform .5s ease;}
   .issue.top{box-shadow:4px 4px 0 var(--cherry);}
@@ -251,9 +259,12 @@
   .errbox.on{display:block;}
 
   section.mkt{padding:70px 0;}
-  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:42px;border-bottom:1px solid var(--rule);padding-bottom:16px;}
-  .sec-head h2{font-family:'Fraunces',serif;font-size:clamp(26px,3.6vw,36px);font-weight:600;letter-spacing:-0.015em;}
-  .sec-head .label{margin-left:auto;}
+  /* Section headers: a folder tab sitting on an ink rule, matching the hero console tabs. */
+  .sec-head{position:relative;display:flex;margin-bottom:34px;border-bottom:1.5px solid var(--line);}
+  .sec-head h2{display:inline-flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(20px,2.6vw,26px);font-weight:700;letter-spacing:-0.02em;line-height:1.1;
+    background:var(--panel);border:1.5px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;padding:12px 20px 11px;margin-bottom:-1.5px;}
+  .sec-head h2::before{content:"";flex:none;width:11px;height:11px;border-radius:50%;background:var(--cherry);border:1.5px solid var(--line);}
+  @media(max-width:540px){.sec-head h2{padding:10px 14px 9px;gap:10px;}}
   .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;}
   @media(max-width:880px){.steps{grid-template-columns:1fr 1fr;gap:28px;}}
   @media(max-width:520px){.steps{grid-template-columns:1fr;}}
@@ -367,7 +378,7 @@
   :focus-visible{outline:2px solid var(--cherry);outline-offset:3px;}
   @media(prefers-reduced-motion:reduce){
     *{transition:none!important;animation:none!important;scroll-behavior:auto;}
-    .rise{opacity:1;transform:none;}.raw{opacity:0!important;}.picked{opacity:1!important;pointer-events:auto;}
+    .rise{opacity:1;transform:none;}.picked{opacity:1!important;}
   }
 
   /* self-improving memory strip */
@@ -411,42 +422,44 @@
   </header>
 
   <div class="hero" id="top">
-    <div class="hero-copy">
-      <div class="label">Sweet praise · sour truths</div>
-      <h1>From the pile,<br>the <em>point</em>.</h1>
-      <p class="lede">Name a product, or paste your own feedback. Cherry <b>bites through the noise</b> — ranks what stings, routes who owns it, and tells you what to do.</p>
-      <div class="modes">
+    <h1 class="sr-only">Cherry — name a product or paste feedback, get the issues worth acting on</h1>
+    <div class="console">
+      <div class="modes" role="group" aria-label="Where the feedback comes from">
         <button class="mode on" id="modeWeb">Search the web</button>
         <button class="mode" id="modePaste">Paste feedback</button>
       </div>
-      <div id="webIntake">
-        <div class="runbar">
-          <input type="text" id="product" placeholder="A product or company — e.g. Notion" aria-label="Product or company name" />
-          <button class="btn btn-primary" id="runBtn">Pick the signal</button>
+      <div class="console-body">
+        <div id="webIntake">
+          <div class="runbar">
+            <input type="text" id="product" placeholder="Name a product — e.g. Notion" aria-label="Product or company name" />
+            <button class="btn btn-primary" id="runBtn">Pick the signal</button>
+          </div>
+          <div class="examples">Try
+            <a data-ex="Notion">Notion</a> · <a data-ex="Duolingo">Duolingo</a> ·
+            <a data-ex="Adobe">Adobe</a> · <a data-ex="Spotify">Spotify</a>
+          </div>
         </div>
-        <div class="examples">Try
-          <a data-ex="Notion">Notion</a> · <a data-ex="Duolingo">Duolingo</a> ·
-          <a data-ex="Adobe">Adobe</a> · <a data-ex="Spotify">Spotify</a>
-        </div>
-      </div>
-      <div class="pastebox" id="pasteBox">
-        <textarea id="feedbackInput" placeholder="Paste raw feedback — a Slack thread, support tickets, sales-call notes — and Cherry triages it directly (no web search). The signal lives inside your company too." aria-label="Paste customer feedback"></textarea>
-        <div class="pastebar">
-          <button class="btn btn-primary" id="runFeedback">Triage this feedback</button>
-          <select id="dataTerms" aria-label="Data terms for this feedback" title="Contract terms travel with the data as metadata — enforced by the pipeline, default-deny when unspecified.">
-            <option value="">Data terms: unspecified → zero retention (default-deny)</option>
-            <option value="unrestricted">Unrestricted — ok to remember &amp; learn from</option>
-            <option value="analytics-only">Analytics only — metrics, no learning</option>
-            <option value="zero-retention">Zero retention — store nothing</option>
-          </select>
-          <span class="paste-hint">Stays in your browser → backend → Claude.</span>
+        <div class="pastebox" id="pasteBox">
+          <textarea id="feedbackInput" placeholder="Paste raw feedback — a Slack thread, support tickets, sales-call notes — and Cherry triages it directly (no web search). The signal lives inside your company too." aria-label="Paste customer feedback"></textarea>
+          <div class="pastebar">
+            <button class="btn btn-primary" id="runFeedback">Triage this feedback</button>
+            <select id="dataTerms" aria-label="Data terms for this feedback" title="Contract terms travel with the data as metadata — enforced by the pipeline, default-deny when unspecified.">
+              <option value="">Data terms: unspecified → zero retention (default-deny)</option>
+              <option value="unrestricted">Unrestricted — ok to remember &amp; learn from</option>
+              <option value="analytics-only">Analytics only — metrics, no learning</option>
+              <option value="zero-retention">Zero retention — store nothing</option>
+            </select>
+            <span class="paste-hint">Stays in your browser → backend → Claude.</span>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="sortbox">
       <div class="sortbox-head"><span class="t">Sample: this week's feedback</span><span class="t" id="sortCount">— sorting —</span></div>
-      <div class="pile" id="pile">
+      <div class="sortstage">
+        <div class="pile" id="pile" aria-hidden="true"></div>
+        <div class="sortarrow" aria-hidden="true"><svg width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M1 8h36M30 2l7 6-7 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="picked" id="picked">
           <div class="issue top"><span class="stamp">extra sour</span><span class="score">96</span>
             <div class="meta"><div class="ti">Billing surprise hits accounts at renewal</div><div class="su">3 enterprise · severity 4</div></div><span class="owner">Billing</span></div>
@@ -520,7 +533,7 @@
 
 <section class="mkt" id="how">
   <div class="wrap">
-    <div class="sec-head rise"><h2>How Cherry works</h2><span class="label">Pile to point</span></div>
+    <div class="sec-head rise"><h2>How Cherry works</h2></div>
     <div class="steps">
       <div class="step rise"><span class="n">01 / Gather</span><h3>Reads the web</h3><p>Reviews, forums, Reddit, social, news — Cherry searches the open internet and keeps the source link for every issue.</p></div>
       <div class="step rise"><span class="n">02 / Read</span><h3>Tagged &amp; clustered</h3><p>It names each theme and groups the hundred ways people describe one problem into a single issue.</p></div>
@@ -579,7 +592,7 @@
 
 <section class="connects" id="connects">
   <div class="wrap">
-    <div class="sec-head rise"><h2>Where Cherry connects</h2><span class="label">Architecture</span></div>
+    <div class="sec-head rise"><h2>Where Cherry connects</h2></div>
     <p class="cx-lead">Cherry is the synthesis layer — it pulls signal from where customers already speak, and pushes work to where teams already act. It connects to systems of record; it doesn't try to replace them.</p>
     <div class="cx-flow rise">
       <div class="cx-group">
@@ -614,7 +627,7 @@
 
 <section class="mkt" id="theory">
   <div class="wrap">
-    <div class="sec-head rise"><h2>The operating theory</h2><span class="label">One triage, five readers</span></div>
+    <div class="sec-head rise"><h2>The operating theory</h2></div>
     <p class="cx-lead">Feedback systems obsess over intake, but the question that decides whether one is useful sits on the exit side: who reads the mail, and what does each reader need? Cherry's answer, drawn — five sources with their biases, three jobs in the middle, five different cuts on the way out, and the return arrows that make it a loop instead of a funnel.</p>
     <div class="theory-card rise">
 <svg viewBox="0 0 700 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Feedback flows from five sources into a triage core that screens, classifies, and weighs it, then out to five teams, each with its own goal and presentation; users feed the sources and receive closure; capability signals cross a permission gate into model development, whose improvements change the product and generate new signal." style="width:100%;height:auto;display:block;margin:2rem 0;">
@@ -733,7 +746,7 @@
 </svg>
     </div>
     <p class="cx-foot">Internal tools have product-market fit when teams can't make a decision without them. Cherry's bet is that feedback earns that seat by being cut per reader — "high-signal" is a property of the audience. <a class="theory-link" href="https://stephiedelpaggio.vercel.app/writing/who-is-feedback-for">Read the full essay &rarr;</a></p>
-    <div class="sec-head rise" style="margin-top:52px"><h2>Why a human stays in the loop</h2><span class="label">Propose &middot; correct &middot; measure</span></div>
+    <div class="sec-head rise" style="margin-top:52px"><h2>Why a human stays in the loop</h2></div>
     <p class="cx-lead">Cherry drafts every ticket and never sends one on its own. That's the design: the model does the repetitive first pass, a person makes the calls that need context the model was never given, and the system measures whether each correction genuinely helped — so tomorrow starts ahead of today.</p>
     <div class="theory-card rise">
 <svg viewBox="0 0 680 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Without correction: feedback to model to output, a straight line. With correction: the model proposes, a human edits, the edit is measured, and the improvement feeds back into the model's future behavior." style="width:100%;height:auto;display:block;margin:2rem 0;">
@@ -794,18 +807,19 @@
     "schema is malformed","seat pricing changed","tokens expire in CI","onboarding is rough","double invoice","SSO is a blocker"];
   const pile=document.getElementById('pile'),picked=document.getElementById('picked');
   const sCount=document.getElementById('sortCount'),sFoot=document.getElementById('sortFoot');
-  const pos=[[4,6],[140,2],[250,14],[20,46],[150,52],[262,44],[8,90],[130,96],[255,88],[40,132],[170,134],[60,176],[185,182],[95,210],[210,216]];
+  // notes that feed each picked issue light up in cherry once the sort lands
+  const hits=new Set(["got billed twice","price jumped, no warning","cancelled but charged","double invoice","seat pricing changed","refund never came",
+    "401 after an hour","tokens expire in CI","logged out mid-session","docs example won't run","schema is malformed"]);
   (function demo(){
-    if(reduce){picked.classList.add('show');document.querySelectorAll('#picked .issue').forEach(e=>e.style.transform='none');
-      sCount.textContent="3 issues";sFoot.textContent="15 notes → 3 issues worth acting on";return;}
     rawNotes.forEach((t,i)=>{const el=document.createElement('div');el.className='raw';el.textContent=t;
-      el.style.left=pos[i][0]+'px';el.style.top=pos[i][1]+'px';el.style.transitionDelay=(i*30)+'ms';pile.insertBefore(el,picked);});
+      el.style.setProperty('--tilt',((i*37)%7-3)*0.7+'deg');el.style.transitionDelay=(i*25)+'ms';pile.appendChild(el);});
+    const land=()=>{document.querySelectorAll('.raw').forEach(e=>e.classList.add(hits.has(e.textContent)?'hit':'dim'));
+      picked.classList.add('show');sCount.textContent="3 issues";sFoot.textContent="15 notes → 3 issues worth acting on";};
+    if(reduce){land();document.querySelectorAll('#picked .issue').forEach(e=>e.style.transform='none');return;}
     sCount.textContent=rawNotes.length+" notes";
     setTimeout(()=>{sFoot.textContent="reading "+rawNotes.length+" notes…";
-      document.querySelectorAll('.raw').forEach(e=>{e.style.opacity=0;e.style.transform='translateY(14px) scale(.92)';});
-      setTimeout(()=>{picked.classList.add('show');
-        document.querySelectorAll('#picked .issue').forEach((e,k)=>setTimeout(()=>e.style.transform='translateY(0)',k*110));
-        sCount.textContent="3 issues";sFoot.textContent="15 notes → 3 issues worth acting on";},700);},1300);
+      setTimeout(()=>{land();
+        document.querySelectorAll('#picked .issue').forEach((e,k)=>setTimeout(()=>e.style.transform='translateY(0)',k*110));},700);},1300);
   })();
 
   /* ---------- engine ---------- */
