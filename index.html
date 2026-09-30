@@ -105,17 +105,24 @@
   /* RESULTS */
   #results{padding:24px 0 40px;display:none;}
   #results.on{display:block;}
-  .res-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--rule);padding-bottom:18px;margin-bottom:24px;flex-wrap:wrap;}
-  .res-head h2{font-family:'Fraunces',serif;font-size:clamp(26px,3.6vw,38px);font-weight:600;letter-spacing:-0.015em;}
-  .res-head .for{color:var(--cherry);}
+  /* Results header: the product you asked about, big, with a mono readout of what came back. */
+  .res-head{display:flex;align-items:flex-end;gap:14px;border-bottom:1.5px solid var(--line);padding-bottom:16px;margin-bottom:26px;flex-wrap:wrap;}
+  .res-title{display:flex;align-items:baseline;gap:6px 16px;flex-wrap:wrap;min-width:0;}
+  .res-head h2{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(34px,5vw,56px);font-weight:700;letter-spacing:-0.035em;line-height:1;}
+  .res-head .for{color:var(--ink);}
+  .res-meta{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+  .res-meta b{color:var(--cherry);font-weight:700;}
   .res-head .again{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
     color:var(--muted);background:none;border:1px solid var(--rule-strong);border-radius:3px;padding:8px 14px;cursor:pointer;transition:all .2s;}
   .res-head .again:hover{border-color:var(--ink);color:var(--ink);}
   .applied-note{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.06em;color:var(--stem);margin-bottom:18px;display:none;}
   .applied-note.on{display:block;}
 
-  .takeaway{background:var(--panel);border:1.5px solid var(--line);border-left:6px solid var(--cherry);border-radius:10px;
-    padding:22px 26px;margin-bottom:28px;font-size:21px;font-family:'Fraunces',serif;font-weight:500;line-height:1.38;}
+  /* The takeaway reads as a statement on the page, marked with a stamp — not a callout box. */
+  .takeaway{position:relative;margin:6px 0 30px;padding-top:30px;max-width:900px;}
+  .takeaway p{font-family:'Fraunces',serif;font-size:clamp(20px,2.4vw,26px);font-weight:500;line-height:1.35;letter-spacing:-0.01em;}
+  .pt-stamp{position:absolute;top:0;left:0;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;
+    padding:3px 9px;border-radius:3px;transform:rotate(-3deg);background:#fff;border:1.5px solid var(--cherry-deep);color:var(--cherry-deep);}
 
   .lowconf{display:none;background:#FBF3E7;border:1px solid #E4C893;border-left:3px solid #C99A3A;border-radius:8px;
     padding:14px 18px;margin-bottom:20px;font-size:15px;line-height:1.5;color:#6B5320;}
@@ -141,10 +148,22 @@
      apart from the amber "reads negative" skew strip — a different kind of caution. */
   .srcmix .sm-warn.bot{background:#FBECEF;border-color:#E7B8C3;border-left-color:var(--cherry);color:#6E2534;margin-top:0;}
   .srcmix .sm-warn.bot b{color:var(--cherry-deep);}
-  .res-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:30px;}
-  @media(max-width:880px){.res-grid{grid-template-columns:1fr;gap:34px;}}
+  /* Readout: the context strips (routing, sources, trends, memory…) share one outlined panel, a row each. */
+  .readout{background:#fff;border:1.5px solid var(--line);border-radius:12px;box-shadow:4px 4px 0 var(--line);margin-bottom:36px;overflow:hidden;}
+  .readout:not(:has(> .on)){display:none;}
+  .readout > .on{margin:0!important;padding:12px 18px!important;border:none!important;border-radius:0!important;background:transparent!important;}
+  .readout > .on ~ .on{border-top:1px solid var(--rule)!important;}
+  .readout > .capsig.on{background:#F4F6EA!important;}
+  .res-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:30px;}
+  @media(max-width:880px){.res-grid{grid-template-columns:minmax(0,1fr);gap:34px;}}
+  .sec-head.sub{margin-bottom:12px;}
+  .sec-head.sub h3{font-size:16px;padding:9px 15px 8px;gap:10px;}
+  .sec-head.sub h3::before{width:9px;height:9px;}
   .col-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
   .col-hint{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .fb{flex-wrap:wrap;gap:6px;}
+  .fb .fbtn{padding:6px 10px;white-space:nowrap;}
+  .fblbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-left:2px;}
   .weights{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-bottom:18px;padding:11px 14px;
     background:var(--panel);border:1px solid var(--rule);border-radius:8px;font-size:12px;}
   .weights .wlbl{font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);}
@@ -190,6 +209,14 @@
   .evi a{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cherry);text-decoration:none;border-bottom:1px solid rgba(176,35,60,0.3);margin-right:2px;}
   .evi a:hover{border-color:var(--cherry);}
 
+  /* phones: score becomes a row above the issue instead of a side column */
+  @media(max-width:540px){
+    .rissue{flex-direction:column;gap:12px;padding:16px;}
+    .rissue .rscore{flex-direction:row;align-items:center;gap:12px;border-right:none;border-bottom:1.5px solid var(--rule);padding:0 0 10px;min-width:0;text-align:left;}
+    .rissue .rscore .meter{margin-top:0;height:18px;}
+    .rissue .rscore .mlab{display:none;}
+    .fbsep{display:none;}
+  }
   /* human-in-the-loop controls */
   .fb{display:flex;gap:8px;margin-top:14px;align-items:center;}
   .fbtn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;
@@ -212,12 +239,17 @@
   .corrbar .ct b{font-weight:600;}
   .corrbar .ct span{color:var(--muted);font-size:14px;}
 
-  .sidecard{background:var(--panel);border:1.5px solid var(--line);border-radius:11px;padding:20px 22px;margin-bottom:20px;box-shadow:4px 4px 0 var(--panel-deep);}
-  .sidecard h3{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin-bottom:14px;}
+  .sidecard{background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:18px 20px;margin-bottom:22px;box-shadow:4px 4px 0 var(--line);}
+  .sidecard h3{display:flex;align-items:center;gap:10px;font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px;}
+  .sidecard h3::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;background:var(--cherry);border:1.5px solid var(--line);}
+  .qcard h3::before{display:none;}
+  /* sour/sweet: issues are the sour side, what customers love is the sweet side (stem green) */
+  .sidecard.sweet{box-shadow:4px 4px 0 var(--stem);}
+  .sidecard.sweet h3::before{background:var(--stem);}
   .lovelist{list-style:none;}
   .lovelist li{font-size:15px;color:#4a4036;padding:8px 0 8px 22px;position:relative;border-bottom:1px solid var(--rule);}
   .lovelist li:last-child{border-bottom:none;}
-  .lovelist li::before{content:"";position:absolute;left:0;top:14px;width:9px;height:9px;border-radius:50%;background:var(--cherry);border:1.4px solid var(--line);}
+  .lovelist li::before{content:"";position:absolute;left:2px;top:15px;width:7px;height:7px;border-radius:50%;background:var(--stem);}
   /* synthesis-quality scorecard (the measured learning loop) */
   .qcard:empty{display:none;}
   .qcard .q-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;}
@@ -242,7 +274,7 @@
   .actions{margin-top:8px;}
   .action{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--rule);}
   .action:last-child{border-bottom:none;}
-  .action .anum{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cherry);font-weight:500;min-width:24px;}
+  .action .anum{flex:none;width:15px;height:15px;margin-top:3px;border:1.5px solid var(--line);border-radius:3px;background:#fff;box-shadow:2px 2px 0 var(--cherry);}
   .action .abody h4{font-size:16px;font-weight:600;margin-bottom:4px;}
   .action .abody p{font-size:14.5px;color:var(--muted);}
   .action .abody .who{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--stem);margin-top:6px;display:inline-block;}
@@ -261,10 +293,10 @@
   section.mkt{padding:70px 0;}
   /* Section headers: a folder tab sitting on an ink rule, matching the hero console tabs. */
   .sec-head{position:relative;display:flex;margin-bottom:34px;border-bottom:1.5px solid var(--line);}
-  .sec-head h2{display:inline-flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(20px,2.6vw,26px);font-weight:700;letter-spacing:-0.02em;line-height:1.1;
+  .sec-head h2,.sec-head h3{display:inline-flex;align-items:center;gap:12px;font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(20px,2.6vw,26px);font-weight:700;letter-spacing:-0.02em;line-height:1.1;
     background:var(--panel);border:1.5px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;padding:12px 20px 11px;margin-bottom:-1.5px;}
-  .sec-head h2::before{content:"";flex:none;width:11px;height:11px;border-radius:50%;background:var(--cherry);border:1.5px solid var(--line);}
-  @media(max-width:540px){.sec-head h2{padding:10px 14px 9px;gap:10px;}}
+  .sec-head h2::before,.sec-head h3::before{content:"";flex:none;width:11px;height:11px;border-radius:50%;background:var(--cherry);border:1.5px solid var(--line);}
+  @media(max-width:540px){.sec-head h2,.sec-head h3{padding:10px 14px 9px;gap:10px;}}
   .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;}
   @media(max-width:880px){.steps{grid-template-columns:1fr 1fr;gap:28px;}}
   @media(max-width:520px){.steps{grid-template-columns:1fr;}}
@@ -480,23 +512,28 @@
 
   <div id="results">
     <div class="res-head">
-      <h2>What customers are saying about <span class="for" id="resFor"></span></h2>
+      <div class="res-title">
+        <h2><span class="sr-only">Results for </span><span class="for" id="resFor"></span></h2>
+        <span class="res-meta" id="resMeta"></span>
+      </div>
       <button class="again" id="againBtn">↻ Try another</button>
     </div>
     <div class="applied-note" id="appliedNote"></div>
-    <div class="learnstrip" id="learnStrip"></div>
     <div class="lowconf" id="lowConf"></div>
-    <div class="takeaway" id="takeaway"></div>
-    <div class="trend" id="trendStrip"></div>
-    <div class="teamdigest" id="teamDigest"></div>
-    <div class="capsig" id="capSig"></div>
-    <div class="srcmix" id="srcMix"></div>
-    <div class="srcmix" id="covStrip"></div>
-    <div class="srcmix" id="authWarn"></div>
-    <div class="srcmix" id="dataStrip"></div>
+    <div class="takeaway"><span class="pt-stamp">the point</span><p id="takeaway"></p></div>
+    <div class="readout">
+      <div class="teamdigest" id="teamDigest"></div>
+      <div class="srcmix" id="srcMix"></div>
+      <div class="trend" id="trendStrip"></div>
+      <div class="capsig" id="capSig"></div>
+      <div class="srcmix" id="covStrip"></div>
+      <div class="srcmix" id="authWarn"></div>
+      <div class="srcmix" id="dataStrip"></div>
+      <div class="learnstrip" id="learnStrip"></div>
+    </div>
     <div class="res-grid">
       <div>
-        <span class="col-label">Top issues, ranked by signal</span>
+        <div class="sec-head sub"><h3>Top issues, ranked by signal</h3></div>
         <div class="col-hint">Cherry proposes — you decide. Confirm a call, or tell Cherry what's off and re-rank.</div>
         <div class="personas" id="personas">
           <span class="plbl">View for</span>
@@ -522,8 +559,8 @@
       </div>
       <div>
         <div class="sidecard qcard" id="qualityCard"></div>
-        <div class="sidecard"><h3>What they love</h3><ul class="lovelist" id="loveList"></ul></div>
-        <div class="sidecard"><h3>Recommended next steps</h3><div class="actions" id="actionList"></div></div>
+        <div class="sidecard sweet"><h3>What they love</h3><ul class="lovelist" id="loveList"></ul></div>
+        <div class="sidecard"><h3>Do next</h3><div class="actions" id="actionList"></div></div>
       </div>
     </div>
   </div>
@@ -1148,6 +1185,8 @@
     currentName=r.product||name;currentResult=r;
     document.getElementById('resFor').textContent=currentName;
     document.getElementById('takeaway').textContent=r.takeaway||"";
+    { const n=(r.issues||[]).length, src=new Set((r.issues||[]).flatMap(it=>(it.evidence||[]).map(e=>(e.source||'').trim()).filter(Boolean))).size;
+      document.getElementById('resMeta').innerHTML=`<b>${n}</b> issue${n===1?'':'s'} ranked`+(src?` · <b>${src}</b> source${src===1?'':'s'}`:''); }
 
     // Calibrated honesty surface: when Cherry can't ground the triage in enough
     // real feedback it sets found=false — say so plainly instead of dressing up a
@@ -1215,9 +1254,10 @@
             <button class="fbtn ok" data-act="ok">Looks right</button>
             <button class="fbtn no" data-act="no">Not quite</button>
             <span class="fbsep"></span>
-            <button class="fbtn draft" data-act="ticket">Draft ticket</button>
-            <button class="fbtn draft" data-act="reply">Draft reply</button>
-            <button class="fbtn draft" data-act="update">Draft update</button>
+            <span class="fblbl">Draft</span>
+            <button class="fbtn draft" data-act="ticket" aria-label="Draft ticket">Ticket</button>
+            <button class="fbtn draft" data-act="reply" aria-label="Draft reply">Reply</button>
+            <button class="fbtn draft" data-act="update" aria-label="Draft update">Update</button>
             <span class="fbstate" data-role="state"></span>
           </div>
           <div class="editor" data-role="editor">
@@ -1230,7 +1270,7 @@
 
     document.getElementById('loveList').innerHTML=(r.love||[]).map(l=>`<li>${esc(l)}</li>`).join("")||"<li>Nothing stood out.</li>";
     document.getElementById('actionList').innerHTML=(r.actions||[]).map((a,i)=>`
-      <div class="action"><span class="anum">${String(i+1).padStart(2,'0')}</span>
+      <div class="action"><span class="anum" aria-hidden="true"></span>
         <div class="abody"><h4>${esc(a.action||'')}</h4><p>${esc(a.why||'')}</p>
         ${a.owner?`<span class="who">${esc(a.owner)}</span>`:''}</div></div>`).join("")||"<p style='color:var(--muted)'>—</p>";
 
