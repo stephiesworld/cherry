@@ -112,7 +112,14 @@ Never use soft/blurred drop shadows.
   one group ("Draft: Ticket · Reply · Update"). Under 540px the score moves
   into a row above the title. Persona tabs and signal-weight
   sliders re-rank the same triage.
-- **Footer**: Fraunces italic tag line on the left, mono studio credit right.
+- **Scaling notes** (`scale.html`): page name + mono readout ("10 breaks ·
+  v1 → v2") instead of a slogan headline, a short plain intro, then a two-column
+  index of the breaks linking to each one. Each break is a before/after card:
+  title bar, the v1 **break** on `--panel` left, the v2 **fix** on white right
+  (stacks under 640px); the targeted card gets a cherry shadow. "The rule" is a
+  stamped Fraunces statement like "the point"; the autonomy ladder is drawn as
+  a staircase, each rung indented further, the last with a stem shadow.
+ Fraunces italic tag line on the left, mono studio credit right.
 
 ## Motion
 Restrained and purposeful: the one orchestrated hero moment (the sort
