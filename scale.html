@@ -28,11 +28,20 @@
   nav a{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.12em;
     text-transform:uppercase;color:var(--muted);text-decoration:none;margin-left:26px;}
   nav a:hover{color:var(--ink);}
-  .hero{padding:56px 0 26px;}
-  .hero h1{font-family:'Fraunces',serif;font-size:clamp(38px,5.4vw,60px);line-height:1.0;font-weight:600;letter-spacing:-0.02em;margin:16px 0 18px;}
-  .hero h1 em{font-style:italic;color:var(--cherry);}
-  .hero .lede{font-size:18.5px;color:#4a4036;max-width:38em;line-height:1.55;}
+  /* Header: page name + mono readout, a short plain intro, then an index of the ten breaks. */
+  .hero{padding:48px 0 22px;}
+  .hero-head{display:flex;align-items:baseline;gap:6px 16px;flex-wrap:wrap;border-bottom:1.5px solid var(--line);padding-bottom:14px;margin-bottom:18px;}
+  .hero h1{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-0.035em;line-height:1;}
+  .hero .meta{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+  .hero .meta b{color:var(--cherry);}
+  .hero .lede{font-size:17px;color:#4a4036;max-width:40em;line-height:1.55;margin-bottom:22px;}
   .hero .lede b{color:var(--ink);}
+  .toc{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  @media(max-width:640px){.toc{grid-template-columns:minmax(0,1fr);}}
+  .toc a{display:flex;gap:10px;align-items:baseline;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;
+    font-size:14px;font-weight:600;line-height:1.3;color:var(--ink);text-decoration:none;transition:transform .12s,box-shadow .12s;}
+  .toc a:hover{transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--cherry);}
+  .toc .n{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--cherry);flex:none;}
   section{padding:34px 0 8px;}
   /* Section headers: a folder tab sitting on an ink rule, matching the hero console tabs. */
   .sec-head{position:relative;display:flex;margin-bottom:24px;border-bottom:1.5px solid var(--line);}
@@ -40,22 +49,37 @@
     background:var(--panel);border:1.5px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;padding:12px 20px 11px;margin-bottom:-1.5px;}
   .sec-head h2::before{content:"";flex:none;width:11px;height:11px;border-radius:50%;background:var(--cherry);border:1.5px solid var(--line);}
   @media(max-width:540px){.sec-head h2{padding:10px 14px 9px;gap:10px;}}
-  .brk{background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:22px 24px;margin-bottom:18px;box-shadow:4px 4px 0 var(--panel-deep);}
-  .brk h3{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin-bottom:10px;}
-  .brk h3 .n{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--cherry);margin-right:10px;vertical-align:2px;}
-  .brk p{font-size:15.5px;color:#4a4036;margin-bottom:10px;}
-  .brk p:last-child{margin-bottom:0;}
+  /* Each break is a before/after: the v1 break on the left (panel), the v2 fix on the right (white). */
+  html{scroll-behavior:smooth;}
+  .brk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);background:#fff;border:1.5px solid var(--line);border-radius:11px;
+    margin-bottom:20px;box-shadow:4px 4px 0 var(--line);overflow:hidden;scroll-margin-top:20px;}
+  .brk:target{box-shadow:4px 4px 0 var(--cherry);}
+  @media(max-width:640px){.brk{grid-template-columns:minmax(0,1fr);}}
+  .brk h3{grid-column:1/-1;display:flex;gap:12px;align-items:baseline;font-size:18px;font-weight:700;letter-spacing:-0.015em;line-height:1.25;
+    padding:14px 20px;border-bottom:1.5px solid var(--line);}
+  .brk h3 .n{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--cherry);flex:none;}
+  .brk p{font-size:15px;color:#4a4036;padding:16px 20px 18px;}
+  .brk p:first-of-type{background:var(--panel);border-right:1.5px solid var(--line);}
+  @media(max-width:640px){.brk p:first-of-type{border-right:none;border-bottom:1.5px solid var(--line);}}
   .brk b{color:var(--ink);}
-  .brk .tag-break,.brk .tag-fix{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2.5px 8px;border-radius:4px;margin-right:8px;white-space:nowrap;}
+  .brk .tag-break,.brk .tag-fix{display:table;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2.5px 8px;border-radius:4px;margin-bottom:9px;}
   .tag-break{color:#fff;background:var(--cherry);}
   .tag-fix{color:#fff;background:var(--stem);}
-  .callout{background:var(--panel);border:1.5px solid var(--line);border-left:6px solid var(--cherry);border-radius:10px;padding:20px 24px;margin:6px 0 22px;font-size:16px;line-height:1.55;}
+  /* The rule: a statement marked with a stamp, like "the point" on results. */
+  .callout{position:relative;padding-top:30px;margin:4px 0 26px;}
+  .callout p{font-family:'Fraunces',serif;font-size:clamp(18px,2.2vw,22px);line-height:1.4;}
+  .callout .stamp{position:absolute;top:0;left:0;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    padding:3px 9px;border-radius:3px;transform:rotate(-3deg);background:#fff;border:1.5px solid var(--cherry-deep);color:var(--cherry-deep);}
   .callout b{color:var(--ink);}
-  .ladder{list-style:none;counter-reset:step;margin:4px 0 14px;}
-  .ladder li{counter-increment:step;position:relative;padding:12px 0 12px 52px;border-bottom:1px solid var(--rule);font-size:15.5px;color:#4a4036;}
-  .ladder li:last-child{border-bottom:none;}
-  .ladder li::before{content:counter(step,decimal-leading-zero);position:absolute;left:0;top:12px;
-    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--cherry);letter-spacing:.06em;}
+  /* The ladder is drawn as a staircase: each rung steps further in. */
+  .ladder{list-style:none;counter-reset:step;margin:4px 0 14px;display:flex;flex-direction:column;gap:10px;}
+  .ladder li{counter-increment:step;position:relative;background:#fff;border:1.5px solid var(--line);border-radius:9px;box-shadow:3px 3px 0 var(--line);
+    padding:12px 16px 12px 54px;font-size:15px;color:#4a4036;margin-left:calc(var(--i) * 34px);}
+  .ladder li:nth-child(1){--i:0}.ladder li:nth-child(2){--i:1}.ladder li:nth-child(3){--i:2}.ladder li:nth-child(4){--i:3}.ladder li:nth-child(5){--i:4}
+  @media(max-width:640px){.ladder li{margin-left:calc(var(--i) * 8px);}}
+  .ladder li::before{content:counter(step);position:absolute;left:14px;top:12px;width:24px;height:24px;display:grid;place-items:center;
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff;background:var(--cherry);border:1.5px solid var(--line);border-radius:5px;}
+  .ladder li:last-child{box-shadow:3px 3px 0 var(--stem);}
   .ladder li b{color:var(--ink);}
   .mono{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:2px 7px;white-space:nowrap;}
   footer{padding:44px 0 60px;border-top:1px solid var(--rule);margin-top:40px;}
@@ -84,69 +108,83 @@
   </header>
 
   <div class="hero">
-    <span class="label">An honest map, not a pitch</span>
-    <h1>Where Cherry <em>breaks</em> at scale — and what v2 does about it.</h1>
-    <p class="lede">Cherry v1 is deliberately demo-scale: one user, one browser, no database. That was the right scope to prove the synthesis-and-judgment core. But a feedback platform serving <b>hundreds of submitters and dozens of teams</b> breaks in specific, predictable places. This page names each break honestly and gives the v2 answer — because knowing where your own system fails is the difference between a demo and a platform.</p>
+    <div class="hero-head">
+      <h1>Scaling notes</h1>
+      <span class="meta"><b>10</b> breaks · v1 → v2</span>
+    </div>
+    <p class="lede">Cherry v1 is demo-scale on purpose: one user, one browser, no database. That was the right scope to prove the synthesis-and-judgment core. Below is each place it breaks once <b>hundreds of submitters and dozens of teams</b> use it, and what v2 does about it.</p>
+    <ol class="toc" aria-label="The ten breaks">
+      <li><a href="#b1"><span class="n">01</span>Ground truth lives in one person's browser</a></li>
+      <li><a href="#b2"><span class="n">02</span>Two PMs give contradictory corrections — who wins?</a></li>
+      <li><a href="#b3"><span class="n">03</span>Single-tenant, no auth</a></li>
+      <li><a href="#b4"><span class="n">04</span>Cost guards reset when the server blinks</a></li>
+      <li><a href="#b5"><span class="n">05</span>No observability</a></li>
+      <li><a href="#b6"><span class="n">06</span>The eval set is one person's opinion</a></li>
+      <li><a href="#b7"><span class="n">07</span>Prompt changes ship to everyone, instantly</a></li>
+      <li><a href="#b8"><span class="n">08</span>Data permissions are chosen per paste</a></li>
+      <li><a href="#b9"><span class="n">09</span>Intake is manual</a></li>
+      <li><a href="#b10"><span class="n">10</span>The bus factor is one</a></li>
+    </ol>
   </div>
 
   <section>
     <div class="sec-head"><h2>The breaks, and the fixes</h2></div>
 
-    <div class="brk">
+    <div class="brk" id="b1">
       <h3><span class="n">01</span>Ground truth lives in one person's browser</h3>
       <p><span class="tag-break">Break</span>Corrections — the human judgment Cherry learns from — persist in <span class="mono">localStorage</span>. One user, one machine. A colleague's Cherry knows nothing your Cherry learned, so the system can't compound judgment across a team, and trend detection only diffs <em>your own</em> prior runs.</p>
       <p><span class="tag-fix">Fix</span>A persistent store (Postgres + the warehouse sync in the <a class="txt" href="index.html#connects">integration architecture</a>): corrections, snapshots, and lifecycle states become org-wide. Every correction carries <b>provenance</b> — who, when, why — because shared ground truth that can't be audited isn't ground truth. Which immediately raises the governance question ↓</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b2">
       <h3><span class="n">02</span>Two PMs give contradictory corrections — who wins?</h3>
       <p><span class="tag-break">Break</span>v1 has one reviewer, so "ground truth" is whatever they said. At scale, the Product PM corrects an issue's severity down while the Support lead corrects it up. Last-write-wins silently destroys one person's judgment; averaging destroys both.</p>
       <p><span class="tag-fix">Fix</span>Three rules, in order. <b>(1) Scope before you adjudicate:</b> most "conflicts" aren't — severity-for-Product and severity-for-Support are different jobs, which is what persona views already model. A correction applies first to the corrector's view. <b>(2) Ownership decides shared fields:</b> for fields with one true value (owner, disposition), the issue's <em>owning team's</em> reviewer has authority; others' corrections attach as stakeholder annotations, not overwrites. <b>(3) Disagreement is signal, not noise:</b> genuinely contested calls get flagged <em>contested</em> — both corrections visible — and routed to a steward's adjudication queue. Every adjudication becomes a labeled eval case, so governance doesn't just resolve conflicts, it <b>manufactures golden data</b>.</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b3">
       <h3><span class="n">03</span>Single-tenant, no auth</h3>
       <p><span class="tag-break">Break</span>Anyone with the URL is "the reviewer." There are no teams, no roles, no separation between who may <em>view</em> a triage, who may <em>correct</em> it, and who may <em>send</em> a ticket to Slack.</p>
       <p><span class="tag-fix">Fix</span>SSO, workspaces per team, and role-scoped authority: viewers, correctors (whose judgment feeds learning), and senders (who fire external actions). Authority maps to the autonomy ladder below — the permission system <em>is</em> the guardrail layer.</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b4">
       <h3><span class="n">04</span>Cost guards reset when the server blinks</h3>
       <p><span class="tag-break">Break</span>The per-IP rate limit, daily cap, and 24-hour result cache are in-memory — per serverless instance. They vanish on cold start and don't coordinate across instances. Fine for a portfolio tool; a hole at scale.</p>
       <p><span class="tag-fix">Fix</span>Shared state (Redis / Vercel KV) for limits and cache, plus real cost governance: the bill is <span class="mono">users × runs/day × tokens × price</span> — at 800 users it's a budget line someone must defend. Levers: prompt caching (live in v1), result caching, model right-sizing (small models enrich and tag; the frontier model synthesizes), context trimming. Budget alerts at 50/80/100%, and the metric that ends arguments: <b>cost per triaged issue vs. the human hour it replaces</b>.</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b5">
       <h3><span class="n">05</span>No observability</h3>
       <p><span class="tag-break">Break</span>v1 keeps no record of model calls. When a user says "Tuesday's triage was weird," there is nothing to replay — the diagnosis is a shrug.</p>
       <p><span class="tag-fix">Fix</span>Log every call — full input, output, model version, latency, cost — replayable. Text is nearly free to store (a year of transcripts costs less than one video call's recording); the real constraint is <b>policy</b>: retention windows, PII, and honoring zero-retention contracts, which is exactly what the data-terms flags enforce.</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b6">
       <h3><span class="n">06</span>The eval set is one person's opinion</h3>
       <p><span class="tag-break">Break</span>Golden files and labeled cases are authored and graded by one builder. At scale that's a single point of judgment: the evals encode one person's definition of "correct."</p>
       <p><span class="tag-fix">Fix</span>Eval governance: labeled sets get an owner and a review cadence; production corrections flow in weekly as candidate cases (adjudicated conflicts first — see 02); the LLM judge is recalibrated against human labels quarterly. Two eval kinds run in CI: the <b>contract</b> gate (<span class="mono">check.mjs</span> — is the output well-formed?) and the <b>accuracy</b> gate (<span class="mono">classify.mjs</span> — did it put issues in the right box?). A wrong-but-well-formed answer passes the first and fails the second; you need both.</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b7">
       <h3><span class="n">07</span>Prompt changes ship to everyone, instantly</h3>
       <p><span class="tag-break">Break</span>Editing the system prompt in v1 deploys to 100% of users at once. With 800 users, that's betting the whole fleet on every wording change — and "rollback" means digging through git at 11pm.</p>
       <p><span class="tag-fix">Fix</span>Prompts become versioned <b>config, not code</b>. The rollout ladder: shadow (new prompt runs silently alongside old, outputs compared offline) → 5% of users → 25% → 100%, each stage gated on metrics (correction rate, receiver-usefulness, eval scores). Rollback is a pointer flip — seconds, no deploy. Never change the prompt and the model version in the same step, for the same reason as the ladder below: an unattributable failure forces a total rollback.</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b8">
       <h3><span class="n">08</span>Data permissions are chosen per paste</h3>
       <p><span class="tag-break">Break</span>v1 asks the person pasting to declare the data terms. Honest for a demo, but at scale nobody should re-read an NDA at triage time — and nobody will.</p>
       <p><span class="tag-fix">Fix</span>Terms are captured <b>once, at contract signing</b>, as structured CRM fields (usable for analytics? for learning? retention window?). Every feedback record carries its account ID and inherits the flags; the pipeline enforces them mechanically, <b>default-deny</b> when flags are missing — so the failure mode is "overly careful," never "learned from something we shouldn't have." New contracts get a standard data-use clause; the top accounts get a one-time backfill.</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b9">
       <h3><span class="n">09</span>Intake is manual</h3>
       <p><span class="tag-break">Break</span>Search-the-web and paste are two doors; the richest signal — support tickets, Gong calls, CRM loss reasons, the warehouse — never walks through either on its own. Manual intake is a documentation tax, and taxed data goes stale.</p>
       <p><span class="tag-fix">Fix</span>The <a class="txt" href="index.html#connects">connector architecture</a>: thin adapters normalize each source into the shape paste-mode already accepts (the core never changes), work items file into Linear/Jira, and status flows <em>back</em> automatically. For warehouse volume, cheap SQL shrinks millions of rows to the slice needing judgment — the model reads the slice, never the millions.</p>
     </div>
 
-    <div class="brk">
+    <div class="brk" id="b10">
       <h3><span class="n">10</span>The bus factor is one</h3>
       <p><span class="tag-break">Break</span>One builder knows how Cherry runs, fails, and turns off. Owners move on — new roles, new teams, well-earned vacations — and a system without an operability floor leaves with them.</p>
       <p><span class="tag-fix">Fix</span><b>Minimum viable operability</b> before the user base widens: a one-page runbook (what it is, how to tell it's broken, how to turn it off, who inherits it), a named backup owner who has run it once, a documented kill switch, and a failure taxonomy — each known failure mode with its detection, severity, and containment. Scale is a privilege operability has to earn.</p>
@@ -155,7 +193,7 @@
 
   <section>
     <div class="sec-head"><h2>The order of operations</h2></div>
-    <div class="callout"><b>Never increase scale and autonomy in the same step.</b> If both change at once, the first bad outcome is unattributable — was it the new users' novel inputs, or the removed human gate? — and the only safe response is rolling everything back. One axis at a time makes every regression attributable and every rollback surgical.</div>
+    <div class="callout"><span class="stamp">the rule</span><p><b>Never increase scale and autonomy in the same step.</b> If both change at once, the first bad outcome is unattributable — was it the new users' novel inputs, or the removed human gate? — and the only safe response is rolling everything back. One axis at a time makes every regression attributable and every rollback surgical.</p></div>
     <ol class="ladder">
       <li><b>Shadow.</b> The system runs, humans decide, outputs are only compared. Zero blast radius; this is where trust data comes from.</li>
       <li><b>Propose, human disposes.</b> Full capability, gated authority — Cherry drafts everything, a human fires anything external. (v1 lives here: drafts are free, the Slack send is a button.)</li>
