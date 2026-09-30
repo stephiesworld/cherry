@@ -1,80 +1,129 @@
 # Cherry — design system
 
-The full design lives in `cherry.html` (CSS in the `<style>` block, tokens in
-`:root`). This file is the intent behind it: the rules to follow when editing or
-extending the UI so it stays on-brand. **When you change the front end, derive
-new styling from these tokens — don't introduce new colors, fonts, or radii.**
+The design lives in `index.html` (CSS in the `<style>` block, tokens in `:root`);
+`scale.html` reuses the same tokens and components. This file is the intent
+behind it: the rules to follow when editing or extending the UI so it stays
+on-brand. **When you change the front end, derive new styling from these tokens —
+don't introduce new colors, fonts, or radii.**
 
 ## Concept
-Cherry is an *instrument*, not a toy: cool and bright, confident, a little
-editorial. The whole identity comes from the name — the job is picking the few
-signals worth acting on out of a large pile ("from the pile, the point"). It is
-deliberately the opposite of its sibling product Stanley (warm, dim, all-serif
-butler) — keep them visually distinct.
+Cherry is an *instrument* with a bite: warm paper, hard ink outlines, one loud
+red. The identity comes from the name — picking the few signals worth acting on
+out of a large pile — and from the **sour/sweet** metaphor: severity is
+tartness. It should feel like a well-made tool, not a landing page. The product
+is the hero; there is no slogan-and-paragraph column.
+
+Keep it visually distinct from sibling product Stanley (dim, all-serif butler):
+Cherry is bright, outlined, and runs on sans + mono.
 
 ## Color tokens (exact, from `:root`)
-| Token            | Value                 | Use |
-|------------------|-----------------------|-----|
-| `--ink`          | `#1A1416`             | Primary text; dark CTA band. A plum-tinted near-black, not pure black. |
-| `--muted`        | `#8A7E7C`             | Secondary text, captions, labels. |
-| `--ground`       | `#FBF6F4`             | Page background. Faint blush off-white (NOT cream — cream is Stanley). |
-| `--panel`        | `#F3EBE8`             | Cards, panels, takeaway box. |
-| `--panel-deep`   | `#ECE0DC`             | Deeper panel tint when needed. |
-| `--cherry`       | `#B0233C`             | THE accent. Scores, primary buttons, top-issue emphasis, links. |
-| `--cherry-bright`| `#D13651`             | Hover/active state of the cherry accent only. |
-| `--stem`         | `#46734E`             | Secondary/positive: owners, "what they love," confirmed state. |
-| `--rule`         | `rgba(26,20,22,0.12)` | Hairline borders, dividers. |
-| `--rule-strong`  | `rgba(26,20,22,0.22)` | Stronger borders, input outlines. |
+| Token            | Value                  | Use |
+|------------------|------------------------|-----|
+| `--ink`          | `#19120F`              | Primary text. Warm near-black, never pure black. |
+| `--line`         | `#19120F`              | Outlines and hard offset shadows (same value as ink). |
+| `--muted`        | `#8A7A66`              | Secondary text, captions, inactive tabs, mono labels. |
+| `--ground`       | `#F8EFDF`              | Page background. Warm cream paper. |
+| `--panel`        | `#F2E7D0`              | Section-header tabs, inactive console tabs, callouts, takeaway box. |
+| `--panel-deep`   | `#EAD9BB`              | The sort-demo box; deeper panel tint. |
+| `--cherry`       | `#C71F38`              | THE accent. Scores, primary buttons, top-issue shadow, section-header dot. |
+| `--cherry-bright`| `#D8324B`              | Hover/active of the cherry accent only. |
+| `--cherry-deep`  | `#8E1428`              | Stamps, links in example rows, "corrected" state shadow. |
+| `--stem`         | `#5A6E10`              | Olive green. Owners, "what they love", confirmed state, live integrations. |
+| `--sour`         | `#AEC42B`              | Acid-green highlight: link underlines, the underline swash. Small doses only. |
+| `--rule`         | `rgba(25,18,15,0.13)`  | Hairline dividers inside content. |
+| `--rule-strong`  | `rgba(25,18,15,0.34)`  | Stronger borders, dimmed chips, input outlines. |
 
-Rules: cherry is the *only* loud color — spend it sparingly (top pick, primary
-action, scores). Stem is the quiet counterpoint (positive/owner). Never add a
-third hue.
+White (`#fff`) is the surface for cards, inputs and the active console tab.
 
-## Typography (three roles, no more)
-- **Fraunces** (serif, optical) — display only: wordmark, H1/H2, the takeaway box,
-  big numbers in value cards. Lush and characterful; use at large sizes.
-- **Inter** (sans) — all body copy, UI, controls. The neutral workhorse.
-- **JetBrains Mono** — labels, eyebrows, scores, tags, status lines. Always
-  uppercase with letter-spacing ~0.1–0.18em for the "instrument readout" feel.
+**Caution amber** (not a token yet, used consistently): `#C99A3A` border,
+`#8A6712` text, `#FBF3E4` fill. Reserved for "needs a human look" states —
+review queue, low-confidence notes, revenue/money tags, competitor and silent
+sources. Don't use it decoratively.
+
+Rules: cherry is the only loud color — spend it on the top pick, the primary
+action, and scores. Stem is the quiet positive counterpoint. Sour and amber are
+signals, not decoration. No new hues.
+
+## Typography (three roles)
+- **Bricolage Grotesque** (sans) — body copy, UI, inputs, and section-header
+  titles (700, tight tracking). The workhorse and the main display voice.
+- **JetBrains Mono** — buttons, tabs, labels, tags, status lines, chips.
+  Uppercase with letter-spacing ~0.05–0.18em for the "instrument readout" feel.
+- **Fraunces** (serif) — numbers and quotes only: signal scores, big stat
+  numbers, the takeaway box, card `h3`s, results `h2`. Not for page or section
+  headlines.
 
 Loaded via Google Fonts in the `<head>`. Don't swap families.
 
+## Surfaces: outline + hard shadow
+The signature look is a **1.5px ink outline with a solid offset shadow** (no
+blur): `box-shadow: 6px 6px 0 var(--line)` on big panels, `4px` on cards,
+`3px` on buttons. Coloured offsets carry state:
+- `var(--cherry)` — top issue
+- `var(--stem)` — confirmed
+- `var(--cherry-deep)` — corrected
+
+Primary buttons "press in" on hover (translate 2px, shadow shrinks to 1px).
+Never use soft/blurred drop shadows.
+
+## Radii
+3–5px for tags, stamps and small chips; 6–8px for inputs, buttons and tabs;
+9–12px for cards and panels; `50%` for dots; `999px` only for feedback pills.
+
 ## Structure & components
-- **Hero**: two columns — copy + live input on the left, the "sort" demo on the
-  right (raw note chips that resolve into 3 ranked issue cards on load). The sort
-  animation is the signature; keep it.
-- **Results**: a takeaway box (Fraunces, cherry left-border), then a 1.5fr/1fr
-  grid — ranked issue cards on the left, "what they love" + "recommended next
-  steps" on the right.
-- **Issue card** (`.rissue`): signal score (mono, cherry) on the left; title,
-  gist, and tags (severity / prevalence / owner) on the right. Top issue gets the
-  `.top` emphasis. States: `.confirmed` (stem border) and `.corrected` (cherry
-  border, faint blush fill).
-- **Human-in-the-loop**: each issue has "Looks right / Not quite" pills; "Not
-  quite" reveals an inline correction input; corrections collect in `.corrbar`
-  with a "Re-pick with my corrections" primary button.
+- **Header**: cherry-pair SVG mark + "Cherry" wordmark + a small cherry
+  "sour or sweet" badge; mono nav on the right (hidden under 640px).
+- **Hero = the tool.** No headline column. A visually hidden `h1` carries the
+  page heading for screen readers.
+  - **Console**: full-width white panel (6px hard shadow) with *Search the web*
+    / *Paste feedback* as folder tabs on its top-left edge. The active tab is
+    white and joins the panel; the inactive one is `--panel` with muted text.
+    Inside: a large runbar (input + cherry "Pick the signal" button) and the
+    "Try" example links; or the paste textarea + data-terms select.
+  - **Sort demo** (signature moment, keep it): `--panel-deep` box beneath the
+    console. Left: the pile of raw notes as slightly tilted white chips.
+    Middle: a cherry arrow. Right: three ranked `.issue` cards. On load the
+    notes that feed an issue turn cherry (`.hit`), the rest dim (`.dim`), then
+    the picks fade in. Stacks vertically under 880px (arrow rotates down).
+- **Section headers** (`.sec-head`): a folder tab (`--panel`, 1.5px ink
+  outline, rounded top) holding a cherry dot + Bricolage title, sitting on a
+  full-width 1.5px ink rule. No right-aligned tagline, no section numbers.
+- **Results**: `res-head` (Fraunces h2, product name in cherry), then status
+  strips (learning, trends, team digest, source mix), the takeaway box (Fraunces,
+  cherry left border), then a 1.5fr/1fr grid — ranked issues left, side cards
+  ("what they love", "recommended next steps", quality) right.
+- **Issue card** (`.rissue`): Fraunces score in cherry on the left; title, gist
+  and mono tags (severity-as-tartness / prevalence / owner in stem) on the right.
+- **Severity as tartness**: `sweet → mild → tart → sour → extra sour` (1–5).
+  "Extra sour" gets a slightly rotated stamp.
+- **Human-in-the-loop**: "Looks right / Not quite" pills per issue; "Not quite"
+  opens an inline correction; corrections collect in `.corrbar` with a
+  "Re-pick with my corrections" primary button. Persona tabs and signal-weight
+  sliders re-rank the same triage.
+- **Footer**: Fraunces italic tag line on the left, mono studio credit right.
 
 ## Motion
-Restrained and purposeful. One orchestrated hero moment (the sort resolving),
-gentle scroll-reveals (`.rise`), small hover lifts on buttons/cards. A bobbing
-two-dot cherry loader during a query. **Respect `prefers-reduced-motion`** — the
-existing CSS disables transitions and shows resolved states; preserve that.
+Restrained and purposeful: the one orchestrated hero moment (the sort
+resolving), gentle scroll-reveals (`.rise`), button press-in, a bobbing
+two-cherry loader during a query. **Respect `prefers-reduced-motion`** — the
+CSS disables transitions and the demo jumps straight to its resolved state;
+preserve that.
 
-## Radii, spacing, shadows
-- Radius: 4px (inputs/buttons), 8–10px (cards/panels). No sharp 0px, no pills
-  except tags/feedback chips (999px).
-- Shadows are soft and low-opacity, tinted with the ink color, never pure black.
-- Generous section padding (~70px); max content width 1140px.
+## Spacing & layout
+Max content width 1140px with 32px side padding. Sections ~70px vertical
+padding. Breakpoints: 880px (grids → one column, sort demo stacks), 680px,
+640px (nav hides), 540/520px (runbar stacks, tighter padding and chips).
 
 ## Voice (copy is design material)
-Sharp, plain, confident product voice — not the butler register of Stanley.
-Active verbs, specific over clever. Examples in use: "From the pile, the point."
-· "Pick the signal." · "Cherry proposes — you decide." Buttons say exactly what
-happens ("Re-pick with my corrections", not "Submit").
+Sharp, plain, a little tart. Active verbs, specific over clever. Lean on the
+fruit sparingly ("bites through the noise", severity as tartness). Buttons say
+exactly what happens ("Pick the signal", "Triage this feedback", "Re-pick with
+my corrections" — never "Submit"). Avoid slogan-style headlines with a
+full stop; let the product and the labels do the talking.
 
 ## Quality floor (keep when editing)
-Responsive to mobile (breakpoints at 880px and ~540px already defined), visible
-keyboard focus (`:focus-visible` outline in cherry), reduced-motion respected,
-inputs labeled. Don't regress these.
+Responsive to mobile with no horizontal scroll at 390px, visible keyboard focus
+(`:focus-visible` outline in cherry), reduced motion respected, every input
+labeled, a real `h1` (visually hidden is fine). Don't regress these.
 
 — Studio Felix
