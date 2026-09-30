@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Scaling Cherry — from demo to enterprise</title>
+<title>Cherry scaling notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -112,18 +112,18 @@
       <h1>Scaling notes</h1>
       <span class="meta"><b>10</b> breaks · v1 → v2</span>
     </div>
-    <p class="lede">Cherry v1 is demo-scale on purpose: one user, one browser, no database. That was the right scope to prove the synthesis-and-judgment core. Below is each place it breaks once <b>hundreds of submitters and dozens of teams</b> use it, and what v2 does about it.</p>
+    <p class="lede">Cherry v1 is demo-scale on purpose: one user, one browser, no database. That was enough to prove the core idea, synthesis plus human judgment. Below is each place it breaks once <b>hundreds of submitters and dozens of teams</b> use it, and what v2 changes.</p>
     <ol class="toc" aria-label="The ten breaks">
       <li><a href="#b1"><span class="n">01</span>Ground truth lives in one person's browser</a></li>
-      <li><a href="#b2"><span class="n">02</span>Two PMs give contradictory corrections — who wins?</a></li>
+      <li><a href="#b2"><span class="n">02</span>Two PMs correct the same issue in opposite directions</a></li>
       <li><a href="#b3"><span class="n">03</span>Single-tenant, no auth</a></li>
-      <li><a href="#b4"><span class="n">04</span>Cost guards reset when the server blinks</a></li>
+      <li><a href="#b4"><span class="n">04</span>Cost guards reset when the server restarts</a></li>
       <li><a href="#b5"><span class="n">05</span>No observability</a></li>
       <li><a href="#b6"><span class="n">06</span>The eval set is one person's opinion</a></li>
-      <li><a href="#b7"><span class="n">07</span>Prompt changes ship to everyone, instantly</a></li>
+      <li><a href="#b7"><span class="n">07</span>Prompt changes ship to everyone at once</a></li>
       <li><a href="#b8"><span class="n">08</span>Data permissions are chosen per paste</a></li>
       <li><a href="#b9"><span class="n">09</span>Intake is manual</a></li>
-      <li><a href="#b10"><span class="n">10</span>The bus factor is one</a></li>
+      <li><a href="#b10"><span class="n">10</span>Only one person can run it</a></li>
     </ol>
   </div>
 
@@ -132,80 +132,80 @@
 
     <div class="brk" id="b1">
       <h3><span class="n">01</span>Ground truth lives in one person's browser</h3>
-      <p><span class="tag-break">Break</span>Corrections — the human judgment Cherry learns from — persist in <span class="mono">localStorage</span>. One user, one machine. A colleague's Cherry knows nothing your Cherry learned, so the system can't compound judgment across a team, and trend detection only diffs <em>your own</em> prior runs.</p>
-      <p><span class="tag-fix">Fix</span>A persistent store (Postgres + the warehouse sync in the <a class="txt" href="index.html#connects">integration architecture</a>): corrections, snapshots, and lifecycle states become org-wide. Every correction carries <b>provenance</b> — who, when, why — because shared ground truth that can't be audited isn't ground truth. Which immediately raises the governance question ↓</p>
+      <p><span class="tag-break">Break</span>Corrections, the human judgment Cherry learns from, are saved in <span class="mono">localStorage</span>: one user, one machine. A colleague's Cherry never sees what yours learned, so judgment can't build up across a team, and trend detection can only compare against <em>your own</em> earlier runs.</p>
+      <p><span class="tag-fix">Fix</span>Move corrections, snapshots and lifecycle states into a shared store (Postgres, plus the warehouse sync in the <a class="txt" href="index.html#connects">integration architecture</a>) so they apply across the org. Each correction records <b>who made it, when and why</b>, because a shared source of truth has to be auditable. Sharing corrections raises the next problem: what happens when two people disagree (02).</p>
     </div>
 
     <div class="brk" id="b2">
-      <h3><span class="n">02</span>Two PMs give contradictory corrections — who wins?</h3>
-      <p><span class="tag-break">Break</span>v1 has one reviewer, so "ground truth" is whatever they said. At scale, the Product PM corrects an issue's severity down while the Support lead corrects it up. Last-write-wins silently destroys one person's judgment; averaging destroys both.</p>
-      <p><span class="tag-fix">Fix</span>Three rules, in order. <b>(1) Scope before you adjudicate:</b> most "conflicts" aren't — severity-for-Product and severity-for-Support are different jobs, which is what persona views already model. A correction applies first to the corrector's view. <b>(2) Ownership decides shared fields:</b> for fields with one true value (owner, disposition), the issue's <em>owning team's</em> reviewer has authority; others' corrections attach as stakeholder annotations, not overwrites. <b>(3) Disagreement is signal, not noise:</b> genuinely contested calls get flagged <em>contested</em> — both corrections visible — and routed to a steward's adjudication queue. Every adjudication becomes a labeled eval case, so governance doesn't just resolve conflicts, it <b>manufactures golden data</b>.</p>
+      <h3><span class="n">02</span>Two PMs correct the same issue in opposite directions</h3>
+      <p><span class="tag-break">Break</span>v1 has one reviewer, so their word is final. At scale, the Product PM lowers an issue's severity while the Support lead raises it. Last-write-wins throws away one person's judgment, and averaging throws away both.</p>
+      <p><span class="tag-fix">Fix</span>Three rules, applied in order. <b>(1) Check whether it's a real conflict.</b> Usually it isn't: severity for Product and severity for Support answer different questions, which persona views already handle. A correction applies to the corrector's own view first. <b>(2) Ownership settles shared fields.</b> For fields with one correct value (owner, disposition), the reviewer from the team that owns the issue decides. Other teams' corrections attach as stakeholder notes instead of overwriting. <b>(3) Keep real disagreements visible.</b> A genuinely contested call is marked <em>contested</em>, shows both corrections, and goes to a steward's queue. Each ruling becomes a labeled eval case, so resolving conflicts also <b>produces golden data</b>.</p>
     </div>
 
     <div class="brk" id="b3">
       <h3><span class="n">03</span>Single-tenant, no auth</h3>
-      <p><span class="tag-break">Break</span>Anyone with the URL is "the reviewer." There are no teams, no roles, no separation between who may <em>view</em> a triage, who may <em>correct</em> it, and who may <em>send</em> a ticket to Slack.</p>
-      <p><span class="tag-fix">Fix</span>SSO, workspaces per team, and role-scoped authority: viewers, correctors (whose judgment feeds learning), and senders (who fire external actions). Authority maps to the autonomy ladder below — the permission system <em>is</em> the guardrail layer.</p>
+      <p><span class="tag-break">Break</span>Anyone with the URL counts as the reviewer. There are no teams or roles, and no difference between who can <em>view</em> a triage, who can <em>correct</em> it, and who can <em>send</em> a ticket to Slack.</p>
+      <p><span class="tag-fix">Fix</span>SSO, a workspace per team, and three roles: viewers; correctors, whose judgment feeds learning; and senders, who can trigger external actions. The roles line up with the autonomy ladder below, so permissions double as the guardrails.</p>
     </div>
 
     <div class="brk" id="b4">
-      <h3><span class="n">04</span>Cost guards reset when the server blinks</h3>
-      <p><span class="tag-break">Break</span>The per-IP rate limit, daily cap, and 24-hour result cache are in-memory — per serverless instance. They vanish on cold start and don't coordinate across instances. Fine for a portfolio tool; a hole at scale.</p>
-      <p><span class="tag-fix">Fix</span>Shared state (Redis / Vercel KV) for limits and cache, plus real cost governance: the bill is <span class="mono">users × runs/day × tokens × price</span> — at 800 users it's a budget line someone must defend. Levers: prompt caching (live in v1), result caching, model right-sizing (small models enrich and tag; the frontier model synthesizes), context trimming. Budget alerts at 50/80/100%, and the metric that ends arguments: <b>cost per triaged issue vs. the human hour it replaces</b>.</p>
+      <h3><span class="n">04</span>Cost guards reset when the server restarts</h3>
+      <p><span class="tag-break">Break</span>The per-IP rate limit, daily cap and 24-hour result cache live in memory on each serverless instance. They reset on cold start and aren't shared between instances. That's acceptable for a portfolio tool and a real gap at scale.</p>
+      <p><span class="tag-fix">Fix</span>Put limits and cache in shared state (Redis or Vercel KV) and add cost controls. The bill is <span class="mono">users × runs/day × tokens × price</span>; at 800 users it becomes a budget line someone has to defend. The levers are prompt caching (already in v1), result caching, matching the model to the job (small models enrich and tag, the frontier model synthesizes), and trimming context. Set budget alerts at 50, 80 and 100%. The number to report is <b>cost per triaged issue compared with the hour of human work it replaces</b>.</p>
     </div>
 
     <div class="brk" id="b5">
       <h3><span class="n">05</span>No observability</h3>
-      <p><span class="tag-break">Break</span>v1 keeps no record of model calls. When a user says "Tuesday's triage was weird," there is nothing to replay — the diagnosis is a shrug.</p>
-      <p><span class="tag-fix">Fix</span>Log every call — full input, output, model version, latency, cost — replayable. Text is nearly free to store (a year of transcripts costs less than one video call's recording); the real constraint is <b>policy</b>: retention windows, PII, and honoring zero-retention contracts, which is exactly what the data-terms flags enforce.</p>
+      <p><span class="tag-break">Break</span>v1 doesn't record model calls. If someone says "Tuesday's triage looked wrong," there's nothing to replay.</p>
+      <p><span class="tag-fix">Fix</span>Log every call with its full input, output, model version, latency and cost, so any run can be replayed. Storage is cheap: a year of text transcripts costs less than one recorded video call. The real limits are <b>policy</b>: retention windows, PII, and zero-retention contracts, which the data-terms flags already enforce.</p>
     </div>
 
     <div class="brk" id="b6">
       <h3><span class="n">06</span>The eval set is one person's opinion</h3>
-      <p><span class="tag-break">Break</span>Golden files and labeled cases are authored and graded by one builder. At scale that's a single point of judgment: the evals encode one person's definition of "correct."</p>
-      <p><span class="tag-fix">Fix</span>Eval governance: labeled sets get an owner and a review cadence; production corrections flow in weekly as candidate cases (adjudicated conflicts first — see 02); the LLM judge is recalibrated against human labels quarterly. Two eval kinds run in CI: the <b>contract</b> gate (<span class="mono">check.mjs</span> — is the output well-formed?) and the <b>accuracy</b> gate (<span class="mono">classify.mjs</span> — did it put issues in the right box?). A wrong-but-well-formed answer passes the first and fails the second; you need both.</p>
+      <p><span class="tag-break">Break</span>One person wrote and graded the golden files and labeled cases. At scale, that means the evals encode a single person's idea of "correct."</p>
+      <p><span class="tag-fix">Fix</span>Give each labeled set an owner and a review schedule. Feed production corrections in weekly as candidate cases, adjudicated conflicts first (see 02). Recalibrate the LLM judge against human labels every quarter. CI runs two kinds of eval: the <b>contract</b> check (<span class="mono">check.mjs</span>: is the output well-formed?) and the <b>accuracy</b> check (<span class="mono">classify.mjs</span>: are issues in the right category?). A well-formed wrong answer passes the first and fails the second, so both are needed.</p>
     </div>
 
     <div class="brk" id="b7">
-      <h3><span class="n">07</span>Prompt changes ship to everyone, instantly</h3>
-      <p><span class="tag-break">Break</span>Editing the system prompt in v1 deploys to 100% of users at once. With 800 users, that's betting the whole fleet on every wording change — and "rollback" means digging through git at 11pm.</p>
-      <p><span class="tag-fix">Fix</span>Prompts become versioned <b>config, not code</b>. The rollout ladder: shadow (new prompt runs silently alongside old, outputs compared offline) → 5% of users → 25% → 100%, each stage gated on metrics (correction rate, receiver-usefulness, eval scores). Rollback is a pointer flip — seconds, no deploy. Never change the prompt and the model version in the same step, for the same reason as the ladder below: an unattributable failure forces a total rollback.</p>
+      <h3><span class="n">07</span>Prompt changes ship to everyone at once</h3>
+      <p><span class="tag-break">Break</span>Editing the system prompt in v1 ships it to every user immediately. With 800 users, each wording change is a bet on the whole user base, and rolling back means digging through git late at night.</p>
+      <p><span class="tag-fix">Fix</span>Store prompts as versioned <b>config rather than code</b>. Roll out in stages: shadow (the new prompt runs silently next to the old one and outputs are compared offline), then 5% of users, 25%, and 100%. Each stage has to clear its metrics first: correction rate, how useful receivers find the output, and eval scores. Rolling back means pointing at the previous version, which takes seconds and no deploy. Don't change the prompt and the model version in the same step: if something breaks you won't know which one caused it, and you'll have to roll back both.</p>
     </div>
 
     <div class="brk" id="b8">
       <h3><span class="n">08</span>Data permissions are chosen per paste</h3>
-      <p><span class="tag-break">Break</span>v1 asks the person pasting to declare the data terms. Honest for a demo, but at scale nobody should re-read an NDA at triage time — and nobody will.</p>
-      <p><span class="tag-fix">Fix</span>Terms are captured <b>once, at contract signing</b>, as structured CRM fields (usable for analytics? for learning? retention window?). Every feedback record carries its account ID and inherits the flags; the pipeline enforces them mechanically, <b>default-deny</b> when flags are missing — so the failure mode is "overly careful," never "learned from something we shouldn't have." New contracts get a standard data-use clause; the top accounts get a one-time backfill.</p>
+      <p><span class="tag-break">Break</span>v1 asks whoever pastes feedback to declare the data terms. That's fine for a demo, but at scale nobody is going to re-read an NDA before triaging.</p>
+      <p><span class="tag-fix">Fix</span>Capture terms <b>once, when the contract is signed</b>, as structured CRM fields: can this be used for analytics, can it be used for learning, and how long can it be kept? Each feedback record carries its account ID and inherits those flags, and the pipeline enforces them automatically. When flags are missing it <b>defaults to deny</b>, so mistakes err toward caution rather than learning from data it shouldn't. New contracts get a standard data-use clause, and the largest existing accounts get a one-time backfill.</p>
     </div>
 
     <div class="brk" id="b9">
       <h3><span class="n">09</span>Intake is manual</h3>
-      <p><span class="tag-break">Break</span>Search-the-web and paste are two doors; the richest signal — support tickets, Gong calls, CRM loss reasons, the warehouse — never walks through either on its own. Manual intake is a documentation tax, and taxed data goes stale.</p>
-      <p><span class="tag-fix">Fix</span>The <a class="txt" href="index.html#connects">connector architecture</a>: thin adapters normalize each source into the shape paste-mode already accepts (the core never changes), work items file into Linear/Jira, and status flows <em>back</em> automatically. For warehouse volume, cheap SQL shrinks millions of rows to the slice needing judgment — the model reads the slice, never the millions.</p>
+      <p><span class="tag-break">Break</span>Web search and paste are the only ways in. The richest signal (support tickets, Gong calls, CRM loss reasons, the warehouse) only arrives if someone copies it over by hand, so it goes stale.</p>
+      <p><span class="tag-fix">Fix</span>The <a class="txt" href="index.html#connects">connector architecture</a>: small adapters convert each source into the format paste mode already accepts, so the core doesn't change. Work items are filed in Linear or Jira, and their status syncs back automatically. For warehouse volumes, plain SQL narrows millions of rows to the slice that needs judgment, and the model only reads that slice.</p>
     </div>
 
     <div class="brk" id="b10">
-      <h3><span class="n">10</span>The bus factor is one</h3>
-      <p><span class="tag-break">Break</span>One builder knows how Cherry runs, fails, and turns off. Owners move on — new roles, new teams, well-earned vacations — and a system without an operability floor leaves with them.</p>
-      <p><span class="tag-fix">Fix</span><b>Minimum viable operability</b> before the user base widens: a one-page runbook (what it is, how to tell it's broken, how to turn it off, who inherits it), a named backup owner who has run it once, a documented kill switch, and a failure taxonomy — each known failure mode with its detection, severity, and containment. Scale is a privilege operability has to earn.</p>
+      <h3><span class="n">10</span>Only one person can run it</h3>
+      <p><span class="tag-break">Break</span>Only one person knows how Cherry runs, how it fails and how to switch it off. When that person changes roles or goes on vacation, the knowledge goes with them.</p>
+      <p><span class="tag-fix">Fix</span>Before opening Cherry to more users, set a <b>minimum operability bar</b>: a one-page runbook (what it is, how to tell it's broken, how to turn it off, who takes over), a named backup owner who has run it at least once, a documented kill switch, and a list of known failure modes with how each is detected, how severe it is and how it's contained.</p>
     </div>
   </section>
 
   <section>
     <div class="sec-head"><h2>The order of operations</h2></div>
-    <div class="callout"><span class="stamp">the rule</span><p><b>Never increase scale and autonomy in the same step.</b> If both change at once, the first bad outcome is unattributable — was it the new users' novel inputs, or the removed human gate? — and the only safe response is rolling everything back. One axis at a time makes every regression attributable and every rollback surgical.</p></div>
+    <div class="callout"><span class="stamp">the rule</span><p><b>Never increase scale and autonomy in the same step.</b> If both change at once and something goes wrong, you can't tell whether the new users' inputs or the missing human check caused it, so the only safe move is to roll everything back. Changing one at a time gives every regression a clear cause and keeps every rollback targeted.</p></div>
     <ol class="ladder">
-      <li><b>Shadow.</b> The system runs, humans decide, outputs are only compared. Zero blast radius; this is where trust data comes from.</li>
-      <li><b>Propose, human disposes.</b> Full capability, gated authority — Cherry drafts everything, a human fires anything external. (v1 lives here: drafts are free, the Slack send is a button.)</li>
-      <li><b>Scale wide, autonomy frozen.</b> More teams, more intake — with the human gate still on, so scale's edge cases surface while someone is watching.</li>
-      <li><b>Autonomy by reversibility.</b> Where months of review data support it, unhook the human from <em>reversible</em> actions first (tagging, clustering, drafting stay autonomous; sending, closing, paying stay gated) — one action type at a time, each earning its own gate removal.</li>
-      <li><b>Never fully unattended.</b> Sampled human audit, drift alarms, and the kill switch stay forever. Trust here isn't a milestone you pass — it's a monitoring system you believe in.</li>
+      <li><b>Shadow.</b> Cherry runs, people decide, and outputs are only compared. Nothing can go wrong at this stage, and it's where the trust data comes from.</li>
+      <li><b>Cherry proposes, a person decides.</b> Cherry drafts everything; a person triggers anything external. (v1 is here: drafts are free, and sending to Slack is a button.)</li>
+      <li><b>More users, same autonomy.</b> Add teams and intake sources with the human check still in place, so new edge cases show up while someone is watching.</li>
+      <li><b>Autonomy for reversible actions.</b> Once months of review data support it, remove the human check from <em>reversible</em> actions first, one action type at a time. Tagging, clustering and drafting can run on their own; sending, closing and paying still need approval.</li>
+      <li><b>Never fully unattended.</b> Sampled human audits, drift alarms and the kill switch stay in place permanently.</li>
     </ol>
   </section>
 
   <footer>
     <div class="foot">
-      <span class="tag">A demo that knows where it breaks is halfway to a platform.</span>
+      <span class="tag">Where v1 breaks, and what v2 changes.</span>
       <span class="label"><a class="txt" href="index.html" style="border:none">← Cherry</a> · Studio Felix</span>
     </div>
   </footer>
