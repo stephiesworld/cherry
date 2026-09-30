@@ -50,7 +50,7 @@ signals, not decoration. No new hues.
 - **JetBrains Mono** — buttons, tabs, labels, tags, status lines, chips.
   Uppercase with letter-spacing ~0.05–0.18em for the "instrument readout" feel.
 - **Fraunces** (serif) — numbers and quotes only: signal scores, big stat
-  numbers, the takeaway box, card `h3`s, results `h2`. Not for page or section
+  numbers, the takeaway statement, step `h3`s. Not for page or section
   headlines.
 
 Loaded via Google Fonts in the `<head>`. Don't swap families.
@@ -88,17 +88,29 @@ Never use soft/blurred drop shadows.
 - **Section headers** (`.sec-head`): a folder tab (`--panel`, 1.5px ink
   outline, rounded top) holding a cherry dot + Bricolage title, sitting on a
   full-width 1.5px ink rule. No right-aligned tagline, no section numbers.
-- **Results**: `res-head` (Fraunces h2, product name in cherry), then status
-  strips (learning, trends, team digest, source mix), the takeaway box (Fraunces,
-  cherry left border), then a 1.5fr/1fr grid — ranked issues left, side cards
-  ("what they love", "recommended next steps", quality) right.
+- **Results**:
+  - **Header**: the product name, big (Bricolage 700), with a mono readout
+    beside it ("5 issues ranked · 6 sources", counts in cherry) and "Try
+    another" on the right, over a 1.5px ink rule. No sentence headline.
+  - **The point**: the takeaway as a large Fraunces statement on the page,
+    marked by a small rotated "the point" stamp. No callout box, no left border.
+  - **Readout panel**: the context strips (routing, evidence base, trends,
+    capability signal, coverage, authenticity, data terms, memory) share one
+    white outlined panel, one row each, divided by hairlines. It hides itself
+    when every strip is empty.
+  - **Grid**: ranked issues left, under a small section-header tab ("Top
+    issues, ranked by signal"). Side cards right: white, outlined, hard shadow,
+    Bricolage title with a dot. "What they love" is the **sweet** card (stem
+    shadow and dots); "Do next" lists actions with outlined checkboxes.
 - **Issue card** (`.rissue`): Fraunces score in cherry on the left; title, gist
   and mono tags (severity-as-tartness / prevalence / owner in stem) on the right.
 - **Severity as tartness**: `sweet → mild → tart → sour → extra sour` (1–5).
   "Extra sour" gets a slightly rotated stamp.
 - **Human-in-the-loop**: "Looks right / Not quite" pills per issue; "Not quite"
   opens an inline correction; corrections collect in `.corrbar` with a
-  "Re-pick with my corrections" primary button. Persona tabs and signal-weight
+  "Re-pick with my corrections" primary button. Drafting sits beside them as
+  one group ("Draft: Ticket · Reply · Update"). Under 540px the score moves
+  into a row above the title. Persona tabs and signal-weight
   sliders re-rank the same triage.
 - **Footer**: Fraunces italic tag line on the left, mono studio credit right.
 
