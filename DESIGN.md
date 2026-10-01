@@ -134,11 +134,18 @@ padding. Breakpoints: 880px (grids → one column, sort demo stacks), 680px,
 640px (nav hides), 540/520px (runbar stacks, tighter padding and chips).
 
 ## Voice (copy is design material)
-Sharp, plain, a little tart. Active verbs, specific over clever. Lean on the
-fruit sparingly ("bites through the noise", severity as tartness). Buttons say
-exactly what happens ("Pick the signal", "Triage this feedback", "Re-pick with
-my corrections" — never "Submit"). Avoid slogan-style headlines with a
-full stop; let the product and the labels do the talking.
+Plain and specific. Say what the thing does in the words a PM would use out
+loud. Keep the fruit to names and labels (the wordmark, severity as tartness:
+sweet → extra sour); don't write fruit puns into sentences. Buttons say exactly
+what happens ("Pick the signal", "Triage this feedback", "Re-pick with my
+corrections"; never "Submit").
+
+Avoid the patterns that make copy read as generated:
+- slogan headlines or taglines ending in a full stop
+- closing aphorisms ("X is a privilege Y has to earn", "halfway to a platform")
+- "isn't X — it's Y" and "not X, but Y" turns
+- chains of em-dashes; use a full stop, colon or comma instead
+- vague intensifiers ("genuinely", "truly", "sharper every pass")
 
 ## Quality floor (keep when editing)
 Responsive to mobile with no horizontal scroll at 390px, visible keyboard focus

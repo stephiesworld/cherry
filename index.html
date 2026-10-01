@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Cherry — the feedback worth acting on</title>
+<title>Cherry · customer feedback triage</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -472,7 +472,7 @@
           </div>
         </div>
         <div class="pastebox" id="pasteBox">
-          <textarea id="feedbackInput" placeholder="Paste raw feedback — a Slack thread, support tickets, sales-call notes — and Cherry triages it directly (no web search). The signal lives inside your company too." aria-label="Paste customer feedback"></textarea>
+          <textarea id="feedbackInput" placeholder="Paste raw feedback, like a Slack thread, support tickets or sales-call notes. Cherry triages it directly, without searching the web." aria-label="Paste customer feedback"></textarea>
           <div class="pastebar">
             <button class="btn btn-primary" id="runFeedback">Triage this feedback</button>
             <select id="dataTerms" aria-label="Data terms for this feedback" title="Contract terms travel with the data as metadata — enforced by the pipeline, default-deny when unspecified.">
@@ -534,7 +534,7 @@
     <div class="res-grid">
       <div>
         <div class="sec-head sub"><h3>Top issues, ranked by signal</h3></div>
-        <div class="col-hint">Cherry proposes — you decide. Confirm a call, or tell Cherry what's off and re-rank.</div>
+        <div class="col-hint">Cherry proposes, you decide. Confirm a call, or tell Cherry what's off and it re-ranks.</div>
         <div class="personas" id="personas">
           <span class="plbl">View for</span>
           <button class="pbtn on" data-persona="pm">Product</button>
@@ -572,12 +572,12 @@
   <div class="wrap">
     <div class="sec-head rise"><h2>How Cherry works</h2></div>
     <div class="steps">
-      <div class="step rise"><span class="n">01 / Gather</span><h3>Reads the web</h3><p>Reviews, forums, Reddit, social, news — Cherry searches the open internet and keeps the source link for every issue.</p></div>
-      <div class="step rise"><span class="n">02 / Read</span><h3>Tagged &amp; clustered</h3><p>It names each theme and groups the hundred ways people describe one problem into a single issue.</p></div>
-      <div class="step rise"><span class="n">03 / Rank</span><h3>By signal</h3><p>Severity and prevalence combine into one score, so the top of the list is genuinely the top.</p></div>
-      <div class="step rise"><span class="n">04 / Learn</span><h3>You correct, it adapts</h3><p>Disagree with a call? Tell Cherry, and it re-ranks with your judgment — sharper every pass.</p></div>
+      <div class="step rise"><span class="n">01 / Gather</span><h3>Reads the web</h3><p>Cherry searches reviews, forums, Reddit, social posts and news, and keeps a source link for every issue.</p></div>
+      <div class="step rise"><span class="n">02 / Read</span><h3>Groups the duplicates</h3><p>People describe the same problem a hundred different ways. Cherry names each theme and merges them into one issue.</p></div>
+      <div class="step rise"><span class="n">03 / Rank</span><h3>Ranks by signal</h3><p>How severe an issue is and how many people report it combine into one score, which sets the order of the list.</p></div>
+      <div class="step rise"><span class="n">04 / Learn</span><h3>You correct, it adapts</h3><p>If you disagree with a call, tell Cherry. It re-ranks using your correction and remembers it for next time.</p></div>
     </div>
-    <p class="pipe-lead rise">Under the hood: the same journey in eight stages, ending where it starts.</p>
+    <p class="pipe-lead rise">The same process in eight stages. The last stage feeds back into the first.</p>
     <div class="pipe-card rise">
 <svg viewBox="0 0 1160 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Eight-stage pipeline: raw feedback from many channels is normalized and enriched, deduplicated and clustered, mined for use case, problem, severity and evidence, ranked and routed, verified by a human, decided by product or research, and the loop closes with field and customer — generating new signal.">
   <defs>
@@ -621,7 +621,7 @@
   <text x="1079.0" y="50" text-anchor="middle" class="pp-t">CLOSE THE LOOP</text>
   <text x="1079.0" y="64" text-anchor="middle" class="pp-s">field + customer</text>
   <path d="M 1079.0 94 C 1079.0 132, 71.0 132, 71.0 98" fill="none" stroke="#8A7A66" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#pp-g)"/>
-  <text x="580" y="152" text-anchor="middle" class="pp-s">closing the loop generates new signal — the pipeline is a circle wearing a straight line's clothes</text>
+  <text x="580" y="152" text-anchor="middle" class="pp-s">closing the loop produces new feedback, which starts the next pass</text>
 </svg>
     </div>
   </div>
@@ -630,10 +630,10 @@
 <section class="connects" id="connects">
   <div class="wrap">
     <div class="sec-head rise"><h2>Where Cherry connects</h2></div>
-    <p class="cx-lead">Cherry is the synthesis layer — it pulls signal from where customers already speak, and pushes work to where teams already act. It connects to systems of record; it doesn't try to replace them.</p>
+    <p class="cx-lead">Cherry sits between the places customers talk and the places teams work. It pulls feedback in from tools you already use and sends work out to the ones where your teams track it. It doesn't replace any of them.</p>
     <div class="cx-flow rise">
       <div class="cx-group">
-        <span class="cx-glab">Intake — signal in</span>
+        <span class="cx-glab">Feedback in</span>
         <div class="cx-chips">
           <span class="cx-chip">Slack</span>
           <span class="cx-chip">Gong</span>
@@ -645,19 +645,19 @@
       <span class="cx-node">Cherry</span>
       <span class="cx-arrow" aria-hidden="true">&rarr;</span>
       <div class="cx-group">
-        <span class="cx-glab">Route &amp; close — work out</span>
+        <span class="cx-glab">Work out</span>
         <div class="cx-chips">
           <span class="cx-chip live">Slack</span>
           <span class="cx-chip">Linear / Jira</span>
         </div>
       </div>
     </div>
-    <p class="cx-foot"><b>&#9679; Live today: Slack routing.</b> The rest is the integration design — each intake source is a thin adapter into the same triage core, and issue status flows back from the linked work item, so there's no manual documentation tax.</p>
+    <p class="cx-foot"><b>&#9679; Live today: Slack routing.</b> The rest is designed but not built yet. Each source gets a small adapter into the same triage core, and issue status syncs back from the linked ticket, so nobody has to update it by hand.</p>
 
     <a class="scale-cta rise" href="scale.html">
-      <span class="sc-kicker">The honest part · v1 &rarr; v2</span>
-      <span class="sc-title">Where Cherry breaks at scale — and what v2 does about it &rarr;</span>
-      <span class="sc-sub">Ten break&rarr;fix cards: who wins when two reviewers disagree, cost guards that survive a cold start, staged prompt rollout, contract-driven data permissions, and the operability floor. A demo that knows where it breaks is halfway to a platform.</span>
+      <span class="sc-kicker">Scaling notes · v1 &rarr; v2</span>
+      <span class="sc-title">Where Cherry breaks at scale, and what v2 changes &rarr;</span>
+      <span class="sc-sub">Ten breaks and their fixes, including what happens when two reviewers disagree, cost limits that survive a server restart, staged prompt rollouts, data permissions set by contract, and what it takes for someone else to run it.</span>
     </a>
   </div>
 </section>
@@ -665,7 +665,7 @@
 <section class="mkt" id="theory">
   <div class="wrap">
     <div class="sec-head rise"><h2>The operating theory</h2></div>
-    <p class="cx-lead">Feedback systems obsess over intake, but the question that decides whether one is useful sits on the exit side: who reads the mail, and what does each reader need? Cherry's answer, drawn — five sources with their biases, three jobs in the middle, five different cuts on the way out, and the return arrows that make it a loop instead of a funnel.</p>
+    <p class="cx-lead">Most feedback tools focus on collecting feedback. Whether one is useful depends on the other end: who reads the output, and what each reader needs. The diagram shows Cherry's answer: five sources, each with its own bias; three jobs in the middle; five different views on the way out; and the return arrows that turn it into a loop.</p>
     <div class="theory-card rise">
 <svg viewBox="0 0 700 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Feedback flows from five sources into a triage core that screens, classifies, and weighs it, then out to five teams, each with its own goal and presentation; users feed the sources and receive closure; capability signals cross a permission gate into model development, whose improvements change the product and generate new signal." style="width:100%;height:auto;display:block;margin:2rem 0;">
   <defs>
@@ -782,9 +782,9 @@
   <text x="8" y="730" class="sm">new signal to the top. If any return arrow goes dark, the loop is dying and the metrics above will say so before people do.</text>
 </svg>
     </div>
-    <p class="cx-foot">Internal tools have product-market fit when teams can't make a decision without them. Cherry's bet is that feedback earns that seat by being cut per reader — "high-signal" is a property of the audience. <a class="theory-link" href="https://stephiedelpaggio.vercel.app/writing/who-is-feedback-for">Read the full essay &rarr;</a></p>
+    <p class="cx-foot">An internal tool has product-market fit when teams can't make decisions without it. Cherry's bet is that feedback gets there by being cut for each reader, because what counts as high-signal depends on who's reading. <a class="theory-link" href="https://stephiedelpaggio.vercel.app/writing/who-is-feedback-for">Read the full essay &rarr;</a></p>
     <div class="sec-head rise" style="margin-top:52px"><h2>Why a human stays in the loop</h2></div>
-    <p class="cx-lead">Cherry drafts every ticket and never sends one on its own. That's the design: the model does the repetitive first pass, a person makes the calls that need context the model was never given, and the system measures whether each correction genuinely helped — so tomorrow starts ahead of today.</p>
+    <p class="cx-lead">Cherry drafts every ticket but never sends one by itself. The model does the repetitive first pass, a person makes the calls that need context the model doesn't have, and Cherry measures whether each correction actually improved the next result.</p>
     <div class="theory-card rise">
 <svg viewBox="0 0 680 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Without correction: feedback to model to output, a straight line. With correction: the model proposes, a human edits, the edit is measured, and the improvement feeds back into the model's future behavior." style="width:100%;height:auto;display:block;margin:2rem 0;">
   <defs>
@@ -823,14 +823,14 @@
   <text x="400" y="216" text-anchor="middle" class="lp-sm" fill="#B01E36">what helped becomes tomorrow's behavior — prompts, retrieval, evals</text>
 </svg>
     </div>
-    <p class="cx-foot">The edit is a data point; the measurement is what turns it into learning. <a class="theory-link" href="https://stephiedelpaggio.vercel.app/writing/why-the-human-stays-in-the-loop">Read: why the human stays in the loop &rarr;</a></p>
+    <p class="cx-foot">A correction on its own is just a data point. Measuring its effect is what turns it into learning. <a class="theory-link" href="https://stephiedelpaggio.vercel.app/writing/why-the-human-stays-in-the-loop">Read: why the human stays in the loop &rarr;</a></p>
 
   </div>
 </section>
 
 <footer>
   <div class="wrap"><div class="foot">
-    <span class="tag">Pick the signal. Skip the pile.</span>
+    <span class="tag">Customer feedback triage, with a person in the loop</span>
     <span class="label">Studio Felix · built on the Anthropic API</span>
   </div></div>
 </footer>
@@ -925,10 +925,10 @@
   // ── Persona views: one triage, four cuts. Each audience acts on the SAME issues,
   // re-weighted for what they own — reusing the transparent signal weights, not a new score.
   const PERSONAS={
-    pm:{w:{sev:5,reach:3,rec:2},cap:'Product view — ranked by user pain and how widespread it is. Fixable gaps route to the owning team; deliberate tradeoffs go up to Leadership.'},
-    gtm:{w:{sev:2,reach:5,rec:4},cap:'GTM view — the most widespread and current issues to get ahead of in renewals, plus the wins worth leading with. Breadth and freshness over depth.'},
-    research:{w:{sev:4,reach:4,rec:3},cap:'Research view — genuine, systemic patterns worth studying. Low-authenticity noise is flagged (⚠) and weighted down.'},
-    support:{w:{sev:5,reach:2,rec:5},cap:'Support view — the sharpest, most current pain to respond to now and close the loop on. How badly it stings today matters more than how many hit it.'},
+    pm:{w:{sev:5,reach:3,rec:2},cap:'Product view: ranked by how much it hurts users and how widespread it is. Fixable gaps go to the owning team; deliberate tradeoffs go to leadership.'},
+    gtm:{w:{sev:2,reach:5,rec:4},cap:'GTM view: the most widespread, most recent issues to get ahead of before renewals, plus the strengths worth leading with.'},
+    research:{w:{sev:4,reach:4,rec:3},cap:'Research view: real, recurring patterns worth studying. Feedback that may not be genuine is flagged (⚠) and weighted down.'},
+    support:{w:{sev:5,reach:2,rec:5},cap:'Support view: the most painful current issues to respond to and follow up on. How badly something hurts today counts for more than how many people hit it.'},
   };
   let persona='pm';
   function syncPersona(){
@@ -936,7 +936,7 @@
     if(we)we.querySelectorAll('input[type=range]').forEach(r=>{r.value=weights[r.dataset.w];r.parentElement.querySelector('b').textContent=r.value;});
     document.querySelectorAll('#personas .pbtn').forEach(b=>b.classList.toggle('on',b.dataset.persona===persona));
     const cap=document.getElementById('pcap');
-    if(cap)cap.textContent=(persona&&PERSONAS[persona])?P.cap:'Custom weighting — your own definition of high-signal.';
+    if(cap)cap.textContent=(persona&&PERSONAS[persona])?P.cap:'Custom weighting: your own definition of high-signal.';
   }
   function setPersona(p){persona=p;weights={...PERSONAS[p].w};syncPersona();applyWeights();}
 
@@ -957,7 +957,7 @@
     const low=issues.map((it,i)=>({it,i,c:confidenceOf(it)})).filter(x=>confBand(x.it)==='low').sort((a,b)=>a.c-b.c);
     if(!low.length){el.classList.remove('on');el.innerHTML='';return;}
     const chips=low.map(x=>`<button class="rq-chip" data-idx="${x.i}">${esc(x.it.title||'issue')}</button>`).join('');
-    el.innerHTML=`<span class="rq-lbl">◆ Review first</span><span class="rq-txt">Cherry is least confident on ${low.length} issue${low.length>1?'s':''} — verify ${low.length>1?'these':'this'} before trusting ${low.length>1?'them':'it'}. Human judgment goes where it's scarce, not on the easy calls.</span><div class="rq-chips">${chips}</div>`;
+    el.innerHTML=`<span class="rq-lbl">◆ Review first</span><span class="rq-txt">Cherry is least confident on ${low.length} issue${low.length>1?'s':''}. Check ${low.length>1?'these':'this'} before relying on ${low.length>1?'them':'it'}; the confident calls need less of your time.</span><div class="rq-chips">${chips}</div>`;
     el.classList.add('on');
   }
 
@@ -969,7 +969,7 @@
     const caps=issues.filter(it=>it.signalType==='capability signal');
     if(!caps.length){el.classList.remove('on');el.innerHTML='';return;}
     const chips=caps.map(it=>`<span class="cs-chip"><b>${esc(it.title||'')}</b>${it.useCase?` · ${esc(it.useCase)}`:''}</span>`).join('');
-    el.innerHTML=`<span class="cs-lbl">◈ Capability signal → Research &amp; roadmap</span><span class="cs-txt">${caps.length} issue${caps.length>1?'s':''} point at a systemic capability gap, not a one-off fix — the pattern that should shape roadmap direction and, for an AI product, model-training priorities.</span><div class="cs-chips">${chips}</div>`;
+    el.innerHTML=`<span class="cs-lbl">◈ Capability signal → Research &amp; roadmap</span><span class="cs-txt">${caps.length} issue${caps.length>1?'s':''} point to a gap in what the product can do, rather than a one-off bug. Patterns like this should inform the roadmap and, for an AI product, model-training priorities.</span><div class="cs-chips">${chips}</div>`;
     el.classList.add('on');
   }
 
@@ -1007,7 +1007,7 @@
       const bars=rates.map(v=>`<i style="height:${Math.max(8,v)}%" title="${v}% corrected"></i>`).join('');
       spark=`<span class="lspark">${bars}</span><span class="lslab">${rates[0]}% \u2192 ${rates[rates.length-1]}% corrected</span>`;
     }
-    el.innerHTML=`<span class="ls-dot"></span><span class="lstext"><b>${n}</b> correction${n===1?'':'s'} remembered \u2014 Cherry applies them to new searches.</span>${spark}`;
+    el.innerHTML=`<span class="ls-dot"></span><span class="lstext"><b>${n}</b> correction${n===1?'':'s'} remembered. Cherry applies them to new searches.</span>${spark}`;
     el.classList.add('on');
   }
 
@@ -1048,8 +1048,8 @@
     }
     stopLoad();runBtn.disabled=false;
     if(!r){
-      errbox.textContent="Cherry couldn't finish that one — "+(lastErr&&lastErr.message?("("+lastErr.message+") "):"")
-        +"the response didn't come back cleanly. Give it another go, or try a more widely-reviewed product.";
+      errbox.textContent="Cherry couldn't finish that one "+(lastErr&&lastErr.message?("("+lastErr.message+") "):"")
+        +"because the response didn't come back cleanly. Try again, or try a more widely reviewed product.";
       errbox.classList.add('on');return;
     }
     render(r,name,!!(corr&&corr.length));
@@ -1088,7 +1088,7 @@
   function renderSourceMix(issues,internal){
     const el=document.getElementById('srcMix');
     if(internal){ // first-party pasted feedback — the representative kind
-      el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span><span class="sm-chip">your pasted feedback</span></div><div class="sm-good">First-party data — the most representative source there is, not the self-selected public web.</div>`;
+      el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span><span class="sm-chip">your pasted feedback</span></div><div class="sm-good">First-party data, so it's more representative than feedback people choose to post in public.</div>`;
       el.classList.add('on');return;
     }
     const counts={};let total=0,comp=0;
@@ -1100,7 +1100,7 @@
       .map(([l,n])=>`<span class="sm-chip ${classifySource({source:l}).complaint?'cmp':''}"><b>${n}</b>${esc(l)}</span>`).join('');
     const pct=Math.round(comp/total*100),skewed=comp/total>=0.5;
     el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Evidence base</span>${chips}</div>`+
-      (skewed?`<div class="sm-warn"><b>Reads more negative than reality.</b> ${pct}% of this evidence comes from complaint sites, where people mostly show up to vent — so treat the <em>severity</em> as real, but the <em>prevalence</em> as a ceiling, not an average. For a truer picture, triage your own support tickets or survey data (“Paste feedback”).</div>`:'');
+      (skewed?`<div class="sm-warn"><b>Reads more negative than reality.</b> ${pct}% of this evidence comes from complaint sites, where people mostly go to vent. Treat the <em>severity</em> as real, but read the <em>prevalence</em> as an upper limit rather than an average. For a more accurate picture, triage your own support tickets or survey data with “Paste feedback”.</div>`:'');
     el.classList.add('on');
   }
 
@@ -1115,7 +1115,7 @@
     const flagged=scored.filter(it=>+it.authenticity<=2);
     if(!flagged.length){el.classList.remove('on');el.innerHTML='';return;}
     const n=flagged.length,many=n>1;
-    el.innerHTML=`<div class="sm-warn bot"><b>Some of this may not be real people.</b> ${n} of ${scored.length} issue${scored.length>1?'s':''} lean${n>1?'':'s'} on feedback that reads as bot-written, fake, or astroturfed — templated or near-duplicate text, generic praise/outrage with no specifics, or reviews from anonymous, easily-gamed venues. Cherry has down-weighted ${many?'their':'its'} reach and prevalence, but treat ${many?'those issues':'that issue'} (tagged <em>⚠ maybe not genuine</em>) as a lead to verify, not a finding. First-party data — your own tickets or a verified-purchase survey — is the surest fix.</div>`;
+    el.innerHTML=`<div class="sm-warn bot"><b>Some of this may not be real people.</b> ${n} of ${scored.length} issue${scored.length>1?'s':''} lean${n>1?'':'s'} on feedback that looks bot-written, fake or coordinated: templated or near-duplicate text, generic praise or outrage with no specifics, or reviews from anonymous sites that are easy to game. Cherry has weighted ${many?'their':'its'} reach down, but treat ${many?'those issues':'that issue'} (tagged <em>⚠ maybe not genuine</em>) as something to check rather than a finding. Your own tickets or a verified-purchase survey are the most reliable fix.</div>`;
     el.classList.add('on');
   }
 
@@ -1131,7 +1131,7 @@
     const sChips=silent.map(s=>`<span class="sm-chip silent">${esc(s)}</span>`).join('');
     el.innerHTML=`<div class="sm-row"><span class="sm-lbl">Heard from</span>${hChips||'<span class="sm-chip">—</span>'}`+
       (silent.length?`<span class="sm-lbl" style="margin-left:12px">Silent</span>${sChips}`:'')+`</div>`+
-      (silent.length?`<div class="sm-good" style="color:#8A6712">Silence &ne; satisfaction — a segment with no voice in this evidence is a gap in the coverage, not proof they're happy.</div>`:'');
+      (silent.length?`<div class="sm-good" style="color:#8A6712">A segment missing from this evidence is a gap in coverage. It doesn't mean they're happy.</div>`:'');
     el.classList.add('on');
   }
 
@@ -1144,8 +1144,8 @@
     const msg=lvl==='unrestricted'
       ?`<b>Data terms: unrestricted.</b> Corrections on this triage may be remembered in this browser and reused to sharpen future triages.`
       :lvl==='analytics-only'
-      ?`<b>Data terms: analytics only.</b> Correction-rate metrics are kept; nothing from this feedback — including your corrections on it — is remembered or reused for learning.`
-      :`<b>Data terms: zero retention${chose?'':' (default-deny — no terms were specified, so Cherry assumes the most restrictive)'}.</b> Nothing from this triage persists: no learned corrections, no snapshots, not even the run counter. At enterprise scale these flags come from the contract via the CRM — enforced by the pipeline, not by someone re-reading an NDA.`;
+      ?`<b>Data terms: analytics only.</b> Correction-rate metrics are kept, but nothing from this feedback, including your corrections on it, is remembered or used for learning.`
+      :`<b>Data terms: zero retention${chose?'':' (no terms were specified, so Cherry defaults to the most restrictive)'}.</b> Nothing from this triage persists: no learned corrections, no snapshots, not even the run counter. At enterprise scale these flags would come from the contract via the CRM and be enforced by the pipeline automatically.`;
     el.innerHTML=`<div class="sm-lock">${msg}</div>`;
     el.classList.add('on');
   }
@@ -1193,7 +1193,7 @@
     // thin result as confident. Better to admit low confidence than to fabricate signal.
     const lc=document.getElementById('lowConf');
     if(r.found===false){
-      lc.innerHTML=`<b>Low confidence — read this as tentative.</b> Cherry couldn’t find enough recent, public feedback to triage <em>${esc(currentName)}</em> with confidence. There may be little out there, or most of it sits behind logins and app stores Cherry can’t read. Treat anything below as a lead to verify, not a finding.`;
+      lc.innerHTML=`<b>Low confidence: treat this as tentative.</b> Cherry couldn’t find enough recent, public feedback to triage <em>${esc(currentName)}</em> with confidence. There may be little out there, or most of it sits behind logins and app stores Cherry can’t read. Treat anything below as something to check rather than a finding.`;
       lc.classList.add('on');
     } else { lc.classList.remove('on'); lc.innerHTML=''; }
 
@@ -1387,7 +1387,7 @@
     weights[w.dataset.w]=+w.value;w.parentElement.querySelector('b').textContent=w.value;
     // Moving a slider by hand means you've left the preset — reflect that as a custom view.
     persona='';document.querySelectorAll('#personas .pbtn').forEach(b=>b.classList.remove('on'));
-    const cap=document.getElementById('pcap');if(cap)cap.textContent='Custom weighting — your own definition of high-signal.';
+    const cap=document.getElementById('pcap');if(cap)cap.textContent='Custom weighting: your own definition of high-signal.';
     applyWeights();
   });
   document.getElementById('wReset').addEventListener('click',()=>{setPersona('pm');});
