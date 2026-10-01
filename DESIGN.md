@@ -119,6 +119,8 @@ Never use soft/blurred drop shadows.
   (stacks under 640px); the targeted card gets a cherry shadow. "The rule" is a
   stamped Fraunces statement like "the point"; the autonomy ladder is drawn as
   a staircase, each rung indented further, the last with a stem shadow.
+  The footer sits on a 1.5px ink rule: a "Back to Cherry" link styled like the
+  index cards, a mono "Back to top" link, and the studio credit. No tagline.
  Fraunces italic tag line on the left, mono studio credit right.
 
 ## Motion
