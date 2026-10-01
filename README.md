@@ -27,6 +27,10 @@ with a human in the loop at every step and evals measuring quality.
 - **Human-in-the-loop & self-improving** — disagree with a call, tell Cherry what's
   off, and it re-ranks with your judgment as ground truth. Corrections persist and
   ride along into future queries; an on-page metric shows your *correction rate dropping*.
+- **Evidence review ledger** — review every cited source as supporting, irrelevant,
+  outdated, or needing verification; attach the rationale and a replacement record.
+  Excluded sources stop influencing confidence and reach, and the routed ticket carries
+  the compact, auditable reviewed-evidence summary.
 - **Routes the work** — a one-line digest (`3 Engineering · 1 Billing · 1 Legal`)
   reframes the list into who owns what; each issue's ticket is framed for that team,
   and tickets can be **sent straight to Slack**.

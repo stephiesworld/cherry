@@ -205,9 +205,32 @@
   .lifepill:hover{border-color:var(--cherry);color:var(--cherry);}
   .lifepill.on{background:var(--cherry);border-color:var(--line);color:#fff;}
   .ev{display:flex;flex-direction:column;gap:5px;margin-top:11px;}
-  .evi{font-size:12.5px;color:#5a4f50;line-height:1.4;}
+  .evi{font-size:12.5px;color:#5a4f50;line-height:1.4;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
   .evi a{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cherry);text-decoration:none;border-bottom:1px solid rgba(176,35,60,0.3);margin-right:2px;}
   .evi a:hover{border-color:var(--cherry);}
+  .evstatus{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1px solid var(--rule-strong);color:var(--muted);}
+  .evstatus.supports{color:var(--stem);border-color:var(--stem);}
+  .evstatus.needs-verification{color:#8A6712;border-color:#C99A3A;background:#FBF3E4;}
+  .evstatus.irrelevant,.evstatus.outdated{color:var(--cherry);border-color:var(--cherry);background:#FBECEF;}
+  .evidence-ledger{display:none;margin-top:12px;background:var(--panel);border:1px solid var(--rule-strong);border-radius:8px;padding:13px 14px;}
+  .evidence-ledger.on{display:block;}
+  .ledger-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:7px;}
+  .ledger-head b,.ledger-audit b{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);}
+  .ledger-summary{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;color:var(--stem);text-align:right;}
+  .ledger-intro{font-size:12.5px;line-height:1.45;color:#5a4f50;margin:0 0 10px;}
+  .ledger-row{border-top:1px solid var(--rule);padding:10px 0;}
+  .ledger-source{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--cherry);margin-bottom:5px;}
+  .ledger-quote{font-size:12px;color:#5a4f50;line-height:1.4;margin-bottom:8px;}
+  .ledger-fields{display:grid;grid-template-columns:minmax(135px,.7fr) minmax(180px,1.4fr) minmax(160px,1.1fr);gap:7px;}
+  .ledger-fields select,.ledger-fields input{width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--rule-strong);border-radius:4px;padding:7px 8px;font:12px 'Inter',sans-serif;color:var(--ink);}
+  .ledger-fields select{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.02em;}
+  .ledger-fields select:focus,.ledger-fields input:focus{outline:none;border-color:var(--cherry);}
+  .ledger-audit{border-top:1px solid var(--rule);padding-top:10px;margin-top:2px;}
+  .ledger-audit ul{margin:7px 0 0;padding-left:17px;font-size:11.5px;color:#5a4f50;line-height:1.45;}
+  .ledger-save{margin-top:11px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;background:var(--ink);border:0;border-radius:4px;padding:8px 11px;color:#fff;cursor:pointer;}
+  .ledger-save:hover{background:var(--cherry);}
+  .ledger-error{font-size:11.5px;color:var(--cherry);margin-left:8px;}
+  @media(max-width:650px){.ledger-fields{grid-template-columns:1fr;}.ledger-summary{text-align:left;}}
 
   /* phones: score becomes a row above the issue instead of a side column */
   @media(max-width:540px){
@@ -869,14 +892,14 @@
   const appliedNote=document.getElementById('appliedNote');
   const corrbar=document.getElementById('corrbar'),corrCount=document.getElementById('corrCount');
 
-  let currentName="", corrections=[], currentFeedback="", lastQuality=null, currentResult=null;
+  let currentName="", corrections=[], currentFeedback="", lastQuality=null, currentResult=null, openLedgerTitle="", newIssueTitles=new Set();
 
   // Legible signal: the score is a transparent weighted blend of three 1-5 axes
   // the reviewer can re-weight live, not one opaque number. Default leans on
   // severity, then reach, then recency.
   let weights={sev:5,reach:3,rec:2};
   function scoreOf(it){const w=weights,den=(w.sev+w.reach+w.rec)||1;
-    const s=(w.sev*(+it.severity||0)+w.reach*(+it.reach||0)+w.rec*(+it.recency||0))/den;
+    const s=(w.sev*(+it.severity||0)+w.reach*reachOf(it)+w.rec*(+it.recency||0))/den;
     return Math.round(s/5*100);}
   // Severity as tartness — the brand's sour/sweet read on how much an issue stings.
   function sour(sev){const s=+sev||0;
@@ -913,6 +936,104 @@
   const allowLearn=()=>dataLevel()==='unrestricted';
   const allowMetrics=()=>dataLevel()!=='zero-retention';
 
+  // Evidence review ledger: judgments are keyed to the issue and citation, then
+  // persisted only when the intake terms allow it. Unlike a free-form issue note,
+  // every source has an explicit, inspectable disposition and history.
+  const LEDGER_KEY='cherry.evidence-ledger.v1';
+  let evidenceLedgers=(()=>{try{return JSON.parse(localStorage.getItem(LEDGER_KEY))||{};}catch{return{};}})();
+  let sessionEvidenceLedgers={}; // zero-retention reviews stay isolated to this current session
+  const ledgerScope=(it)=>((currentName||'')+'::'+(it.title||'')).toLowerCase();
+  const evidenceKey=(ev)=>[ev.source||'',ev.url||'',ev.quote||''].join('|').toLowerCase();
+  const activeEvidenceLedgers=()=>allowLearn()?evidenceLedgers:sessionEvidenceLedgers;
+  const ledgerFor=(it)=>{const ledgers=activeEvidenceLedgers(),scope=ledgerScope(it);
+    return ledgers[scope]||(ledgers[scope]={sources:{},audit:[]});};
+  const evidenceReview=(it,ev)=>ledgerFor(it).sources[evidenceKey(ev)]||{};
+  const reviewStatuses=['supports','irrelevant','outdated','needs verification'];
+  const reviewLabel=(status)=>status==='needs verification'?'needs verification':status||'unreviewed';
+  const reviewClass=(status)=>String(status||'').replace(/\s+/g,'-');
+  const persistEvidenceLedger=()=>{if(allowLearn())try{localStorage.setItem(LEDGER_KEY,JSON.stringify(evidenceLedgers));}catch{}};
+  function evidenceStats(it){
+    const evidence=it.evidence||[];
+    let supports=0,verification=0,excluded=0,reviewed=0,usable=0;
+    evidence.forEach(ev=>{
+      const status=evidenceReview(it,ev).status||'';
+      if(status)reviewed++;
+      if(status==='irrelevant'||status==='outdated'){excluded++;return;}
+      if(status==='needs verification'){verification++;usable+=.5;return;}
+      if(status==='supports')supports++;
+      usable++;
+    });
+    return {total:evidence.length,supports,verification,excluded,reviewed,usable};
+  }
+  function reviewedEvidenceSummary(it){
+    const s=evidenceStats(it),parts=[];
+    if(s.supports)parts.push(`${s.supports} support${s.supports===1?'':'s'}`);
+    if(s.verification)parts.push(`${s.verification} verify`);
+    if(s.excluded)parts.push(`${s.excluded} excluded`);
+    if(!s.reviewed)return `Not reviewed · ${s.total} source${s.total===1?'':'s'}`;
+    return parts.join(' · ')||`All ${s.total} excluded`;
+  }
+  function reviewedEvidenceForDraft(it,includeDetails=true){
+    const ledger=ledgerFor(it), entries=(it.evidence||[]).map(ev=>{
+      const review=evidenceReview(it,ev);
+      return {source:ev.source||'source',url:ev.url||'',quote:ev.quote||'',status:review.status||'unreviewed',
+        rationale:includeDetails?review.rationale||'':'',replacement:includeDetails?review.replacement||'':''};
+    });
+    const stats=evidenceStats(it);
+    return {summary:reviewedEvidenceSummary(it),reviewed:stats.reviewed,supports:stats.supports,
+      needsVerification:stats.verification,excluded:stats.excluded,entries,audit:includeDetails?ledger.audit||[]:[]};
+  }
+  function ledgerStatusOptions(status){
+    return `<option value="">choose a decision</option>`+reviewStatuses.map(s=>
+      `<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('');
+  }
+  function ledgerEditor(it){
+    const ledger=ledgerFor(it), audit=(ledger.audit||[]).slice(-4).reverse();
+    const rows=(it.evidence||[]).map(ev=>{
+      const review=evidenceReview(it,ev), id=evidenceKey(ev);
+      return `<div class="ledger-row" data-evidence="${esc(id)}">
+        <div class="ledger-source">${esc(ev.source||'Source')}${ev.url?` · <a href="${esc(ev.url)}" target="_blank" rel="noopener">open</a>`:''}</div>
+        ${ev.quote?`<div class="ledger-quote">“${esc(ev.quote)}”</div>`:''}
+        <div class="ledger-fields">
+          <select data-ledger-field="status" aria-label="Evidence decision for ${esc(ev.source||'source')}">${ledgerStatusOptions(review.status||'')}</select>
+          <input data-ledger-field="rationale" maxlength="280" value="${esc(review.rationale||'')}" placeholder="Why? Short reviewer rationale" aria-label="Rationale for ${esc(ev.source||'source')}">
+          <input data-ledger-field="replacement" maxlength="300" value="${esc(review.replacement||'')}" placeholder="Replacement link or internal record" aria-label="Replacement link or internal record for ${esc(ev.source||'source')}">
+        </div>
+      </div>`;
+    }).join('');
+    const history=audit.length?`<div class="ledger-audit"><b>Audit trail</b><ul>${audit.map(a=>
+      `<li>${esc(reviewLabel(a.status))} · ${esc(a.source)}${a.rationale?` — ${esc(a.rationale)}`:''}${a.replacement?` · ${esc(a.replacement)}`:''}</li>`).join('')}</ul></div>`:'';
+    return `<div class="evidence-ledger ${openLedgerTitle===it.title?'on':''}" data-role="ledger">
+      <div class="ledger-head"><b>Evidence review ledger</b><span class="ledger-summary">${esc(reviewedEvidenceSummary(it))}</span></div>
+      <p class="ledger-intro">Mark what holds up. Irrelevant and outdated sources are excluded from confidence and reach until a reviewer restores them.</p>
+      ${rows}${history}<button class="ledger-save" data-act="save-ledger">Save evidence review</button><span class="ledger-error" data-role="ledger-error"></span>
+    </div>`;
+  }
+  function saveEvidenceReview(card,issue){
+    const ledger=ledgerFor(issue), error=card.querySelector('[data-role=ledger-error]');
+    const changes=[];
+    for(const row of card.querySelectorAll('.ledger-row')){
+      const id=row.dataset.evidence, status=(row.querySelector('[data-ledger-field=status]').value||'').trim();
+      const rationale=(row.querySelector('[data-ledger-field=rationale]').value||'').trim();
+      const replacement=(row.querySelector('[data-ledger-field=replacement]').value||'').trim();
+      if(!status)continue;
+      if(!rationale){error.textContent='Add a rationale for every decision.';row.querySelector('[data-ledger-field=rationale]').focus();return;}
+      const previous=ledger.sources[id]||{};
+      if(previous.status!==status||previous.rationale!==rationale||previous.replacement!==replacement)
+        changes.push({id,status,rationale,replacement});
+    }
+    if(!changes.length){error.textContent='No new evidence decisions to save.';return;}
+    changes.forEach(change=>{
+      const ev=(issue.evidence||[]).find(x=>evidenceKey(x)===change.id)||{};
+      const prior=ledger.sources[change.id]||{};
+      ledger.sources[change.id]={status:change.status,rationale:change.rationale,replacement:change.replacement,updatedAt:Date.now()};
+      ledger.audit.push({at:Date.now(),source:ev.source||'source',from:prior.status||'unreviewed',status:change.status,
+        rationale:change.rationale,replacement:change.replacement});
+    });
+    ledger.audit=ledger.audit.slice(-60);persistEvidenceLedger();openLedgerTitle=issue.title;
+    render(currentResult,currentName,false,{ledger:true});
+  }
+
   // Closing the loop: each issue carries a lifecycle status, persisted locally,
   // so you can see the path from customer signal to shipped outcome.
   const STATUS_KEY='cherry.status.v1';
@@ -946,10 +1067,16 @@
   function confidenceOf(it){
     let s=100; const auth=+it.authenticity||0;
     if(auth){ if(auth<=2)s-=45; else if(auth===3)s-=22; else if(auth===4)s-=6; }
-    const ev=(it.evidence||[]).length;
-    if(ev<=0)s-=32; else if(ev===1)s-=12;
+    const evidence=evidenceStats(it), ev=evidence.usable;
+    if(ev<=0)s-=40; else if(ev<1)s-=30; else if(ev<2)s-=12;
+    if(evidence.reviewed)s+=Math.min(6,evidence.supports*3)-evidence.verification*8;
     if(currentResult&&currentResult.found===false)s-=15;
     return Math.max(0,Math.min(100,s));
+  }
+  function reachOf(it){
+    const original=+it.reach||0, stats=evidenceStats(it);
+    if(!stats.total||!stats.excluded)return original;
+    return Math.max(0,Math.round(original*(stats.usable/stats.total)));
   }
   function confBand(it){const c=confidenceOf(it);return c>=72?'high':c>=48?'med':'low';}
   function renderReviewQueue(issues){
@@ -1181,7 +1308,7 @@
       <div class="q-improve"><b>Weakest: ${esc(data.weakest||'—')}.</b> ${esc(data.improve||'')}</div>`;
   }
 
-  function render(r,name,wasReranked){
+  function render(r,name,wasReranked,opts={}){
     currentName=r.product||name;currentResult=r;
     document.getElementById('resFor').textContent=currentName;
     document.getElementById('takeaway').textContent=r.takeaway||"";
@@ -1197,11 +1324,12 @@
       lc.classList.add('on');
     } else { lc.classList.remove('on'); lc.innerHTML=''; }
 
-    if(wasReranked){appliedNote.textContent="✓ Re-picked with your "+corrections.length+" correction"+(corrections.length>1?"s":"")+". Cherry kept your judgment.";appliedNote.classList.add('on');}
+    if(opts.ledger){appliedNote.textContent="✓ Reviewed evidence applied. Confidence and reach now reflect your source decisions.";appliedNote.classList.add('on');}
+    else if(wasReranked){appliedNote.textContent="✓ Re-picked with your "+corrections.length+" correction"+(corrections.length>1?"s":"")+". Cherry kept your judgment.";appliedNote.classList.add('on');}
     else{appliedNote.classList.remove('on');}
 
     // Fresh run resets to the Product persona; a correction/rerank keeps the view you're in.
-    if(!wasReranked){weights={sev:5,reach:3,rec:2};persona='pm';}
+    if(!wasReranked&&!opts.ledger){weights={sev:5,reach:3,rec:2};persona='pm';}
 
     const issues=(r.issues||[]).slice().sort((a,b)=>scoreOf(b)-scoreOf(a));
     window._cherryIssues=issues;
@@ -1210,13 +1338,16 @@
     renderCoverage(r.coverage);
     renderAuthenticity(issues);
     renderDataTerms();
-    if(allowMetrics()){
+    if(allowMetrics()&&!opts.ledger){
       thisRun={at:Date.now(),product:currentName,shown:issues.length,corrected:0};
       runs.push(thisRun);runs=runs.slice(-30);jset(RUN_KEY,runs);
-    } else { thisRun=null; }   // zero retention: not even the run counter persists
+    } else if(!opts.ledger) { thisRun=null; }   // zero retention: not even the run counter persists
     renderLearning();
     syncPersona();
-    const trend=computeTrend(issues,wasReranked), newSet=trend.newSet;
+    if(!opts.ledger){
+      const trend=computeTrend(issues,wasReranked);
+      newIssueTitles=new Set([...trend.newSet].map(i=>normTitle(issues[i]&&issues[i].title)));
+    }
     renderReviewQueue(issues);
     renderCapSig(issues);
     document.getElementById('issueList').innerHTML=issues.map((it,i)=>`
@@ -1224,10 +1355,10 @@
         <div class="rscore"><div class="nm">${scoreOf(it)}</div><div class="lb">signal</div>
           <div class="meter">
             <b title="severity ${it.severity??'?'} of 5"><i style="height:${Math.round((+it.severity||0)/5*100)}%"></i></b>
-            <b title="reach ${it.reach??'?'} of 5"><i style="height:${Math.round((+it.reach||0)/5*100)}%"></i></b>
+            <b title="reach ${reachOf(it)} of 5 after evidence review"><i style="height:${Math.round(reachOf(it)/5*100)}%"></i></b>
             <b title="recency ${it.recency??'?'} of 5"><i style="height:${Math.round((+it.recency||0)/5*100)}%"></i></b>
           </div>
-          <div class="mlab"><span>${it.severity??'?'}</span><span>${it.reach??'?'}</span><span>${it.recency??'?'}</span></div>
+          <div class="mlab"><span>${it.severity??'?'}</span><span>${reachOf(it)}</span><span>${it.recency??'?'}</span></div>
         </div>
         <div class="rbody">
           <h4>${esc(it.title||'')}</h4>
@@ -1242,10 +1373,11 @@
             ${it.revenueContext?`<span class="tg money" title="revenue at stake — aggregated across the accounts raising this issue; its own visible axis, never a hidden thumb on the scale">$ ${esc(it.revenueContext)}</span>`:''}
             ${it.reachBasis==='few amplified voices'?`<span class="tg amp" title="reach traces back to one or a few high-visibility voices being echoed — a leading indicator worth verifying against first-party data, not proof of breadth">◉ amplified — verify reach</span>`:''}
             ${(+it.authenticity>=1&&+it.authenticity<=2)?`<span class="tg auth" title="authenticity ${esc(String(it.authenticity))}/5 — some evidence here reads as bot, fake, or astroturfed; treat its reach with caution">⚠ maybe not genuine</span>`:''}
-            ${newSet.has(i)?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
+            ${newIssueTitles.has(normTitle(it.title))?`<span class="tg new" title="new since your last check for this product">▲ new</span>`:''}
             ${confBand(it)==='low'?`<span class="tg rev" title="Cherry is least confident here — verify before trusting">◆ review first</span>`:''}
           </div>
-          ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>`<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`).join('')+`</div>`:''}
+          ${(it.evidence&&it.evidence.length)?`<div class="ev">`+it.evidence.slice(0,3).map(ev=>{const review=evidenceReview(it,ev);return `<span class="evi"><a href="${esc(ev.url||'#')}" target="_blank" rel="noopener">${esc(ev.source||'source')}</a>${review.status?`<span class="evstatus ${reviewClass(review.status)}">${esc(reviewLabel(review.status))}</span>`:''}${ev.quote?` &mdash; “${esc(ev.quote)}”`:''}</span>`;}).join('')+`</div>`:''}
+          ${ledgerEditor(it)}
           <div class="life" data-role="life">
             <span class="life-lbl">stage</span>
             ${STATUSES.map(s=>`<button class="lifepill ${getStatus(it.title)===s?'on':''}" data-status="${s}">${s}</button>`).join('')}
@@ -1253,6 +1385,7 @@
           <div class="fb">
             <button class="fbtn ok" data-act="ok">Looks right</button>
             <button class="fbtn no" data-act="no">Not quite</button>
+            <button class="fbtn" data-act="ledger" aria-expanded="${openLedgerTitle===it.title?'true':'false'}">Review evidence</button>
             <span class="fbsep"></span>
             <span class="fblbl">Draft</span>
             <button class="fbtn draft" data-act="ticket" aria-label="Draft ticket">Ticket</button>
@@ -1276,7 +1409,7 @@
 
     results.classList.add('on');
     results.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
-    scoreQuality(r,wasReranked);   // grade synthesis quality (async, fills in after render)
+    if(!opts.ledger)scoreQuality(r,wasReranked);   // grade synthesis quality (async, fills in after render)
   }
 
   /* human-in-the-loop interactions (event delegation) */
@@ -1296,7 +1429,13 @@
     const card=e.target.closest('.rissue');const idx=+card.dataset.idx;
     const act=btn.dataset.act;const issue=(window._cherryIssues||[])[idx]||{};
     const state=card.querySelector('[data-role=state]');const editor=card.querySelector('[data-role=editor]');
-    if(act==="ok"){
+    if(act==="ledger"){
+      const ledger=card.querySelector('[data-role=ledger]');
+      const opening=!ledger.classList.contains('on');ledger.classList.toggle('on',opening);
+      openLedgerTitle=opening?issue.title:"";btn.setAttribute('aria-expanded',String(opening));
+    } else if(act==="save-ledger"){
+      saveEvidenceReview(card,issue);
+    } else if(act==="ok"){
       card.classList.add('confirmed');card.classList.remove('corrected');editor.classList.remove('on');
       card.querySelector('.fbtn.ok').classList.add('active');card.querySelector('.fbtn.no').classList.remove('active');
       state.textContent="confirmed";state.style.color="var(--stem)";
@@ -1339,13 +1478,16 @@
 
   async function draftIssue(idx,kind,card){
     const issue=(window._cherryIssues||[])[idx]||{};
+    // All drafts honor excluded sources. Only routed tickets receive a reviewer's
+    // rationale and replacement records; replies and updates get safe source context.
+    const issueWithReview={...issue,reviewedEvidence:reviewedEvidenceForDraft(issue,kind==='ticket')};
     const out=card.querySelector('[data-role=draftout]');
     out.style.display='block';
     const noun=kind==='ticket'?'ticket':kind==='update'?'customer update':'reply';
     out.innerHTML=`<div class="draft-load">Drafting the ${noun}\u2026</div>`;
     try{
       const resp=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({product:currentName,issue,kind})});
+        body:JSON.stringify({product:currentName,issue:issueWithReview,kind})});
       let data;try{data=await resp.json();}catch{throw new Error("the response didn't come back cleanly");}
       if(!resp.ok||data.error)throw new Error(data.error||("error "+resp.status));
       const lbl=kind==='ticket'?((issue.owner?esc(issue.owner)+' ':'')+'ticket'):kind==='update'?'Customer update':'Customer reply';
@@ -1401,7 +1543,7 @@
     if(!reduce){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
   });
 
-  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];refreshCorrbar();runCherry(n,[]);}
+  function go(){const n=(product.value||"").trim();if(!n){product.focus();return;}currentFeedback="";corrections=[];sessionEvidenceLedgers={};openLedgerTitle="";refreshCorrbar();runCherry(n,[]);}
   runBtn.addEventListener('click',go);
   product.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
   document.querySelectorAll('.examples a[data-ex]').forEach(a=>a.addEventListener('click',()=>{product.value=a.dataset.ex;go();}));
@@ -1419,12 +1561,12 @@
   function goFeedback(){
     const t=(feedbackInput.value||"").trim();
     if(t.length<40){feedbackInput.focus();return;}
-    currentFeedback=t;corrections=[];refreshCorrbar();runCherry("",[]);
+    currentFeedback=t;corrections=[];sessionEvidenceLedgers={};openLedgerTitle="";refreshCorrbar();runCherry("",[]);
   }
   document.getElementById('runFeedback').addEventListener('click',goFeedback);
   document.getElementById('againBtn').addEventListener('click',()=>{
     results.classList.remove('on');product.value="";currentFeedback="";feedbackInput.value="";setMode(false);
-    corrections=[];refreshCorrbar();product.focus();
+    corrections=[];sessionEvidenceLedgers={};openLedgerTitle="";refreshCorrbar();product.focus();
     document.getElementById('top').scrollIntoView({behavior:reduce?'auto':'smooth'});});
 
   if(!reduce){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:0.16});
