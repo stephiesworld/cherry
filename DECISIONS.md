@@ -1,320 +1,294 @@
 # Decision log
 
-A short record of the product decisions behind Cherry — the *why*, not just the
-*what*. Newest first.
+The product decisions behind Cherry and the reasons for them. Newest first.
 
 ---
 
-## 2026-07-08 · Three cuts deeper — persona views, a review queue, and trend
+## 2026-07-08 · Persona views, a review queue, and trends
 
-**Context.** Cherry already intakes, scores, routes, and closes the loop. The gaps left
-weren't about *more* triage — they were about *reach* (who the triage serves), *where human
-attention should go*, and *time* (is this getting better or worse?).
+**Context.** Cherry could already take in feedback, score it, route it and track
+it to done. What it lacked was about who the results serve, where people should
+spend their review time, and whether things are getting better or worse.
 
-**Trigger.** Re-reading the role: "one shared platform every team plugs into," "humans focus
-on verification and judgment, not triage," and health metrics like time-to-triage and signal
-quality. A single ranked list serves a PM well but under-serves GTM, Research, and Support —
-it treats every issue as equally worth a human's time, and every run as a fresh snapshot with
-no memory of last week.
+**What prompted it.** The role description talks about "one shared platform every
+team plugs into", "humans focus on verification and judgment, not triage", and
+health metrics like time-to-triage and signal quality. A single ranked list works
+for a PM but not as well for GTM, Research or Support. It also treats every issue
+as equally worth a person's time, and every run as a fresh snapshot with no memory
+of last week.
 
 **Decisions.**
 
-1. **Persona views — one triage, four cuts.** The same issues, re-weighted for who's acting:
-   Product ranks by user pain, GTM by breadth and freshness (what to get ahead of in renewals),
-   Support by how sharply it stings right now, Research by systemic, authentic signal. Crucially
-   this *reuses the transparent signal weights* instead of inventing a new hidden score — each
-   persona is a weighting preset with a plain-English caption, and you can still drag the sliders
-   to a custom cut. "High-signal" gets defined per audience, in the open.
+1. **Persona views: one triage, four weightings.** The same issues, re-weighted
+   for whoever is acting on them. Product ranks by user pain, GTM by breadth and
+   freshness (what to get ahead of before renewals), Support by how badly it hurts
+   right now, and Research by recurring, genuine patterns. Each persona is a preset
+   of the existing signal sliders with a one-line caption, not a new hidden score,
+   and you can still drag the sliders to make your own.
 
-2. **Active-learning review queue.** Cherry scores each issue's confidence (authenticity +
-   evidence density + overall thinness) and surfaces the *least* confident first — a "review
-   first" callout plus a per-card badge. It's triage of the triage: send scarce human judgment
-   to the shaky calls, not to re-checking the obvious ones. The human-in-the-loop model, pointed
-   at the issues where a human actually moves the needle.
+2. **A review queue for the least confident calls.** Cherry estimates its
+   confidence in each issue from authenticity, how much evidence there is, and how
+   thin the result is overall. The least confident issues get a "review first" note
+   and a badge on the card, so people spend their review time on the shaky calls
+   instead of re-checking the obvious ones.
 
-3. **Trend vs last check.** On a repeat run for a product, Cherry diffs against the last snapshot
-   and reports new / recurring / resolved, tags new issues, and names what's gone. Proportion over
-   time, not just a point-in-time list — the start of velocity.
+3. **Trend since the last check.** When you run the same product again, Cherry
+   compares the result with your previous one and reports which issues are new,
+   which recur and which have gone, and tags the new ones.
 
-**The honest tradeoff.** All three are client-side and honest about their limits. The
-review-queue confidence is a heuristic, not a calibrated probability. Trend compares *your own*
-prior result (stored locally), so it's real but single-user, single-machine — true cross-team
-velocity, regression alerts, and "spiking this week" at scale need the persistent store v2 would
-add (the same database the integration entry points to). I built the honest version rather than
-fake a dashboard of invented history.
-
-**What it demonstrates.** Treating the feedback loop as a product with *users* — four of them,
-each with a different job — deciding where automation earns a human's attention and where it
-doesn't, and measuring change over time. The operating instincts the role names, shipped as
-working software rather than described.
+**Tradeoffs.** All three run in the browser. The confidence score is a heuristic,
+not a calibrated probability. Trends compare against your own previous result
+stored locally, so they're real but limited to one person on one machine.
+Cross-team trends, regression alerts and "spiking this week" views need the
+shared store described in v2 (the same database the integration entry below needs).
+I built the limited version rather than fake a dashboard with invented history.
 
 ---
 
-## 2026-07-08 · Closing the loop for real — connect to systems of record, don't rebuild them
+## 2026-07-08 · Connect to existing systems instead of rebuilding them
 
-**Context.** Cherry's v1 is deliberately self-contained: it web-searches or takes pasted
-text, and "Send to Slack" is the one live integration. That's the right scope for a demo,
-but it raises the obvious production question — *where does this actually plug in?*
+**Context.** Cherry v1 is self-contained on purpose. It searches the web or takes
+pasted text, and "Send to Slack" is its one live integration. That's the right
+scope for a demo, but it leaves open where Cherry would plug in for real.
 
-**Trigger.** Two questions that a real deployment forces: (1) once an issue is routed to a
-team, how does its status get back to *shipped* without someone manually updating Cherry?
-(2) the richest customer signal isn't on the open web at all — it's in the company's own
-Slack, Gong calls, CRM, support tickets, and data warehouse. A tool that can't reach those
-is triaging the shallow end of the pool.
+**What prompted it.** Two questions any real deployment raises. First, once an
+issue is routed to a team, how does its status get back to *shipped* without
+someone updating Cherry by hand? Second, the best customer feedback usually isn't
+on the open web. It's in the company's own Slack, Gong calls, CRM, support tickets
+and data warehouse, and a tool that can't reach those only sees the surface.
 
-**The insight.** Cherry should be the **synthesis and judgment layer**, not another system
-of record teams have to maintain by hand. Every "update Cherry manually" step is a
-documentation tax that guarantees the data goes stale. The design principle: **pull signal
-*from* the systems where customers already speak, push work *to* the systems where teams
-already work, and let status flow *back* automatically.** Cherry sits in the middle and
-adds the one thing those systems don't — *which few things matter and why*.
+**Approach.** Cherry should be the layer that synthesizes and judges feedback, not
+another system teams have to keep up to date by hand. Any step that says "update
+Cherry manually" will be skipped and the data will go stale. So: pull feedback from
+the tools where customers already talk, push work to the tools where teams already
+work, and let status sync back automatically. Cherry adds the one thing those
+systems don't: which few issues matter and why.
 
-**Decision (the integration architecture).** Three connection surfaces, all thin adapters
-around the same triage core:
+**Decision.** Three kinds of connection, each a small adapter around the same
+triage core:
 
-1. **Intake connectors — pull signal from where it lives.** Beyond web search and paste:
-   - **Slack** — watch a `#feedback`/`#support` channel; new messages stream into intake.
-   - **Gong** — pull call transcripts so sales/CS voice-of-customer is triaged, not lost.
-   - **CRM (Salesforce/HubSpot)** — read opportunity-loss reasons and account notes.
-   - **Support (Zendesk/Intercom)** — the highest-authenticity first-party signal there is.
-   Each is a small adapter that normalizes its source into the same feedback shape the
-   triage already accepts — the core doesn't change, only the front door.
+1. **Intake connectors.** Beyond web search and paste:
+   - **Slack:** watch a `#feedback` or `#support` channel and stream new messages
+     into intake.
+   - **Gong:** pull call transcripts so what customers tell sales and CS gets
+     triaged.
+   - **CRM (Salesforce, HubSpot):** read loss reasons and account notes.
+   - **Support (Zendesk, Intercom):** first-party tickets, the most trustworthy
+     feedback available.
 
-2. **Status sync — no manual documentation tax.** When an issue is routed, Cherry files
-   the work item in the **system of record for engineering work (Linear/Jira)** and stores
-   the returned work-item ID against the issue. Status (`triaged → routed → shipped`) then
-   **flows automatically from that link** — Cherry reads the ticket's state; a human never
-   re-types it. Cherry does *not* read anyone's email or guess; it connects to the one
-   place work status is authoritative.
+   Each adapter converts its source into the format paste mode already accepts, so
+   the triage core doesn't change.
 
-3. **Warehouse sync — first-party signal at scale.** For volume beyond what a live call can
-   read, Cherry connects to the company's **data warehouse (Snowflake / BigQuery /
-   Databricks)**. The pattern is the scaling pattern: cheap SQL and coded rules shrink
-   millions of rows (reviews, tickets, NPS verbatims) to the slice that needs judgment, and
-   *that* slice goes to the model — never the raw millions. Triaged issues and their
-   lifecycle write **back** to the warehouse so they're queryable and trendable alongside
-   the rest of the business's data.
+2. **Status sync.** When an issue is routed, Cherry files a ticket in the team's
+   engineering tracker (Linear or Jira) and stores the ticket ID with the issue.
+   Status (`triaged → routed → shipped`) then comes from that ticket, so nobody
+   re-types it. Cherry reads status only from the tracker; it doesn't guess from
+   email or anything else.
 
-**The honest tradeoff.** None of this is wired in v1 — it's the architecture, not the
-build. Each connector is real engineering (auth, rate limits, schema mapping, a persistent
-store to replace localStorage). But the *shape* is deliberate and load-bearing: keeping
-the triage core source-agnostic (it already accepts normalized feedback via paste mode)
-means every one of these is an adapter, not a rewrite. The Slack routing that *is* live —
-and its graceful "not configured yet" handling — is the working proof of the pattern.
+3. **Warehouse sync.** For larger volumes, Cherry connects to the data warehouse
+   (Snowflake, BigQuery, Databricks). SQL and simple rules narrow millions of rows
+   (reviews, tickets, NPS comments) to the slice that needs judgment, and only that
+   slice goes to the model. Triaged issues and their status are written back to the
+   warehouse so they can be queried and tracked alongside the rest of the
+   company's data.
 
-**What it demonstrates.** Understanding that a feedback-loops tool's value is being the
-*connective synthesis layer* across a company's existing stack — meeting teams in Slack,
-Gong, the CRM, the warehouse, and Linear/Jira rather than asking them to adopt and hand-
-maintain yet another tool. That "integrate with the system of record, don't recreate it"
-instinct is the difference between a product ops function that scales and one that becomes
-a manual-update bottleneck.
+**Tradeoffs.** None of this is built in v1; it's the design. Each connector is
+real work: auth, rate limits, schema mapping, and a persistent store to replace
+localStorage. But because the triage core already accepts normalized feedback
+through paste mode, each connector is an adapter rather than a rewrite. The live
+Slack routing, including how it handles not being configured yet, shows the
+pattern working.
 
 ---
 
-## 2026-07-01 · Authenticity: is this feedback even from real people?
+## 2026-07-01 · Is this feedback from real people?
 
-**Context.** Cherry's web triage pulls "real customer feedback" from public review sites.
-But public reviews are gamed at scale — vendors buy 5-stars, competitors plant 1-stars,
-and review farms mass-produce text. If astroturf drives an issue, Cherry prioritizes a
-problem that doesn't exist.
+**Context.** Cherry's web triage uses public review sites as its source of
+customer feedback. Those sites get gamed: vendors buy 5-star reviews, competitors
+plant 1-star ones, and review farms produce text in bulk. If fake reviews drive an
+issue, Cherry ends up prioritizing a problem that doesn't exist.
 
-**Trigger.** The question "how do we ensure the feedback we've taken in isn't written by
-bots?" Selection bias (the prior entry) fixes *who shows up to complain*; it does nothing
-about *feedback that was never a real customer at all*.
+**What prompted it.** Someone asked how we know the feedback wasn't written by
+bots. The source-bias fix (next entry down) deals with which real people show up
+to complain. It does nothing about reviews that never came from a customer.
 
-**Options weighed.** (a) A separate classifier/API call per review — accurate but slow,
-costly, and another dependency for a no-DB portfolio tool. (b) Hard-block sources — too
-blunt; even gamed venues carry real complaints. (c) Fold it into synthesis: the model
-already reads every review, and LLMs are good at spotting templated/duplicate text,
-detail-free superlatives, and timing bursts.
+**Options considered.**
+- A separate classifier or API call per review. Accurate, but slow, expensive,
+  and another dependency for a portfolio tool with no database.
+- Blocking certain sources outright. Too blunt; even gamed sites carry real
+  complaints.
+- Handling it during synthesis. The model already reads every review, and models
+  are good at spotting templated or duplicate text, praise or outrage with no
+  details, and bursts of reviews at the same time.
 
-**Decision.** Extend the synthesis prompt, mirroring the source-bias pattern. The model
-scores each issue's **authenticity** 1-5, weights verified-provenance sources (App Store,
-Google Play, G2/Capterra, verified-purchase) over anonymous open-submission venues,
-**collapses** near-duplicate bot clusters to a single low-confidence mention, and refuses
-to let suspect signal inflate reach/prevalence/severity. The UI flags shaky issues
-(`⚠ maybe not genuine`) and warns when the triage leans on suspect signal; the eval gate
-now requires the field.
+**Decision.** Extend the synthesis prompt, the same way as for source bias. The
+model gives each issue an **authenticity** score from 1 to 5, trusts sources with
+verified purchases or accounts (App Store, Google Play, G2, Capterra) over
+anonymous ones, merges near-duplicate bot text into a single low-confidence
+mention, and doesn't let suspect reviews raise reach, prevalence or severity.
+Doubtful issues get a `⚠ maybe not genuine` tag, the page warns when the triage
+relies on suspect reviews, and the eval gate now requires the field.
 
-**The honest tradeoff.** This *reduces and surfaces* bot contamination — it doesn't
-guarantee zero. Model-judged authenticity is a heuristic, not proof. The strongest lever
-stays provenance and first-party data (your own tickets, verified-purchase surveys via
-"Paste feedback"), which the warning points users toward rather than pretending the open
-web is clean.
-
-**What it demonstrates.** Taking a trust question seriously enough to build a defensible,
-transparent answer — down-weight and disclose — instead of laundering scraped reviews as
-ground truth.
+**Tradeoffs.** This reduces bot contamination and makes it visible, but can't
+rule it out; the model's authenticity score is a judgment, not proof. The most
+reliable fix is still first-party data (your own tickets, or verified-purchase
+surveys via "Paste feedback"), and the warning points people there.
 
 ---
 
 ## 2026-06-30 · Source bias: the open web skews negative
 
-**Context.** Cherry's web triage searches public sources for real customer feedback.
+**Context.** Cherry's web triage searches public sources for customer feedback.
 
-**Trigger.** Reading a ChatGPT triage, most of the evidence came from Trustpilot and
-other complaint sites — which paints an overly negative picture. People don't post to
-Trustpilot after a good session; they go there to *vent*. So those venues are
-self-selected toward furious users (a J-shaped rating curve), and a product with
-hundreds of millions of mostly-happy users looks far worse there than it is.
+**What prompted it.** In a triage of ChatGPT, most of the evidence came from
+Trustpilot and similar complaint sites, which made the picture look worse than it
+is. People rarely post to Trustpilot after a good experience; they go there to
+vent. So those sites over-represent angry users (ratings cluster at the
+extremes), and a product with hundreds of millions of mostly happy users looks
+much worse there than it really is.
 
-**The insight.** Cherry is a *complaint-triage* tool, so some negativity is by design —
-but a complaint-skewed **source mix** corrupts the thing it tries hardest to get right:
-*how widespread is this, really?* An issue that's loud on Trustpilot but rare everywhere
-else gets an inflated `reach`/`prevalence`. The skew doesn't just make it negative; it
-makes its sense of *proportion* unreliable. (App Store reviews help — bigger pool, a star
-rating for context — but they carry their own biases, e.g. review-gating, so the answer
-is *diversity + transparency*, not swapping one biased source for another.) The truest
-read is first-party data — your own support/survey channels — which is exactly the
-"Paste feedback" mode and the thesis of the role this was built for.
+**Why it matters.** Cherry is built to triage complaints, so some negativity is
+expected. The problem is that a complaint-heavy mix of sources distorts the thing
+Cherry most needs to get right: how widespread an issue really is. An issue that's
+loud on Trustpilot and rare everywhere else gets inflated `reach` and
+`prevalence`. App Store reviews help, since the pool is bigger and there's a star
+rating for context, but they have their own biases (some apps only prompt happy
+users to review). So the answer is a mix of sources and being open about it, not
+swapping one biased source for another. The most accurate picture comes from
+first-party data, your own support and survey channels, which is what "Paste
+feedback" is for.
 
-**Decision.** Three fixes, attacking the bias at the input, the warning, and the display:
+**Decision.** Three changes, covering the input, a warning, and the display:
 
-1. **De-bias the prompt** — explicitly balance sources (App Store, Reddit, G2, press —
-   not just complaint aggregators) and calibrate `reach`/`prevalence` by likely base
-   rate, never by how loud a complaint is on a venting site.
-2. **A skew warning** — when the evidence is mostly complaint sites, Cherry says so:
-   *"Reads more negative than reality — X% from complaint sites; treat severity as real,
-   prevalence as a ceiling."*
-3. **Show the source mix** — an "evidence base" strip listing the platforms (complaint
-   sites flagged), so the bias is visible and you can discount it yourself. In paste
-   mode it instead affirms the data is first-party — the representative kind.
-
-**What it demonstrates.** Recognizing that *every public source is a self-selected slice*,
-and designing for representativeness instead of taking volume at face value, is the core
-of defining what "high-signal" means. The fix doesn't hide the bias — it surfaces it and
-calibrates around it.
+1. **Balance the prompt.** Ask for a spread of sources (App Store, Reddit, G2,
+   press, not just complaint sites), and estimate `reach` and `prevalence` from
+   likely base rates rather than from how loud a complaint is on a venting site.
+2. **Warn about skew.** When most of the evidence comes from complaint sites,
+   Cherry says so: *"Reads more negative than reality. X% of this evidence comes
+   from complaint sites. Treat the severity as real, but read the prevalence as an
+   upper limit."*
+3. **Show the sources.** An "evidence base" row lists the platforms used, with
+   complaint sites marked, so the bias is visible and you can discount it
+   yourself. In paste mode it says instead that the data is first-party.
 
 ---
 
-## 2026-06-30 · Routing: a primary owner *plus* stakeholders, not one team
+## 2026-06-30 · Routing: one owner plus stakeholders
 
-**Context.** Cherry routes every triaged issue to the team that should own it, and
-shows a "Routes to" digest so a PM can see who owns what at a glance. Each issue
-carried exactly one `owner`.
+**Context.** Cherry routes each issue to the team that should own it, and shows a
+"Routes to" summary so a PM can see who owns what. Each issue had exactly one
+`owner`.
 
-**Trigger.** Testing Adobe, Cherry routed *"predatory cancellation fees"* to
-**Leadership** and tagged it an *intentional tradeoff*. I tried "correcting" it to
-**Legal** — there's an active FTC lawsuit — and the synthesis-quality score
-*dropped* (4.4 → 4.2). That nudge sent me back to the real question: who actually
-owns this?
+**What prompted it.** Testing Adobe, Cherry routed *"predatory cancellation
+fees"* to **Leadership** and tagged it an *intentional tradeoff*. I tried
+correcting it to **Legal**, since there's an active FTC lawsuit, and the
+synthesis-quality score dropped from 4.4 to 4.2. That made me ask who actually
+owns this.
 
-**The insight.** It's both — but they own different things:
+**Why.** Both do, but they own different things:
 
-- **Legal** owns the *risk*: the lawsuit, compliance, exposure.
-- **Leadership** owns the *decision*: whether to change a profitable-but-hated
-  practice. Legal can't make that call — it's a business-model choice.
+- **Legal** owns the risk: the lawsuit, compliance, exposure.
+- **Leadership** owns the decision: whether to change a practice that's
+  profitable and widely hated. Legal can't make that call; it's a business-model
+  choice.
 
-Forcing a single owner made Cherry pick a side on a question that has two correct
-answers for two different jobs. That's a routing model that loses real org nuance.
+A single owner field forced Cherry to pick one of two correct answers to two
+different questions.
 
-**Decision.** Split routing into **a primary owner (who owns the fix or the
-decision) + 0–3 stakeholders (other teams who must be looped in).**
+**Decision.** Route each issue to **one primary owner (who owns the fix or the
+decision) plus 0–3 stakeholders (other teams who need to be kept informed).**
 
-- Cancellation fees → owner **Leadership**, stakeholder **Legal**.
-- A checkout bug → owner **Engineering**, stakeholder **Billing**.
+- Cancellation fees: owner **Leadership**, stakeholder **Legal**.
+- A checkout bug: owner **Engineering**, stakeholder **Billing**.
 
-**Why not just allow multiple owners?** Accountability blurs when everyone owns it.
-One owner *acts*; stakeholders are *consulted*. Keeping that line sharp is the
-whole point — the digest still answers "who owns the most," and the ticket still
-has one clear assignee.
+**Why not allow several owners?** When everyone owns something, nobody is
+accountable. One owner acts; stakeholders are consulted. The summary still shows
+who owns the most, and each ticket still has one assignee.
 
-**Result.** Routing now mirrors how decisions actually get made in an org. The
-drafted ticket lists stakeholders to loop in, and the quality gate (`evals/check.mjs`)
-enforces a valid owner-plus-stakeholders shape (stakeholders never repeat the owner).
-
-**What it demonstrates.** The tool surfaced a genuinely hard judgment call; a human
-caught that it was forcing a false binary (Legal *or* Leadership); and the system
-was changed to model reality — owner *and* stakeholders. Voice-of-customer routing
-with real org nuance, not "dump it on a team." It also shows the measured learning
-loop earning its keep: the quality score *dropping* on a bad correction is what
-pointed at the design flaw in the first place.
+**Result.** Routing now matches how decisions get made inside a company. Drafted
+tickets list the stakeholders to loop in, and the quality gate
+(`evals/check.mjs`) checks that each issue has a valid owner and that no
+stakeholder repeats the owner. It was the quality score dropping after a bad
+correction that pointed to the problem in the first place.
 
 ---
 
-## 2026-06-30 · The measured learning loop — proving "it gets better"
+## 2026-06-30 · Measuring whether corrections help
 
-**Context.** Cherry's pitch is "Claude proposes, you correct, the system improves."
-That was a claim with nothing behind it.
+**Context.** Cherry's premise is that Claude proposes, you correct, and the
+results improve. Nothing measured whether that was true.
 
-**Decision (first pass).** Add a second, independent Claude call — an *LLM-as-judge* —
-that grades each triage's synthesis quality (grounding, clustering, ranking, routing,
-actionability) 1–5 against a rubric. Show a scorecard; when the reviewer corrects and
-re-ranks, re-grade and show the delta.
+**First attempt.** Add a second, independent Claude call that grades each triage
+from 1 to 5 against a rubric (grounding, clustering, ranking, routing,
+actionability). Show the scores, and after a reviewer corrects and re-ranks,
+grade again and show the change.
 
-**The honest finding.** On a live before/after, the score went *down* (4.4 → 4.2)
-after a correction — not because the correction was bad, but because a correction
-re-ran the *entire* triage from scratch. The grader was comparing two different random
-drafts, not measuring the correction. The signal was swamped by regeneration noise.
+**What we found.** In a live before-and-after, the score went down after a
+correction, from 4.4 to 4.2. The correction wasn't bad. A correction re-ran the
+whole triage from scratch, so the grader was comparing two different drafts
+rather than measuring the correction. Regeneration noise drowned out the effect.
 
-**The fix.** *Revise-in-place*: a correction now applies the reviewer's judgment to the
-**existing** triage and changes only what's required (no re-search, no rewrite). The
-grade then reflects *only* the correction. Re-tested: fixing a genuinely mis-routed bug
-moved the score 2.0 → 2.8 (+0.8), cleanly — and it's faster, too.
+**Fix.** Corrections now revise the existing triage in place, changing only what
+the reviewer asked for, with no new search or rewrite. The grade then reflects
+just the correction. Re-tested: fixing a clearly mis-routed bug raised the score
+from 2.0 to 2.8, and it's faster too.
 
-**Why it matters.** This is the role's core — "closed-loop data that makes synthesis
-quality measurably improve." It's now a measured fact, not a claim. The honesty is
-load-bearing: the judge is independent, so the number only rises when a correction
-genuinely helps. I kept the down-result rather than re-rolling for a flattering
-screenshot — a measurement you can trust beats a demo that always flatters.
-
-**What it demonstrates.** Built an eval (LLM-as-judge), found it was noisy, diagnosed
-*why*, and fixed the measurement so it's both honest and reliable.
+**Why it matters.** The role asks for "closed-loop data that makes synthesis
+quality measurably improve", and this now measures it. Because the grader is
+independent, the score only goes up when a correction actually helps. I kept the
+result where the score went down rather than re-running for a better screenshot.
 
 ---
 
-## 2026-06-30 · Disposition — not every loud complaint is a bug to fix
+## 2026-06-30 · Disposition: not every complaint is a bug
 
-**Context.** Cherry ranks issues and routes them to a team. Implicitly, every issue
-read as "a thing to fix."
+**Context.** Cherry ranks issues and routes them to a team. Every issue read as
+something to fix.
 
-**Trigger.** Adobe's #1 complaint — predatory cancellation fees — was being framed as
-a fix-it ticket. But that's not a bug; it's an *intentional business decision*. Adobe's
-leadership knows about it and chose it. "Fix the cancellation fees" misframes the work.
+**What prompted it.** Adobe's top complaint, predatory cancellation fees, was
+being framed as a ticket to fix. It isn't a bug. It's a business decision Adobe's
+leadership knows about and made on purpose, so "fix the cancellation fees" gets
+the work wrong.
 
-**The insight.** A feedback system has to tell apart two very different things:
+**Why.** A feedback tool needs to tell two kinds of issue apart:
 
-- a **fixable gap** — a bug or missing feature the team would want to close, and
-- an **intentional tradeoff** — a deliberate choice customers hate but the company made
-  on purpose (aggressive pricing, dark patterns).
+- a **fixable gap:** a bug or missing feature the team would want to close, and
+- an **intentional tradeoff:** a deliberate choice customers dislike but the
+  company made on purpose, such as aggressive pricing or dark patterns.
 
-They need different actions and different owners. A gap → a fix, routed to the team. A
-tradeoff → a strategy/risk call, routed to Leadership/Legal, not a "fix it" ticket for
-whoever built it.
+They need different actions and different owners. A gap becomes a fix for the
+owning team. A tradeoff becomes a strategy or risk decision for Leadership or
+Legal, not a ticket for whoever built the feature.
 
-**Decision.** Make disposition a first-class field — `fixable gap` | `intentional
-tradeoff` — shown as a badge that drives both the action framing and the routing.
+**Decision.** Add disposition as its own field, `fixable gap` or `intentional
+tradeoff`, shown as a badge that sets both how the action is worded and where the
+issue is routed.
 
-**Result.** Verified live: cancellation fees → *intentional tradeoff* → Leadership with
-an FTC-framed action ("review the ETF policy"), while crashes → *fixable gap* →
-Engineering.
-
-**What it demonstrates.** Defining what "actionable" even *means* — the difference
-between a fix and a strategic tension — is exactly the judgment voice-of-customer work
-requires. It came from questioning the tool's framing, not accepting it.
+**Result.** Checked live: cancellation fees come out as an *intentional
+tradeoff* routed to Leadership, with an FTC-related action ("review the ETF
+policy"), while crashes come out as a *fixable gap* routed to Engineering.
 
 ---
 
-## 2026-06-30 · 3 vs 5 web searches — depth vs reliability under a real constraint
+## 2026-06-30 · Three web searches instead of five
 
-**Context.** Each triage lets Claude run web searches to find real feedback. More
-searches = deeper coverage, but each adds ~10–15s, and the free hosting tier kills any
-request past 60s.
+**Context.** Each triage lets Claude run web searches to find feedback. More
+searches give deeper coverage, but each adds about 10–15 seconds, and the free
+hosting tier stops any request that runs past 60 seconds.
 
-**The data.** 5 searches blew past 60s and timed out. 3 lands ~38–40s with ~20s of
-headroom and still pulls feedback from 6+ platforms into a full, cited result. 4
-(~46–54s) occasionally brushed the limit and failed — the worst outcome for a demo.
+**Measurements.** Five searches went past 60 seconds and timed out. Three finish in
+about 38–40 seconds, leaving around 20 seconds of headroom, and still pull feedback
+from six or more platforms into a full result with sources. Four (about 46–54
+seconds) sometimes hit the limit and failed, which is the worst outcome for a demo.
 
-**Decision.** Default to **3**. A triage that *always* returns in ~40s beats one that's
-marginally deeper but sometimes fails in front of a hiring manager. The count is an env
-var, so it's one flip to 5 on a paid tier (300s limit) — no code change.
+**Decision.** Default to **3**. A triage that always returns in about 40 seconds
+is better than a slightly deeper one that sometimes fails in front of a hiring
+manager. The count is an environment variable, so switching to 5 on a paid tier
+(300-second limit) needs no code change.
 
-**The honest tradeoff.** I measured what 5 would add: not *more* issues (the output caps
-at 5 either way), but slightly richer grounding and a marginally better shot at a quieter
-issue. The major issues surface in the first 1–3 searches regardless. So 3 captures what
-matters; the depth of 5 only pays off for thin-feedback products or a deep audit —
-exactly when you'd upgrade the tier anyway.
-
-**What it demonstrates.** Choosing the right operating point under a hard constraint,
-backed by real timing and quality data — and knowing precisely what the cheaper choice
-gives up, instead of guessing.
+**Tradeoffs.** Five searches don't produce more issues, since the output is capped
+at five either way. They give slightly richer sourcing and a slightly better chance
+of catching a quieter issue. The major issues show up in the first one to three
+searches regardless. So three covers what matters, and five only pays off for
+products with little feedback or for a deep audit, which is when you'd move to a
+paid tier anyway.
