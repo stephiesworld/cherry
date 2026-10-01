@@ -39,17 +39,3 @@ request, and merge to `main`.
 The repo is connected to Vercel. Merging to `main` redeploys the live site, and
 each pull request gets a preview deployment. `ANTHROPIC_API_KEY` is set in the
 Vercel project. All other settings are optional; the README lists them.
-
-## Known issue: web search returning no results
-
-Last seen around 2026-07-01 and not re-checked since, so confirm it before
-working on it.
-
-On the live site, the `web_search` tool returned no results, with the error
-"usage quota exhausted before any results". The likely cause was a web-search
-rate or billing limit on a new API account. `api/triage.js` shows the exact
-web-search `error_code` when this happens, so a live search will tell you
-whether it's still a problem.
-
-This is an account issue, not a code issue, so code changes won't fix it. Check
-the payment method and credit balance at console.anthropic.com first.
