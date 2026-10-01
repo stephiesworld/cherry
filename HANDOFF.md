@@ -1,42 +1,55 @@
-# Handoff — Cherry (Studio Felix)
+# Handoff: Cherry (Studio Felix)
 
-Cherry is a live customer-feedback triage tool for an Anthropic job application:
-type a product → it web-searches public reviews (G2, Reddit, app stores,
-Trustpilot) → returns the top 5 issues ranked by signal, each grounded in a
-cited source URL, plus "what they love" and recommended next steps.
-Human-in-the-loop corrections re-rank it; it's self-improving (corrections
-persist in localStorage and feed back into future searches, with a
-correction-rate metric) and it drafts a ticket/customer reply per issue.
+Notes for whoever picks up Cherry next, whether that's a person or a new coding
+session.
 
-## Architecture
-- Static `index.html` (Studio Felix design)
-- Two Vercel serverless functions:
-  - `api/triage.js` — Claude + `web_search`, holds `ANTHROPIC_API_KEY` server-side
-  - `api/draft.js`
-- Model `claude-opus-4-8`, `web_search_20260209`
-- `evals/check.mjs` is a quality gate
+## What it is
 
-**The latest `cherry.zip` is the source of truth — reconcile this repo to it.**
+Cherry is a customer-feedback triage tool, built as part of an Anthropic job
+application. You type a product name, it searches public reviews (G2, Reddit,
+app stores, Trustpilot), and it returns the top five issues ranked by signal,
+each with links to its sources, plus what customers like and suggested next
+steps. You can also paste your own feedback instead of searching.
 
-## Deploy
-This repo is connected to Vercel; pushing to `main` auto-redeploys.
-`ANTHROPIC_API_KEY` is set in Vercel.
+Reviewers can correct any issue and Cherry re-ranks with the correction.
+Corrections are saved in the browser and sent with later searches, and the page
+tracks how often you correct it. For each issue it can draft a ticket, a
+customer reply or a "you said, we did" update.
 
-## Current blocker
-On the live site the `web_search` tool returns no results ("usage quota
-exhausted before any results") — suspected new-account web-search
-rate/billing limit. `api/triage.js` already has a diagnostic that surfaces
-the exact web-search `error_code`.
+## How it's built
 
-## Task for the new session
-1. Reconcile this repo to the attached zip and **push directly to `main`** so
-   Vercel redeploys — don't hand back zips.
-2. Help get web search working (likely an account billing/tier thing — guide
-   through it).
+- `index.html`: the app, a static page with no build step.
+- `scale.html`: scaling notes, where v1 breaks at scale and what v2 would change.
+- Four Vercel serverless functions in `api/`:
+  - `triage.js`: calls Claude with the `web_search` tool (`web_search_20250305`).
+    It holds `ANTHROPIC_API_KEY`, which never reaches the browser.
+  - `draft.js`: tickets, replies and updates.
+  - `route.js`: sends a drafted ticket to Slack.
+  - `judge.js`: grades a result for the "Synthesis quality" card.
+- Model: `claude-sonnet-4-6` by default, set with `CHERRY_MODEL`. It fits the
+  free tier's 60-second limit; use `claude-opus-4-8` on Vercel Pro.
+- Evals: `evals/check.mjs` runs in CI on pushes to `main` and on pull requests.
+  `classify.mjs` and `judge.mjs` are run by hand. See the README.
 
-## ⚠️ Important heads-up
-The new session fixes the "stop making me upload zips" problem — but it
-**won't** fix the web-search error by itself, because that's an
-**account/billing** issue, not a code issue. Still do the **billing check**
-(payment method + credit at console.anthropic.com) — that's the actual thing
-standing between you and a working live demo right now.
+The GitHub repo is the source of truth. Make changes on a branch, open a pull
+request, and merge to `main`.
+
+## Deploying
+
+The repo is connected to Vercel. Merging to `main` redeploys the live site, and
+each pull request gets a preview deployment. `ANTHROPIC_API_KEY` is set in the
+Vercel project. All other settings are optional; the README lists them.
+
+## Known issue: web search returning no results
+
+Last seen around 2026-07-01 and not re-checked since, so confirm it before
+working on it.
+
+On the live site, the `web_search` tool returned no results, with the error
+"usage quota exhausted before any results". The likely cause was a web-search
+rate or billing limit on a new API account. `api/triage.js` shows the exact
+web-search `error_code` when this happens, so a live search will tell you
+whether it's still a problem.
+
+This is an account issue, not a code issue, so code changes won't fix it. Check
+the payment method and credit balance at console.anthropic.com first.
